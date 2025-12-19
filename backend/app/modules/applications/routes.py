@@ -108,3 +108,107 @@ def get_my_applications(
     
     return applications
 
+
+@router.get("/", response_model=List[schemas.ApplicationResponse])
+def get_all_applications(
+    skip: int = 0,
+    limit: int = 100,
+    job_id: Optional[int] = None,
+    user_id: Optional[int] = None,
+    status: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all applications (admin/manager only)"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(status_code=403, detail="Only admins and managers can access all applications")
+    
+    query = db.query(JobApplication)
+    
+    # Apply filters
+    if job_id:
+        query = query.filter(JobApplication.job_id == job_id)
+    if user_id:
+        query = query.filter(JobApplication.user_id == user_id)
+    if status:
+        query = query.filter(JobApplication.status == status)
+    
+    applications = query.order_by(JobApplication.created_at.desc()).offset(skip).limit(limit).all()
+    return applications
+
+
+@router.get("/{application_id}", response_model=schemas.ApplicationResponse)
+def get_application(
+    application_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get application by ID"""
+    application = db.query(JobApplication).filter(JobApplication.id == application_id).first()
+    
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Check permissions
+    if current_user.role == UserRole.RECRUITER:
+        # Recruiters can only view applications for their jobs
+        if not current_user.managed_spa_id:
+            raise HTTPException(status_code=403, detail="You don't have a managed SPA")
+        job = db.query(Job).filter(Job.id == application.job_id).first()
+        if not job or job.spa_id != current_user.managed_spa_id:
+            raise HTTPException(status_code=403, detail="You don't have permission to view this application")
+    
+    return application
+
+
+@router.put("/{application_id}", response_model=schemas.ApplicationResponse)
+def update_application(
+    application_id: int,
+    update_data: schemas.ApplicationUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update application (status, etc.)"""
+    application = db.query(JobApplication).filter(JobApplication.id == application_id).first()
+    
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Check permissions
+    if current_user.role == UserRole.RECRUITER:
+        # Recruiters can only update applications for their jobs
+        if not current_user.managed_spa_id:
+            raise HTTPException(status_code=403, detail="You don't have a managed SPA")
+        job = db.query(Job).filter(Job.id == application.job_id).first()
+        if not job or job.spa_id != current_user.managed_spa_id:
+            raise HTTPException(status_code=403, detail="You don't have permission to update this application")
+    
+    # Update fields
+    update_dict = update_data.dict(exclude_unset=True)
+    for field, value in update_dict.items():
+        setattr(application, field, value)
+    
+    db.commit()
+    db.refresh(application)
+    return application
+
+
+@router.delete("/{application_id}")
+def delete_application(
+    application_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete application (admin/manager only)"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(status_code=403, detail="Only admins and managers can delete applications")
+    
+    application = db.query(JobApplication).filter(JobApplication.id == application_id).first()
+    
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    db.delete(application)
+    db.commit()
+    return {"message": "Application deleted successfully"}
+

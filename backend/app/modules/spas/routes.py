@@ -112,7 +112,7 @@ async def create_spa(
     area_id: Optional[int] = Form(None),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
-    banner_image: Optional[UploadFile] = File(None),
+    logo_image: Optional[UploadFile] = File(None),
     images: List[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -127,13 +127,13 @@ async def create_spa(
     if is_recruiter and current_user.managed_spa_id is not None:
         raise HTTPException(status_code=400, detail="Recruiter can only manage one SPA. Please update your existing SPA instead.")
     
-    # Save banner image
-    banner_image_path = None
-    if banner_image:
+    # Save logo image
+    logo_image_path = None
+    if logo_image:
         try:
-            banner_image_path = await save_image_file(banner_image, subfolder="spas")
+            logo_image_path = await save_image_file(logo_image, subfolder="spas")
         except Exception as e:
-            print(f"Error saving banner image: {e}")
+            print(f"Error saving logo image: {e}")
     
     # Save uploaded images
     spa_images = []
@@ -177,7 +177,7 @@ async def create_spa(
         description=clean_optional(description),
         phone=phone,
         email=email,
-        banner_image=banner_image_path,
+        logo_image=logo_image_path,
         address=clean_optional(address),
         website=clean_optional(website),
         directions=clean_optional(directions),
@@ -223,7 +223,7 @@ async def update_spa(
     is_active: Optional[bool] = Form(None),
     is_verified: Optional[bool] = Form(None),
     existing_images: Optional[str] = Form(None),  # JSON string of existing image paths to keep
-    banner_image: Optional[UploadFile] = File(None),
+    logo_image: Optional[UploadFile] = File(None),
     images: List[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -243,13 +243,13 @@ async def update_spa(
         if current_user.managed_spa_id != spa_id:
             raise HTTPException(status_code=403, detail="You can only update your own SPA")
     
-    # Handle banner image upload
-    banner_image_path = spa.banner_image  # Keep existing if not updated
-    if banner_image:
+    # Handle logo image upload
+    logo_image_path = spa.logo_image  # Keep existing if not updated
+    if logo_image:
         try:
-            banner_image_path = await save_image_file(banner_image, subfolder="spas")
+            logo_image_path = await save_image_file(logo_image, subfolder="spas")
         except Exception as e:
-            print(f"Error saving banner image: {e}")
+            print(f"Error saving logo image: {e}")
     
     # Handle image uploads
     # If existing_images is provided (even as empty string or empty array), use that list
@@ -315,8 +315,8 @@ async def update_spa(
         update_dict['phone'] = clean_optional(phone)
     if email is not None:
         update_dict['email'] = clean_optional(email)
-    if banner_image_path is not None:
-        update_dict['banner_image'] = banner_image_path
+    if logo_image_path is not None:
+        update_dict['logo_image'] = logo_image_path
     if address is not None:
         update_dict['address'] = clean_optional(address)
     if website is not None:

@@ -41,8 +41,8 @@ export default function CreateSpaPage() {
     latitude: '',
     longitude: '',
   });
-  const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+  const [logoImage, setLogoImage] = useState<File | null>(null);
+  const [logoImagePreview, setLogoImagePreview] = useState<string | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
@@ -87,13 +87,13 @@ export default function CreateSpaPage() {
     }));
   };
 
-  const handleBannerImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setBannerImage(file);
+      setLogoImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBannerImagePreview(reader.result as string);
+        setLogoImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -158,7 +158,7 @@ export default function CreateSpaPage() {
       if (formData.area_id) data.append('area_id', formData.area_id);
       if (formData.latitude) data.append('latitude', formData.latitude);
       if (formData.longitude) data.append('longitude', formData.longitude);
-      if (bannerImage) data.append('banner_image', bannerImage);
+      if (logoImage) data.append('logo_image', logoImage);
 
       images.forEach((image) => {
         data.append('images', image);
@@ -504,15 +504,15 @@ export default function CreateSpaPage() {
               </div>
 
               <div>
-                <label htmlFor="banner_image" className="block text-sm font-medium text-gray-700 mb-2">
-                  Banner Image (Recommended: 1920x600px, Max 10MB, JPG, PNG, WebP)
+                <label htmlFor="logo_image" className="block text-sm font-medium text-gray-700 mb-2">
+                  Logo Image (Recommended: 500x500px, Max 10MB, JPG, PNG, WebP)
                 </label>
                 <input
                   type="file"
-                  id="banner_image"
-                  name="banner_image"
+                  id="logo_image"
+                  name="logo_image"
                   accept=".jpg,.jpeg,.png,.webp"
-                  onChange={handleBannerImageChange}
+                  onChange={handleLogoImageChange}
                   className="block w-full text-sm text-gray-500
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-md file:border-0
@@ -520,9 +520,9 @@ export default function CreateSpaPage() {
                     file:bg-primary-50 file:text-primary-700
                     hover:file:bg-primary-100"
                 />
-                {bannerImagePreview && (
+                {logoImagePreview && (
                   <div className="mt-4">
-                    <img src={bannerImagePreview} alt="Banner preview" className="w-full h-48 object-cover rounded-md border border-gray-300" />
+                    <img src={logoImagePreview} alt="Logo preview" className="w-full h-48 object-cover rounded-md border border-gray-300" />
                   </div>
                 )}
               </div>

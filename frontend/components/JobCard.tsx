@@ -85,8 +85,8 @@ export default function JobCard({
     return months === 1 ? '1 month ago' : `${months} months ago`;
   };
 
-  // Format location display
-  const displayLocation = location || 'Location not specified';
+  // Format location display - only show if we have a valid location (city or area)
+  const displayLocation = location && location !== 'Location not specified' ? location : null;
 
   return (
     <Link href={`/jobs/${slug}`} className="block">
@@ -139,6 +139,8 @@ export default function JobCard({
                       <span>{formatExperience()}</span>
                     </div>
                   )}
+
+
                   {displayLocation && (
                     <div className="flex items-center gap-1.5">
                       <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

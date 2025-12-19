@@ -57,17 +57,33 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!validTypes.includes(file.type)) {
-        setError('Please upload a PDF or DOC/DOCX file');
+      // Validate file type - PDF, DOC, DOCX, and Images
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp'
+      ];
+      
+      // Also check by extension as a fallback (some browsers may not set MIME type correctly)
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
+      
+      if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension || '')) {
+        setError('Please upload a PDF, DOC, DOCX, or image file (JPG, PNG, GIF, WEBP)');
         return;
       }
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('File size must be less than 5MB');
+      
+      // Validate file size (10MB max to match backend)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB');
         return;
       }
+      
       setCvFile(file);
       setCvFileName(file.name);
       setError(null);
@@ -377,7 +393,7 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Resume/CV</h3>
                   <div>
                     <label htmlFor="cv_file" className="block text-sm font-medium text-gray-700 mb-2">
-                      Resume (PDF, DOC, DOCX)
+                      Resume/CV (PDF, DOC, DOCX, or Image)
                     </label>
                     <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-400 transition-colors">
                       <div className="space-y-1 text-center">
@@ -391,14 +407,14 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                               id="cv_file"
                               name="cv_file"
                               type="file"
-                              accept=".pdf,.doc,.docx"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/gif,image/webp"
                               onChange={handleFileChange}
                               className="sr-only"
                             />
                           </label>
                           <p className="pl-1">or drag and drop</p>
                         </div>
-                        <p className="text-xs text-gray-500">PDF, DOC, DOCX up to 5MB</p>
+                        <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG, GIF, WEBP up to 10MB</p>
                         {cvFileName && (
                           <p className="text-sm text-green-600 font-medium mt-2">Selected: {cvFileName}</p>
                         )}

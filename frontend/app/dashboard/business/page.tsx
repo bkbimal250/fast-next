@@ -86,10 +86,10 @@ export default function BusinessPage() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">{spa.name}</h2>
-                  {spa.banner_image && (
+                  {spa.logo_image && (
                     <div className="mt-4">
                       <img
-                        src={`http://localhost:8000/${spa.banner_image}`}
+                        src={`http://localhost:8000/${spa.logo_image}`}
                         alt={spa.name}
                         className="w-full h-64 object-cover rounded-lg"
                       />

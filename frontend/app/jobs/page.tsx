@@ -231,13 +231,12 @@ export default function JobsPage() {
                       spaName={job.spa?.name || 'SPA'}
                       spaAddress={job.spa?.address}
                       location={
-                        [
-                          job.area?.name,
-                          job.city?.name,
-                          job.state?.name,
-                        ]
-                          .filter(Boolean)
-                          .join(', ') || 'Location not specified'
+                        (() => {
+                          const locationParts = [];
+                          if (job.area?.name) locationParts.push(job.area.name);
+                          if (job.city?.name) locationParts.push(job.city.name);
+                          return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
+                        })()
                       }
                       salaryMin={job.salary_min}
                       salaryMax={job.salary_max}

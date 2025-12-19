@@ -45,9 +45,9 @@ export default function EditSpaPage() {
     is_active: true,
     is_verified: false,
   });
-  const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
-  const [existingBannerImage, setExistingBannerImage] = useState<string | null>(null);
+  const [logoImage, setLogoImage] = useState<File | null>(null);
+  const [logoImagePreview, setLogoImagePreview] = useState<string | null>(null);
+  const [existingLogoImage, setExistingLogoImage] = useState<string | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -105,8 +105,8 @@ export default function EditSpaPage() {
         is_active: data.is_active ?? true,
         is_verified: data.is_verified ?? false,
       });
-      if (data.banner_image) {
-        setExistingBannerImage(data.banner_image);
+      if (data.logo_image) {
+        setExistingLogoImage(data.logo_image);
       }
       if (data.spa_images) {
         setExistingImages(data.spa_images);
@@ -127,13 +127,13 @@ export default function EditSpaPage() {
     }));
   };
 
-  const handleBannerImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setBannerImage(file);
+      setLogoImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBannerImagePreview(reader.result as string);
+        setLogoImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -187,9 +187,9 @@ export default function EditSpaPage() {
         data.append('images', image);
       });
       
-      // Add banner image if new one is uploaded
-      if (bannerImage) {
-        data.append('banner_image', bannerImage);
+      // Add logo image if new one is uploaded
+      if (logoImage) {
+        data.append('logo_image', logoImage);
       }
 
       await spaAPI.updateSpa(spaId, data);
@@ -531,18 +531,18 @@ export default function EditSpaPage() {
             </div>
           </div>
 
-          {/* Banner Image */}
+          {/* Logo Image */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Banner Image</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Logo Image</h2>
             
-            {/* Existing Banner Image */}
-            {existingBannerImage && !bannerImagePreview && (
+            {/* Existing Logo Image */}
+            {existingLogoImage && !logoImagePreview && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Current Banner Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Current Logo Image</label>
                 <div className="relative">
                   <img
-                    src={`${API_URL}/${existingBannerImage}`}
-                    alt="Banner"
+                    src={`${API_URL}/${existingLogoImage}`}
+                    alt="Logo"
                     className="w-full h-48 object-cover rounded-md border border-gray-300"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
@@ -552,23 +552,23 @@ export default function EditSpaPage() {
               </div>
             )}
             
-            {/* New Banner Image Preview */}
-            {bannerImagePreview && (
+            {/* New Logo Image Preview */}
+            {logoImagePreview && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">New Banner Image Preview</label>
-                <img src={bannerImagePreview} alt="Banner preview" className="w-full h-48 object-cover rounded-md border border-gray-300" />
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Logo Image Preview</label>
+                <img src={logoImagePreview} alt="Logo preview" className="w-full h-48 object-cover rounded-md border border-gray-300" />
               </div>
             )}
             
-            <label htmlFor="banner_image" className="block text-sm font-medium text-gray-700 mb-2">
-              {existingBannerImage ? 'Replace Banner Image' : 'Upload Banner Image'} (Recommended: 1920x600px, Max 10MB, JPG, PNG, WebP)
+            <label htmlFor="logo_image" className="block text-sm font-medium text-gray-700 mb-2">
+              {existingLogoImage ? 'Replace Logo Image' : 'Upload Logo Image'} (Recommended: 500x500px, Max 10MB, JPG, PNG, WebP)
             </label>
             <input
               type="file"
-              id="banner_image"
-              name="banner_image"
+              id="logo_image"
+              name="logo_image"
               accept=".jpg,.jpeg,.png,.webp"
-              onChange={handleBannerImageChange}
+              onChange={handleLogoImageChange}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-md file:border-0

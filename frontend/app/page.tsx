@@ -82,7 +82,14 @@ export default function HomePage() {
                   title={job.title}
                   spaName={job.spa?.name}
                   spaAddress={job.spa?.address}
-                  location={`${job.area?.name || ''} ${job.city?.name || ''}`.trim() || 'Location not specified'}
+                  location={
+                    (() => {
+                      const locationParts = [];
+                      if (job.area?.name) locationParts.push(job.area.name);
+                      if (job.city?.name) locationParts.push(job.city.name);
+                      return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
+                    })()
+                  }
                   salaryMin={job.salary_min}
                   salaryMax={job.salary_max}
                   salaryCurrency={job.salary_currency}
@@ -119,7 +126,14 @@ export default function HomePage() {
                   title={job.title}
                   spaName={job.spa?.name}
                   spaAddress={job.spa?.address}
-                  location={`${job.area?.name || ''} ${job.city?.name || ''}`.trim() || 'Location not specified'}
+                  location={
+                    (() => {
+                      const locationParts = [];
+                      if (job.area?.name) locationParts.push(job.area.name);
+                      if (job.city?.name) locationParts.push(job.city.name);
+                      return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
+                    })()
+                  }
                   salaryMin={job.salary_min}
                   salaryMax={job.salary_max}
                   salaryCurrency={job.salary_currency}

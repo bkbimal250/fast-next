@@ -12,12 +12,30 @@ from app.modules.spas.models import Spa
 
 def get_job_by_slug(db: Session, slug: str):
     """Get job by slug"""
-    return db.query(models.Job).filter(models.Job.slug == slug).first()
+    from sqlalchemy.orm import joinedload
+    return db.query(models.Job).options(
+        joinedload(models.Job.city),
+        joinedload(models.Job.area),
+        joinedload(models.Job.state),
+        joinedload(models.Job.country),
+        joinedload(models.Job.spa),
+        joinedload(models.Job.job_type),
+        joinedload(models.Job.job_category),
+    ).filter(models.Job.slug == slug).first()
 
 
 def get_job_by_id(db: Session, job_id: int):
     """Get job by ID"""
-    return db.query(models.Job).filter(models.Job.id == job_id).first()
+    from sqlalchemy.orm import joinedload
+    return db.query(models.Job).options(
+        joinedload(models.Job.city),
+        joinedload(models.Job.area),
+        joinedload(models.Job.state),
+        joinedload(models.Job.country),
+        joinedload(models.Job.spa),
+        joinedload(models.Job.job_type),
+        joinedload(models.Job.job_category),
+    ).filter(models.Job.id == job_id).first()
 
 
 def get_jobs(
@@ -58,18 +76,39 @@ def get_jobs(
     if is_featured is not None:
         query = query.filter(models.Job.is_featured == is_featured)
 
+    # Eagerly load relationships for better performance
+    from sqlalchemy.orm import joinedload
+    query = query.options(
+        joinedload(models.Job.city),
+        joinedload(models.Job.area),
+        joinedload(models.Job.state),
+        joinedload(models.Job.country),
+        joinedload(models.Job.spa),
+        joinedload(models.Job.job_type),
+        joinedload(models.Job.job_category),
+    )
+
     return query.offset(skip).limit(limit).all()
 
 
 def get_recruiter_jobs(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     """Get jobs for a recruiter's managed SPA"""
     from app.modules.users.models import User
+    from sqlalchemy.orm import joinedload
     
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.managed_spa_id:
         return []
     
-    return db.query(models.Job).filter(
+    return db.query(models.Job).options(
+        joinedload(models.Job.city),
+        joinedload(models.Job.area),
+        joinedload(models.Job.state),
+        joinedload(models.Job.country),
+        joinedload(models.Job.spa),
+        joinedload(models.Job.job_type),
+        joinedload(models.Job.job_category),
+    ).filter(
         models.Job.spa_id == user.managed_spa_id
     ).order_by(models.Job.created_at.desc()).offset(skip).limit(limit).all()
 
@@ -252,8 +291,18 @@ def get_popular_jobs(db: Session, limit: int = 10):
 
     This is fast and works even without hitting the analytics_events table.
     """
+    from sqlalchemy.orm import joinedload
     return (
         db.query(models.Job)
+        .options(
+            joinedload(models.Job.city),
+            joinedload(models.Job.area),
+            joinedload(models.Job.state),
+            joinedload(models.Job.country),
+            joinedload(models.Job.spa),
+            joinedload(models.Job.job_type),
+            joinedload(models.Job.job_category),
+        )
         .filter(models.Job.is_active == True)
         .order_by(models.Job.view_count.desc(), models.Job.apply_click_count.desc())
         .limit(limit)

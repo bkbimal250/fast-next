@@ -5,6 +5,8 @@ Job Pydantic schemas
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.modules.locations.schemas import CityResponse, AreaResponse, StateResponse, CountryResponse
+from app.modules.spas.schemas import SpaResponse
 
 
 class JobBase(BaseModel):
@@ -47,9 +49,54 @@ class JobCreate(JobBase):
     expires_at: Optional[datetime] = None
 
 
-class JobResponse(JobBase):
+# JobType Schemas (defined before JobResponse to avoid forward reference issues)
+class JobTypeBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+
+class JobTypeCreate(JobTypeBase):
+    pass
+
+
+class JobTypeUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class JobTypeResponse(JobTypeBase):
     id: int
     slug: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# JobCategory Schemas (defined before JobResponse to avoid forward reference issues)
+class JobCategoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+
+class JobCategoryCreate(JobCategoryBase):
+    pass
+
+
+class JobCategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class JobCategoryResponse(JobCategoryBase):
+    id: int
+    slug: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 
 class JobUpdate(BaseModel):
@@ -98,56 +145,14 @@ class JobResponse(JobBase):
     created_at: datetime
     updated_at: datetime
     expires_at: Optional[datetime] = None
-    
-    class Config:
-        from_attributes = True
-
-
-# JobType Schemas
-class JobTypeBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-
-
-class JobTypeCreate(JobTypeBase):
-    pass
-
-
-class JobTypeUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-
-
-class JobTypeResponse(JobTypeBase):
-    id: int
-    slug: str
-    created_at: datetime
-    updated_at: datetime
-    
-    class Config:
-        from_attributes = True
-
-
-# JobCategory Schemas
-class JobCategoryBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-
-
-class JobCategoryCreate(JobCategoryBase):
-    pass
-
-
-class JobCategoryUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-
-
-class JobCategoryResponse(JobCategoryBase):
-    id: int
-    slug: str
-    created_at: datetime
-    updated_at: datetime
+    # Nested relationships
+    city: Optional[CityResponse] = None
+    area: Optional[AreaResponse] = None
+    state: Optional[StateResponse] = None
+    country: Optional[CountryResponse] = None
+    spa: Optional[SpaResponse] = None
+    job_type: Optional[JobTypeResponse] = None
+    job_category: Optional[JobCategoryResponse] = None
     
     class Config:
         from_attributes = True

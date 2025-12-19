@@ -12,7 +12,7 @@ class SpaBase(BaseModel):
     description: Optional[str] = None
     phone: str
     email: EmailStr
-    banner_image: Optional[str] = None
+    logo_image: Optional[str] = None
     address: Optional[str] = None
     website: Optional[str] = None
     directions: Optional[Union[str, HttpUrl]] = None  # Google Maps directions URL
@@ -37,7 +37,7 @@ class SpaUpdate(BaseModel):
     description: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
-    banner_image: Optional[str] = None
+    logo_image: Optional[str] = None
     address: Optional[str] = None
     website: Optional[str] = None
     directions: Optional[Union[str, HttpUrl]] = None  # Google Maps directions URL
@@ -62,7 +62,7 @@ class SpaResponse(BaseModel):
     description: Optional[str] = None
     phone: str
     email: str
-    banner_image: Optional[str] = None
+    logo_image: Optional[str] = None
     address: Optional[str] = None
     website: Optional[str] = None
     directions: Optional[Union[str, HttpUrl]] = None  # Google Maps directions URL

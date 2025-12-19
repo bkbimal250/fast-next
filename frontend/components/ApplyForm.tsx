@@ -157,11 +157,11 @@ export default function ApplyForm({ jobSlug, jobId }: ApplyFormProps) {
         <input
           id="cv"
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/gif,image/webp"
           className="input-field"
           onChange={(e) => setCvFile(e.target.files?.[0] || null)}
         />
-        <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX (Max 10MB)</p>
+        <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX, JPG, PNG, GIF, WEBP (Max 10MB)</p>
         {user?.resume_path && (
           <p className="text-sm text-green-600 mt-1">✓ Using your saved resume</p>
         )}

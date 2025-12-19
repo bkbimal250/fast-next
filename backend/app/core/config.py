@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # File Upload
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_CV_EXTENSIONS: list = [".pdf", ".doc", ".docx"]
+    ALLOWED_CV_EXTENSIONS: list = [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".gif", ".webp"]
     
     # Image Processing
     IMAGE_COMPRESS_QUALITY: int = 85  # WebP quality (1-100)

@@ -3,7 +3,7 @@ Geographic search utilities for jobs
 """
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.modules.jobs.models import Job
 from app.core.config import settings
 from app.utils.geo_utils import calculate_distance
@@ -20,6 +20,17 @@ def get_jobs_near_location(
     Get jobs near a location.
     Uses PostGIS ST_DWithin for PostgreSQL, or Python calculation for SQLite.
     """
+    # Eagerly load relationships for better performance
+    query_options = [
+        joinedload(Job.city),
+        joinedload(Job.area),
+        joinedload(Job.state),
+        joinedload(Job.country),
+        joinedload(Job.spa),
+        joinedload(Job.job_type),
+        joinedload(Job.job_category),
+    ]
+    
     if settings.DATABASE_TYPE == "postgresql":
         # PostGIS query: ST_DWithin(geom, point, distance_in_meters)
         # radius_km * 1000 converts to meters
@@ -27,12 +38,12 @@ def get_jobs_near_location(
         
         # TODO: Implement PostGIS query when PostGIS extension is enabled
         # For now, return all active jobs
-        jobs = db.query(Job).filter(
+        jobs = db.query(Job).options(*query_options).filter(
             Job.is_active == True
         ).limit(limit * 2).all()  # Get more to filter by distance
     else:
         # SQLite: Get all active jobs and filter by distance in Python
-        jobs = db.query(Job).filter(
+        jobs = db.query(Job).options(*query_options).filter(
             Job.is_active == True,
             Job.latitude.isnot(None),
             Job.longitude.isnot(None)

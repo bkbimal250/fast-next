@@ -20,6 +20,10 @@ class ApplicationCreate(ApplicationBase):
     cv_file: Optional[str] = None  # File path after upload
 
 
+class ApplicationUpdate(BaseModel):
+    status: Optional[str] = None
+
+
 class ApplicationResponse(ApplicationBase):
     id: int
     user_id: Optional[int] = None
