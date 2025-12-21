@@ -1,13 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { locationAPI, Country, State, City, Area } from '@/lib/location';
+import { jobAPI } from '@/lib/job';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { FaGlobe, FaMapMarkerAlt, FaCity, FaBuilding, FaPlus } from 'react-icons/fa';
+import { showToast, showErrorToast } from '@/lib/toast';
+import LocationStats from './components/LocationStats';
+import LocationTabs from './components/LocationTabs';
+import LocationFilters from './components/LocationFilters';
+import LocationCreateForm from './components/LocationCreateForm';
+import LocationsTable from './components/LocationsTable';
 
 type LocationType = 'countries' | 'states' | 'cities' | 'areas';
+
+interface LocationJobCounts {
+  [key: number]: number;
+}
 
 export default function LocationsPage() {
   const { user } = useAuth();
@@ -15,6 +27,7 @@ export default function LocationsPage() {
   const [activeTab, setActiveTab] = useState<LocationType>('countries');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Data states
   const [countries, setCountries] = useState<Country[]>([]);
@@ -22,20 +35,26 @@ export default function LocationsPage() {
   const [cities, setCities] = useState<City[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
 
+  // Job counts
+  const [jobCounts, setJobCounts] = useState<LocationJobCounts>({});
+  const [loadingCounts, setLoadingCounts] = useState(false);
+
   // Filter states
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Inline form state
   const [showInlineForm, setShowInlineForm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [inlineFormData, setInlineFormData] = useState({
-    name: '',
-    country_id: '',
-    state_id: '',
-    city_id: '',
+
+  // Statistics
+  const [stats, setStats] = useState({
+    totalCountries: 0,
+    totalStates: 0,
+    totalCities: 0,
+    totalAreas: 0,
+    totalJobs: 0,
   });
 
   useEffect(() => {
@@ -43,8 +62,41 @@ export default function LocationsPage() {
       router.push('/dashboard');
     } else {
       fetchData();
+      fetchStats();
     }
-  }, [user, router, activeTab, selectedCountryId, selectedStateId, selectedCityId]);
+  }, [user, router]);
+
+  useEffect(() => {
+    fetchData();
+  }, [activeTab, selectedCountryId, selectedStateId, selectedCityId]);
+
+  useEffect(() => {
+    if (activeTab === 'cities' || activeTab === 'areas' || activeTab === 'states' || activeTab === 'countries') {
+      fetchJobCounts();
+    }
+  }, [activeTab, cities, areas, states, countries]);
+
+  const fetchStats = async () => {
+    try {
+      const [countriesData, statesData, citiesData, areasData, jobCountData] = await Promise.all([
+        locationAPI.getCountries(),
+        locationAPI.getStates(),
+        locationAPI.getCities(),
+        locationAPI.getAreas(),
+        jobAPI.getJobCount(),
+      ]);
+
+      setStats({
+        totalCountries: countriesData.length,
+        totalStates: statesData.length,
+        totalCities: citiesData.length,
+        totalAreas: areasData.length,
+        totalJobs: jobCountData.count || 0,
+      });
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -72,102 +124,126 @@ export default function LocationsPage() {
     }
   };
 
-  // Load countries for inline form
-  useEffect(() => {
-    if (showInlineForm && (activeTab === 'states' || activeTab === 'cities')) {
-      locationAPI.getCountries().then(setCountries).catch(console.error);
-    }
-  }, [showInlineForm, activeTab]);
+  const fetchJobCounts = async () => {
+    setLoadingCounts(true);
+    try {
+      const counts: LocationJobCounts = {};
 
-  // Load states when country is selected in inline form
-  useEffect(() => {
-    if (showInlineForm && activeTab === 'cities' && inlineFormData.country_id) {
-      locationAPI.getStates(parseInt(inlineFormData.country_id)).then(setStates).catch(console.error);
-    }
-  }, [showInlineForm, activeTab, inlineFormData.country_id]);
+      if (activeTab === 'cities') {
+        const cityCounts = await jobAPI.getJobCountsByLocation();
+        cityCounts.forEach((item) => {
+          counts[item.city_id] = item.job_count;
+        });
 
-  // Load cities for areas
-  useEffect(() => {
-    if (showInlineForm && activeTab === 'areas') {
-      locationAPI.getCities().then(setCities).catch(console.error);
-    }
-  }, [showInlineForm, activeTab]);
-
-  const handleInlineFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setInlineFormData((prev) => {
-      const newData = { ...prev, [name]: value };
-      // Reset dependent fields
-      if (name === 'country_id') {
-        newData.state_id = '';
-        newData.city_id = '';
-      } else if (name === 'state_id') {
-        newData.city_id = '';
+        for (const city of cities) {
+          if (!counts[city.id]) {
+            try {
+              const countData = await jobAPI.getJobCount({ city_id: city.id });
+              counts[city.id] = countData.count;
+            } catch {
+              counts[city.id] = 0;
+            }
+          }
+        }
+      } else if (activeTab === 'areas') {
+        for (const area of areas) {
+          try {
+            const countData = await jobAPI.getJobCount({ area_id: area.id });
+            counts[area.id] = countData.count;
+          } catch {
+            counts[area.id] = 0;
+          }
+        }
+      } else if (activeTab === 'states') {
+        for (const state of states) {
+          try {
+            const countData = await jobAPI.getJobCount({ state_id: state.id });
+            counts[state.id] = countData.count;
+          } catch {
+            counts[state.id] = 0;
+          }
+        }
+      } else if (activeTab === 'countries') {
+        for (const country of countries) {
+          try {
+            const countData = await jobAPI.getJobCount({ country_id: country.id });
+            counts[country.id] = countData.count;
+          } catch {
+            counts[country.id] = 0;
+          }
+        }
       }
-      return newData;
-    });
+
+      setJobCounts(counts);
+    } catch (err) {
+      console.error('Failed to fetch job counts:', err);
+    } finally {
+      setLoadingCounts(false);
+    }
   };
 
-  const handleInlineSubmit = async (saveAndAddAnother: boolean = false) => {
-    setSubmitting(true);
+  const handleTabChange = (tab: LocationType) => {
+    setActiveTab(tab);
+    setSelectedCountryId(null);
+    setSelectedStateId(null);
+    setSelectedCityId(null);
+    setSearchTerm('');
+    setShowInlineForm(false);
+    setError(null);
+    setSuccess(null);
+  };
+
+  const handleCreateSubmit = async (data: {
+    name: string;
+    country_id?: number;
+    state_id?: number;
+    city_id?: number;
+  }) => {
     setError(null);
     setSuccess(null);
 
     try {
       switch (activeTab) {
         case 'countries':
-          await locationAPI.createCountry({ name: inlineFormData.name });
+          await locationAPI.createCountry({ name: data.name });
           break;
         case 'states':
+          if (!data.country_id) throw new Error('Country is required');
           await locationAPI.createState({
-            name: inlineFormData.name,
-            country_id: parseInt(inlineFormData.country_id),
+            name: data.name,
+            country_id: data.country_id,
           });
           break;
         case 'cities':
+          if (!data.state_id || !data.country_id) throw new Error('State and Country are required');
           await locationAPI.createCity({
-            name: inlineFormData.name,
-            state_id: parseInt(inlineFormData.state_id),
-            country_id: parseInt(inlineFormData.country_id),
+            name: data.name,
+            state_id: data.state_id,
+            country_id: data.country_id,
           });
           break;
         case 'areas':
+          if (!data.city_id) throw new Error('City is required');
           await locationAPI.createArea({
-            name: inlineFormData.name,
-            city_id: parseInt(inlineFormData.city_id),
+            name: data.name,
+            city_id: data.city_id,
           });
           break;
       }
 
       setSuccess(`${activeTab.slice(0, -1)} created successfully!`);
       
-      // Refresh data
       await fetchData();
-
-      if (saveAndAddAnother) {
-        // Clear form but keep it open
-        setInlineFormData({
-          name: '',
-          country_id: inlineFormData.country_id, // Keep parent selection
-          state_id: inlineFormData.state_id,
-          city_id: inlineFormData.city_id,
-        });
-        setSuccess(`${activeTab.slice(0, -1)} created! Add another?`);
-      } else {
-        // Close form and clear
-        setShowInlineForm(false);
-        setInlineFormData({
-          name: '',
-          country_id: '',
-          state_id: '',
-          city_id: '',
-        });
-        setTimeout(() => setSuccess(null), 3000);
-      }
+      await fetchStats();
+      await fetchJobCounts();
+      
+      const successMsg = `${activeTab.slice(0, -1)} created successfully!`;
+      showToast.success(successMsg);
+      setSuccess(successMsg);
+      setShowInlineForm(false);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || `Failed to create ${activeTab.slice(0, -1)}`);
-    } finally {
-      setSubmitting(false);
+      setError(err.response?.data?.detail || err.message || `Failed to create ${activeTab.slice(0, -1)}`);
     }
   };
 
@@ -195,16 +271,62 @@ export default function LocationsPage() {
           setAreas(areas.filter((a) => a.id !== id));
           break;
       }
+      await fetchStats();
+      await fetchJobCounts();
+      showToast.success(`${type.slice(0, -1)} deleted successfully`);
     } catch (err: any) {
-      setError(err.response?.data?.detail || `Failed to delete ${type.slice(0, -1)}`);
+      const errorMsg = err.response?.data?.detail || `Failed to delete ${type.slice(0, -1)}`;
+      setError(errorMsg);
+      showErrorToast(err, `Failed to delete ${type.slice(0, -1)}`);
       console.error(`Failed to delete ${type}:`, err);
+    }
+  };
+
+  // Filter locations by search term
+  const filteredLocations = useMemo(() => {
+    let locations: any[] = [];
+    switch (activeTab) {
+      case 'countries':
+        locations = countries;
+        break;
+      case 'states':
+        locations = states;
+        break;
+      case 'cities':
+        locations = cities;
+        break;
+      case 'areas':
+        locations = areas;
+        break;
+    }
+
+    if (!searchTerm) return locations;
+    
+    return locations.filter((loc) =>
+      loc.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [activeTab, countries, states, cities, areas, searchTerm]);
+
+  const getLocationIcon = (type: LocationType) => {
+    switch (type) {
+      case 'countries':
+        return FaGlobe;
+      case 'states':
+        return FaMapMarkerAlt;
+      case 'cities':
+        return FaCity;
+      case 'areas':
+        return FaBuilding;
     }
   };
 
   if (loading && countries.length === 0 && states.length === 0 && cities.length === 0 && areas.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-surface-light">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading locations...</p>
+        </div>
       </div>
     );
   }
@@ -213,333 +335,118 @@ export default function LocationsPage() {
     return null;
   }
 
+  const LocationIcon = getLocationIcon(activeTab);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-light">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Location Management</h1>
-            <p className="text-gray-600 mt-2">Manage countries, states, cities, and areas</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <LocationIcon size={28} />
+                </div>
+                Location Management
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                Manage countries, states, cities, and areas with job statistics
+              </p>
+            </div>
+            <Link
+              href="/dashboard"
+              className="px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
+            >
+              ← Back to Dashboard
+            </Link>
           </div>
-          <Link href="/dashboard" className="btn-secondary">
-            Back to Dashboard
-          </Link>
+
+          {/* Statistics */}
+          <LocationStats stats={stats} />
         </div>
 
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">{error}</div>}
+        {/* Messages */}
+        {error && (
+          <div className="mb-5 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+            <p className="font-medium">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="mb-5 bg-brand-50 border-l-4 border-brand-500 text-brand-700 p-4 rounded-lg">
+            <p className="font-medium">{success}</p>
+          </div>
+        )}
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
-              {(['countries', 'states', 'cities', 'areas'] as LocationType[]).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => {
-                    setActiveTab(tab);
-                    setSelectedCountryId(null);
-                    setSelectedStateId(null);
-                    setSelectedCityId(null);
-                    setShowInlineForm(false);
-                    setInlineFormData({ name: '', country_id: '', state_id: '', city_id: '' });
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className={`px-6 py-3 text-sm font-medium border-b-2 ${
-                    activeTab === tab
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
+        <LocationTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Filters */}
-        {activeTab !== 'countries' && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {activeTab === 'states' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Country</label>
-                  <select
-                    value={selectedCountryId || ''}
-                    onChange={(e) => setSelectedCountryId(e.target.value ? parseInt(e.target.value) : null)}
-                    className="input-field"
-                  >
-                    <option value="">All Countries</option>
-                    {countries.map((country) => (
-                      <option key={country.id} value={country.id}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              {activeTab === 'cities' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Country</label>
-                    <select
-                      value={selectedCountryId || ''}
-                      onChange={(e) => {
-                        setSelectedCountryId(e.target.value ? parseInt(e.target.value) : null);
-                        setSelectedStateId(null);
-                      }}
-                      className="input-field"
-                    >
-                      <option value="">All Countries</option>
-                      {countries.map((country) => (
-                        <option key={country.id} value={country.id}>
-                          {country.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by State</label>
-                    <select
-                      value={selectedStateId || ''}
-                      onChange={(e) => setSelectedStateId(e.target.value ? parseInt(e.target.value) : null)}
-                      className="input-field"
-                      disabled={!selectedCountryId}
-                    >
-                      <option value="">All States</option>
-                      {states
-                        .filter((s) => !selectedCountryId || s.country_id === selectedCountryId)
-                        .map((state) => (
-                          <option key={state.id} value={state.id}>
-                            {state.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </>
-              )}
-              {activeTab === 'areas' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filter by City</label>
-                  <select
-                    value={selectedCityId || ''}
-                    onChange={(e) => setSelectedCityId(e.target.value ? parseInt(e.target.value) : null)}
-                    className="input-field"
-                  >
-                    <option value="">All Cities</option>
-                    {cities.map((city) => (
-                      <option key={city.id} value={city.id}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <LocationFilters
+          activeTab={activeTab}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          countries={countries}
+          states={states}
+          cities={cities}
+          selectedCountryId={selectedCountryId}
+          selectedStateId={selectedStateId}
+          selectedCityId={selectedCityId}
+          onCountryChange={setSelectedCountryId}
+          onStateChange={setSelectedStateId}
+          onCityChange={setSelectedCityId}
+          filteredCount={filteredLocations.length}
+          totalCount={
+            activeTab === 'countries' ? countries.length :
+            activeTab === 'states' ? states.length :
+            activeTab === 'cities' ? cities.length :
+            areas.length
+          }
+        />
 
-        {/* Inline Create Form */}
-        {showInlineForm && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border-2 border-primary-200">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Add New {activeTab.slice(0, -1).charAt(0).toUpperCase() + activeTab.slice(0, -1).slice(1)}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowInlineForm(false);
-                  setInlineFormData({ name: '', country_id: '', state_id: '', city_id: '' });
-                  setError(null);
-                  setSuccess(null);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {success && <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-4">{success}</div>}
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleInlineSubmit(false);
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={inlineFormData.name}
-                    onChange={handleInlineFormChange}
-                    className="input-field"
-                    required
-                    autoFocus
-                  />
-                </div>
-
-                {activeTab === 'states' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Country <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="country_id"
-                      value={inlineFormData.country_id}
-                      onChange={handleInlineFormChange}
-                      className="input-field"
-                      required
-                    >
-                      <option value="">Select Country</option>
-                      {countries.map((country) => (
-                        <option key={country.id} value={country.id}>
-                          {country.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {activeTab === 'cities' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Country <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name="country_id"
-                        value={inlineFormData.country_id}
-                        onChange={handleInlineFormChange}
-                        className="input-field"
-                        required
-                      >
-                        <option value="">Select Country</option>
-                        {countries.map((country) => (
-                          <option key={country.id} value={country.id}>
-                            {country.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        State <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name="state_id"
-                        value={inlineFormData.state_id}
-                        onChange={handleInlineFormChange}
-                        className="input-field"
-                        required
-                        disabled={!inlineFormData.country_id}
-                      >
-                        <option value="">Select State</option>
-                        {states
-                          .filter((s) => s.country_id === parseInt(inlineFormData.country_id))
-                          .map((state) => (
-                            <option key={state.id} value={state.id}>
-                              {state.name}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  </>
-                )}
-
-                {activeTab === 'areas' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="city_id"
-                      value={inlineFormData.city_id}
-                      onChange={handleInlineFormChange}
-                      className="input-field"
-                      required
-                    >
-                      <option value="">Select City</option>
-                      {cities.map((city) => (
-                        <option key={city.id} value={city.id}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowInlineForm(false);
-                    setInlineFormData({ name: '', country_id: '', state_id: '', city_id: '' });
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleInlineSubmit(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving...' : 'Save & Add Another'}
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving...' : 'Save'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+        {/* Create Form */}
+        <LocationCreateForm
+          activeTab={activeTab}
+          show={showInlineForm}
+          onClose={() => {
+            setShowInlineForm(false);
+            setError(null);
+            setSuccess(null);
+          }}
+          onSubmit={handleCreateSubmit}
+          initialData={{
+            country_id: selectedCountryId || undefined,
+            state_id: selectedStateId || undefined,
+            city_id: selectedCityId || undefined,
+          }}
+        />
 
         {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-5">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
                 {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </h2>
-              <div className="flex space-x-3">
+              <div className="flex gap-3">
                 {!showInlineForm && (
                   <button
                     onClick={() => {
                       setShowInlineForm(true);
                       setError(null);
                       setSuccess(null);
-                      setInlineFormData({
-                        name: '',
-                        country_id: selectedCountryId?.toString() || '',
-                        state_id: selectedStateId?.toString() || '',
-                        city_id: selectedCityId?.toString() || '',
-                      });
                     }}
-                    className="btn-primary"
+                    className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors text-sm flex items-center gap-2"
                   >
-                    + Quick Add
+                    <FaPlus size={14} />
+                    Quick Add
                   </button>
                 )}
-                <Link href={`/dashboard/locations/${activeTab}/create`} className="btn-secondary">
+                <Link
+                  href={`/dashboard/locations/${activeTab}/create`}
+                  className="px-4 py-2 border-2 border-brand-600 text-brand-600 hover:bg-brand-50 font-semibold rounded-lg transition-colors text-sm flex items-center gap-2"
+                >
                   Full Form
                 </Link>
               </div>
@@ -547,166 +454,17 @@ export default function LocationsPage() {
 
             {loading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      {activeTab === 'states' && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Country
-                        </th>
-                      )}
-                      {activeTab === 'cities' && (
-                        <>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            State
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Country
-                          </th>
-                        </>
-                      )}
-                      {activeTab === 'areas' && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          City
-                        </th>
-                      )}
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {activeTab === 'countries' &&
-                      countries.map((country) => (
-                        <tr key={country.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{country.id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {country.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <Link
-                              href={`/dashboard/locations/countries/${country.id}/edit`}
-                              className="text-primary-600 hover:text-primary-900 mr-4"
-                            >
-                              Edit
-                            </Link>
-                            {user.role === 'admin' && (
-                              <button
-                                onClick={() => handleDelete('countries', country.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    {activeTab === 'states' &&
-                      states.map((state) => (
-                        <tr key={state.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{state.id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {state.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {state.country?.name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <Link
-                              href={`/dashboard/locations/states/${state.id}/edit`}
-                              className="text-primary-600 hover:text-primary-900 mr-4"
-                            >
-                              Edit
-                            </Link>
-                            {user.role === 'admin' && (
-                              <button
-                                onClick={() => handleDelete('states', state.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    {activeTab === 'cities' &&
-                      cities.map((city) => (
-                        <tr key={city.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{city.id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {city.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {city.state?.name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {city.country?.name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <Link
-                              href={`/dashboard/locations/cities/${city.id}/edit`}
-                              className="text-primary-600 hover:text-primary-900 mr-4"
-                            >
-                              Edit
-                            </Link>
-                            {user.role === 'admin' && (
-                              <button
-                                onClick={() => handleDelete('cities', city.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    {activeTab === 'areas' &&
-                      areas.map((area) => (
-                        <tr key={area.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{area.id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {area.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {area.city?.name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <Link
-                              href={`/dashboard/locations/areas/${area.id}/edit`}
-                              className="text-primary-600 hover:text-primary-900 mr-4"
-                            >
-                              Edit
-                            </Link>
-                            {user.role === 'admin' && (
-                              <button
-                                onClick={() => handleDelete('areas', area.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-                {((activeTab === 'countries' && countries.length === 0) ||
-                  (activeTab === 'states' && states.length === 0) ||
-                  (activeTab === 'cities' && cities.length === 0) ||
-                  (activeTab === 'areas' && areas.length === 0)) && (
-                  <div className="text-center py-12 text-gray-500">No {activeTab} found</div>
-                )}
-              </div>
+              <LocationsTable
+                activeTab={activeTab}
+                locations={filteredLocations}
+                jobCounts={jobCounts}
+                loadingCounts={loadingCounts}
+                userRole={user.role}
+                onDelete={handleDelete}
+              />
             )}
           </div>
         </div>
@@ -714,4 +472,3 @@ export default function LocationsPage() {
     </div>
   );
 }
-

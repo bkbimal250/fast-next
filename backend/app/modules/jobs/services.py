@@ -21,6 +21,7 @@ def get_job_by_slug(db: Session, slug: str):
         joinedload(models.Job.spa),
         joinedload(models.Job.job_type),
         joinedload(models.Job.job_category),
+        joinedload(models.Job.created_by_user),
     ).filter(models.Job.slug == slug).first()
 
 
@@ -35,6 +36,7 @@ def get_job_by_id(db: Session, job_id: int):
         joinedload(models.Job.spa),
         joinedload(models.Job.job_type),
         joinedload(models.Job.job_category),
+        joinedload(models.Job.created_by_user),
     ).filter(models.Job.id == job_id).first()
 
 
@@ -70,9 +72,21 @@ def get_jobs(
     if spa_id is not None:
         query = query.filter(models.Job.spa_id == spa_id)
     if job_type is not None:
-        query = query.filter(models.Job.job_type == job_type)
+        # job_type can be a string (name) or ID - handle both
+        if isinstance(job_type, str):
+            # Filter by job type name through the relationship
+            query = query.join(models.JobType).filter(models.JobType.name == job_type)
+        else:
+            # Assume it's an ID
+            query = query.filter(models.Job.job_type_id == job_type)
     if job_category is not None:
-        query = query.filter(models.Job.job_category == job_category)
+        # job_category can be a string (name) or ID - handle both
+        if isinstance(job_category, str):
+            # Filter by job category name through the relationship
+            query = query.join(models.JobCategory).filter(models.JobCategory.name == job_category)
+        else:
+            # Assume it's an ID
+            query = query.filter(models.Job.job_category_id == job_category)
     if is_featured is not None:
         query = query.filter(models.Job.is_featured == is_featured)
 
@@ -86,6 +100,7 @@ def get_jobs(
         joinedload(models.Job.spa),
         joinedload(models.Job.job_type),
         joinedload(models.Job.job_category),
+        joinedload(models.Job.created_by_user),
     )
 
     return query.offset(skip).limit(limit).all()
@@ -108,6 +123,7 @@ def get_recruiter_jobs(db: Session, user_id: int, skip: int = 0, limit: int = 10
         joinedload(models.Job.spa),
         joinedload(models.Job.job_type),
         joinedload(models.Job.job_category),
+        joinedload(models.Job.created_by_user),
     ).filter(
         models.Job.spa_id == user.managed_spa_id
     ).order_by(models.Job.created_at.desc()).offset(skip).limit(limit).all()
@@ -126,8 +142,9 @@ def create_job(db: Session, job: schemas.JobCreate, user_id: int, user_role: str
     """
     from app.modules.users.models import User, UserRole
     
-    # Get dict and filter out any non-serializable values (methods, etc.)
-    job_dict = job.dict(exclude_none=False)
+    # Get dict using by_alias=False to get internal field names (seo_schema_json)
+    # We'll map it to schema_json for the model
+    job_dict = job.model_dump(exclude_none=False, by_alias=False)
     
     # Filter out callable values and ensure only valid types are included
     job_data = {}
@@ -169,6 +186,10 @@ def create_job(db: Session, job: schemas.JobCreate, user_id: int, user_role: str
     job_data["created_by"] = user_id
     job_data["updated_by"] = user_id
     
+    # Map seo_schema_json (from schema) to schema_json (model field)
+    if "seo_schema_json" in job_data:
+        job_data["schema_json"] = job_data.pop("seo_schema_json")
+    
     # Ensure schema_json and other optional fields are properly handled (remove any callable values)
     fields_to_check = ["schema_json", "canonical_url", "meta_title", "meta_description"]
     for field in fields_to_check:
@@ -193,7 +214,7 @@ def update_job(db: Session, job_id: int, job_update: schemas.JobUpdate, user_id:
     if not job:
         return None
     
-    update_data = job_update.dict(exclude_unset=True)
+    update_data = job_update.model_dump(exclude_unset=True, by_alias=False)
     
     # Get the current SPA to check permissions
     current_spa = db.query(Spa).filter(Spa.id == job.spa_id).first()
@@ -231,6 +252,10 @@ def update_job(db: Session, job_id: int, job_update: schemas.JobUpdate, user_id:
         if spa:
             update_data["latitude"] = spa.latitude
             update_data["longitude"] = spa.longitude
+    
+    # Map seo_schema_json (from schema) to schema_json (model field)
+    if "seo_schema_json" in update_data:
+        update_data["schema_json"] = update_data.pop("seo_schema_json")
     
     for field, value in update_data.items():
         setattr(job, field, value)

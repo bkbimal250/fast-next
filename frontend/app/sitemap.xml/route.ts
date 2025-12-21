@@ -4,19 +4,56 @@
 
 import { NextResponse } from 'next/server'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
 export async function GET() {
-  // Fetch sitemap from backend or generate here
+  try {
+    // Try to fetch sitemap from backend
+    const response = await fetch(`${apiUrl}/api/seo/sitemap`, {
+      next: { revalidate: 3600 } // Revalidate every hour
+    });
+    
+    if (response.ok) {
+      const sitemap = await response.text();
+      return new NextResponse(sitemap, {
+        headers: {
+          'Content-Type': 'application/xml',
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching sitemap from backend:', error);
+  }
+
+  // Fallback: Generate basic sitemap
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yourdomain.com</loc>
+    <loc>${siteUrl}</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${siteUrl}/jobs</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${siteUrl}/spa-near-me</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>`
   
   return new NextResponse(sitemap, {
     headers: {
       'Content-Type': 'application/xml',
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
     },
   })
 }

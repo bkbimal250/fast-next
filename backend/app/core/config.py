@@ -55,6 +55,30 @@ class Settings(BaseSettings):
     NOMINATIM_RATE_LIMIT_SECONDS: int = 1  # Minimum seconds between requests
     GEOCODE_CACHE_HOURS: int = 24  # Cache resolved locations for 24 hours
     
+    # Performance & Scalability Settings
+    REDIS_URL: Optional[str] = None  # Redis connection URL for caching (e.g., redis://localhost:6379/0)
+    REDIS_ENABLED: bool = False  # Enable Redis caching
+    CACHE_TTL_SECONDS: int = 300  # Default cache TTL (5 minutes)
+    
+    # Rate Limiting
+    # Rate limits are automatically relaxed in DEBUG mode (1000/min, 10000/hour)
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 200  # Requests per minute per IP (increased for development)
+    RATE_LIMIT_PER_HOUR: int = 5000  # Requests per hour per IP (increased for development)
+    
+    # Background Tasks
+    CELERY_BROKER_URL: Optional[str] = None  # Redis or RabbitMQ URL for Celery
+    CELERY_RESULT_BACKEND: Optional[str] = None  # Redis URL for Celery results
+    
+    # Database Connection Pool Settings (for PostgreSQL)
+    DB_POOL_SIZE: int = 20  # Base connection pool size
+    DB_MAX_OVERFLOW: int = 40  # Max overflow connections
+    DB_POOL_RECYCLE: int = 3600  # Recycle connections after 1 hour
+    
+    # Logging
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
+    LOG_FILE: Optional[str] = None  # Optional log file path
+    
     class Config:
         env_file = ".env"
 

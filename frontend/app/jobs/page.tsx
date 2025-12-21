@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import JobCard from '@/components/JobCard';
 import JobFilters from '@/components/JobFilters';
 import Navbar from '@/components/Navbar';
+import Pagination from '@/components/Pagination';
 import { jobAPI, Job } from '@/lib/job';
 import Link from 'next/link';
 
@@ -27,88 +28,48 @@ export default function JobsPage() {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary'>('recent');
-  
-  const jobsPerPage = 20;
+  const [filters, setFilters] = useState<FilterState>({});
 
-  // Initialize filters from URL params
-  const initialFilters: FilterState = useMemo(() => {
-    const filters: FilterState = {};
-    if (searchParams.get('job_type_id')) filters.jobTypeId = parseInt(searchParams.get('job_type_id')!);
-    if (searchParams.get('job_category_id')) filters.jobCategoryId = parseInt(searchParams.get('job_category_id')!);
-    if (searchParams.get('country_id')) filters.countryId = parseInt(searchParams.get('country_id')!);
-    if (searchParams.get('state_id')) filters.stateId = parseInt(searchParams.get('state_id')!);
-    if (searchParams.get('city_id')) filters.cityId = parseInt(searchParams.get('city_id')!);
-    if (searchParams.get('area_id')) filters.areaId = parseInt(searchParams.get('area_id')!);
-    if (searchParams.get('salary_min')) filters.salaryMin = parseInt(searchParams.get('salary_min')!);
-    if (searchParams.get('salary_max')) filters.salaryMax = parseInt(searchParams.get('salary_max')!);
-    if (searchParams.get('experience_min')) filters.experienceMin = parseInt(searchParams.get('experience_min')!);
-    if (searchParams.get('experience_max')) filters.experienceMax = parseInt(searchParams.get('experience_max')!);
-    if (searchParams.get('is_featured') === 'true') filters.isFeatured = true;
-    return filters;
-  }, [searchParams]);
-
-  const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const searchQuery = searchParams.get('q') || '';
+  const locationQuery = searchParams.get('location') || '';
 
   useEffect(() => {
     fetchJobs();
-  }, [filters, currentPage, sortBy]);
+  }, [searchParams, sortBy, filters]);
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
       const params: any = {
-        skip: (currentPage - 1) * jobsPerPage,
-        limit: jobsPerPage,
+        limit: 20,
       };
 
-      // Note: Backend currently expects job_type and job_category as strings, but we're passing IDs
-      // This might need backend adjustment. For now, we'll pass what the backend expects.
-      // You may need to update backend to accept job_type_id and job_category_id instead
-      
+      if (searchQuery) {
+        params.q = searchQuery;
+      }
+
+      if (locationQuery) {
+        params.location = locationQuery;
+      }
+
+      // Apply filters
+      if (filters.jobTypeId) params.job_type_id = filters.jobTypeId;
+      if (filters.jobCategoryId) params.job_category_id = filters.jobCategoryId;
       if (filters.countryId) params.country_id = filters.countryId;
       if (filters.stateId) params.state_id = filters.stateId;
       if (filters.cityId) params.city_id = filters.cityId;
       if (filters.areaId) params.area_id = filters.areaId;
+      if (filters.salaryMin) params.salary_min = filters.salaryMin;
+      if (filters.salaryMax) params.salary_max = filters.salaryMax;
+      if (filters.experienceMin) params.experience_years_min = filters.experienceMin;
+      if (filters.experienceMax) params.experience_years_max = filters.experienceMax;
       if (filters.isFeatured !== undefined) params.is_featured = filters.isFeatured;
 
-      const response = await jobAPI.getAllJobs(params);
-      
-      let filteredJobs = response;
-
-      // Client-side filtering for fields not supported by backend yet
-      if (filters.jobTypeId) {
-        filteredJobs = filteredJobs.filter((job) => job.job_type_id === filters.jobTypeId);
-      }
-      if (filters.jobCategoryId) {
-        filteredJobs = filteredJobs.filter((job) => job.job_category_id === filters.jobCategoryId);
-      }
-      if (filters.salaryMin !== undefined) {
-        filteredJobs = filteredJobs.filter((job) => job.salary_min && job.salary_min >= filters.salaryMin!);
-      }
-      if (filters.salaryMax !== undefined) {
-        filteredJobs = filteredJobs.filter((job) => job.salary_max && job.salary_max <= filters.salaryMax!);
-      }
-      if (filters.experienceMin !== undefined) {
-        filteredJobs = filteredJobs.filter((job) => job.experience_years_min && job.experience_years_min >= filters.experienceMin!);
-      }
-      if (filters.experienceMax !== undefined) {
-        filteredJobs = filteredJobs.filter((job) => job.experience_years_max && job.experience_years_max <= filters.experienceMax!);
-      }
-
-      // Sorting
-      if (sortBy === 'recent') {
-        filteredJobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      } else if (sortBy === 'popular') {
-        filteredJobs.sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
-      } else if (sortBy === 'salary') {
-        filteredJobs.sort((a, b) => (b.salary_max || 0) - (a.salary_max || 0));
-      }
-
-      setJobs(filteredJobs);
-      setTotalJobs(filteredJobs.length);
+      const data = await jobAPI.getAllJobs(params);
+      setJobs(data);
+      setTotalJobs(data.length);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
@@ -118,43 +79,94 @@ export default function JobsPage() {
 
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    setCurrentPage(1);
-    
-    // Update URL params
-    const params = new URLSearchParams();
-    Object.entries(newFilters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        params.set(key.replace(/([A-Z])/g, '_$1').toLowerCase(), value.toString());
-      }
-    });
-    router.push(`/jobs?${params.toString()}`, { scroll: false });
   };
 
   const handleSortChange = (newSort: 'recent' | 'popular' | 'salary') => {
     setSortBy(newSort);
-    setCurrentPage(1);
   };
 
-  const searchQuery = searchParams.get('q') || '';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
+
+  // Generate structured data for job listings page
+  const jobsListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'SPA Jobs',
+    description: `Browse ${totalJobs}+ spa jobs across India. Find therapist, masseuse, and spa manager positions.`,
+    url: `${siteUrl}/jobs`,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: totalJobs,
+      itemListElement: jobs.slice(0, 10).map((job, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'JobPosting',
+          title: job.title,
+          description: job.description?.substring(0, 200),
+          datePosted: job.created_at,
+          hiringOrganization: {
+            '@type': 'Organization',
+            name: job.spa?.name || 'SPA',
+          },
+          jobLocation: {
+            '@type': 'Place',
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: job.city?.name || '',
+            },
+          },
+        },
+      })),
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Jobs',
+        item: `${siteUrl}/jobs`,
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobsListSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <Navbar />
       
       {/* Hero Section - Naukri Style */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+      <div className="bg-brand-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
             {searchQuery ? `Jobs for "${searchQuery}"` : 'Find Your Dream SPA Job'}
           </h1>
-          <p className="text-blue-100 text-lg">
+          <p className="text-white/90 text-base sm:text-lg">
             {totalJobs > 0 ? `${totalJobs}+ jobs available` : 'Discover thousands of opportunities'}
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-4">
@@ -165,19 +177,19 @@ export default function JobsPage() {
           {/* Job Listings */}
           <div className="lg:col-span-3">
             {/* Sort and View Options - Naukri Style */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 font-medium">
+                  <span className="text-xs sm:text-sm text-gray-600 font-medium">
                     {loading ? 'Loading...' : `${totalJobs} Jobs Found`}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 font-medium">Sort by:</span>
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <span className="text-xs sm:text-sm text-gray-600 font-medium whitespace-nowrap">Sort by:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => handleSortChange(e.target.value as 'recent' | 'popular' | 'salary')}
-                    className="input-field text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="input-field text-xs sm:text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500 flex-1 sm:flex-none"
                   >
                     <option value="recent">Most Recent</option>
                     <option value="popular">Most Popular</option>
@@ -204,82 +216,61 @@ export default function JobsPage() {
                 ))}
               </div>
             ) : jobs.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                <svg className="w-20 h-20 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+                <svg className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No jobs found</h3>
-                <p className="text-gray-600 mb-6">Try adjusting your filters or search criteria to find more jobs</p>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No jobs found</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-6">Try adjusting your filters or search criteria to find more jobs</p>
                 <button
                   onClick={() => {
                     setFilters({});
                     handleFilterChange({});
                   }}
-                  className="btn-primary"
+                  className="btn-primary text-sm sm:text-base px-6 py-2.5"
                 >
                   Clear All Filters
                 </button>
               </div>
             ) : (
-              <>
-                <div className="space-y-4">
-                  {jobs.map((job) => (
-                    <JobCard
-                      key={job.id}
-                      id={job.id}
-                      title={job.title}
-                      spaName={job.spa?.name || 'SPA'}
-                      spaAddress={job.spa?.address}
-                      location={
-                        (() => {
-                          const locationParts = [];
-                          if (job.area?.name) locationParts.push(job.area.name);
-                          if (job.city?.name) locationParts.push(job.city.name);
-                          return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
-                        })()
-                      }
-                      salaryMin={job.salary_min}
-                      salaryMax={job.salary_max}
-                      salaryCurrency={job.salary_currency}
-                      experienceMin={job.experience_years_min}
-                      experienceMax={job.experience_years_max}
-                      jobOpeningCount={job.job_opening_count}
-                      jobType={job.job_type?.name}
-                      jobCategory={job.job_category?.name}
-                      slug={job.slug}
-                      isFeatured={job.is_featured}
-                      viewCount={job.view_count}
-                      created_at={job.created_at}
-                      description={job.description}
-                    />
-                  ))}
-                </div>
-
-                {/* Pagination - Naukri Style */}
-                {totalJobs > jobsPerPage && (
-                  <div className="mt-6 flex justify-center">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Previous
-                      </button>
-                      <span className="px-4 py-2 text-sm text-gray-700">
-                        Page {currentPage} of {Math.ceil(totalJobs / jobsPerPage)}
-                      </span>
-                      <button
-                        onClick={() => setCurrentPage((prev) => prev + 1)}
-                        disabled={currentPage >= Math.ceil(totalJobs / jobsPerPage)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
+              <div className="space-y-4">
+                {jobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    id={job.id}
+                    title={job.title}
+                    spaName={job.spa?.name}
+                    spaAddress={job.spa?.address}
+                    location={
+                      (() => {
+                        const locationParts = [];
+                        if (job.area?.name) locationParts.push(job.area.name);
+                        if (job.city?.name) locationParts.push(job.city.name);
+                        return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
+                      })()
+                    }
+                    salaryMin={job.salary_min}
+                    salaryMax={job.salary_max}
+                    salaryCurrency={job.salary_currency}
+                    experienceMin={job.experience_years_min}
+                    experienceMax={job.experience_years_max}
+                    jobOpeningCount={job.job_opening_count}
+                    jobType={typeof job.job_type === 'string' ? job.job_type : job.job_type?.name}
+                    jobCategory={typeof job.job_category === 'string' ? job.job_category : job.job_category?.name}
+                  slug={job.slug}
+                  isFeatured={job.is_featured}
+                  viewCount={job.view_count}
+                  created_at={job.created_at}
+                  description={job.description}
+                  logoImage={job.spa?.logo_image}
+                  postedBy={job.created_by_user ? {
+                    id: job.created_by_user.id,
+                    name: job.created_by_user.name,
+                    profile_photo: job.created_by_user.profile_photo,
+                  } : undefined}
+                />
+                ))}
+              </div>
             )}
           </div>
         </div>

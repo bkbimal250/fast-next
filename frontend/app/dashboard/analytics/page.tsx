@@ -3,16 +3,44 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { analyticsAPI, PopularLocation } from '@/lib/analytics';
+import { analyticsAPI } from '@/lib/analytics';
+import { jobAPI } from '@/lib/job';
+import { userAPI } from '@/lib/user';
+import { spaAPI } from '@/lib/spa';
+import { applicationAPI } from '@/lib/application';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { FaChartLine, FaBriefcase, FaUser, FaBuilding, FaMapMarkerAlt, FaEye, FaMousePointer, FaCalendarAlt } from 'react-icons/fa';
+
+interface AnalyticsStats {
+  totalJobs: number;
+  totalApplications: number;
+  totalUsers: number;
+  totalSPAs: number;
+  totalViews: number;
+  totalClicks: number;
+}
+
+interface PopularLocation {
+  city: string;
+  event_count: number;
+}
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<AnalyticsStats>({
+    totalJobs: 0,
+    totalApplications: 0,
+    totalUsers: 0,
+    totalSPAs: 0,
+    totalViews: 0,
+    totalClicks: 0,
+  });
   const [popularLocations, setPopularLocations] = useState<PopularLocation[]>([]);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
@@ -20,123 +48,317 @@ export default function AnalyticsPage() {
     } else {
       fetchAnalytics();
     }
-  }, [user, router]);
+  }, [user, router, timeRange]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
     setError(null);
     try {
-      const locations = await analyticsAPI.getPopularLocations(10);
-      setPopularLocations(locations);
+      // Fetch all statistics in parallel - only fetch users for admins
+      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData] = await Promise.all([
+        jobAPI.getJobCount().catch(() => ({ count: 0 })),
+        user && user.role === 'admin' 
+          ? userAPI.getAllUsers(0, 1000).catch(() => [])
+          : Promise.resolve([]),
+        user && (user.role === 'admin' || user.role === 'manager')
+          ? spaAPI.getSpas({ skip: 0, limit: 1000 }).catch(() => [])
+          : Promise.resolve([]),
+        user && (user.role === 'admin' || user.role === 'manager' || user.role === 'recruiter')
+          ? applicationAPI.getAllApplications({ skip: 0, limit: 1000 }).catch(() => [])
+          : Promise.resolve([]),
+        analyticsAPI.getPopularLocations(10).catch(() => []),
+      ]);
+
+      // Calculate statistics
+      const totalJobs = jobCountData.count || 0;
+      const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
+      const totalSPAs = Array.isArray(spasData) ? spasData.length : 0;
+      const totalApplications = Array.isArray(applicationsData) ? applicationsData.length : 0;
+
+      setStats({
+        totalJobs,
+        totalApplications,
+        totalUsers,
+        totalSPAs,
+        totalViews: 0, // Would need analytics events endpoint
+        totalClicks: 0, // Would need analytics events endpoint
+      });
+
+      setPopularLocations(
+        Array.isArray(popularLocationsData)
+          ? popularLocationsData.map((loc: any) => ({
+              city: loc.city || 'Unknown',
+              event_count: loc.event_count || 0,
+            }))
+          : []
+      );
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to fetch analytics');
-      console.error('Failed to fetch analytics:', err);
+      // Only show error if it's not a permission error (403)
+      if (err.response?.status !== 403) {
+        setError(err.response?.data?.detail || 'Failed to fetch analytics');
+        console.error('Failed to fetch analytics:', err);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !user || (user.role !== 'admin' && user.role !== 'manager')) {
+  if (loading && stats.totalJobs === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-surface-light">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading analytics...</p>
+        </div>
       </div>
     );
   }
 
+  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-light">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-600 mt-2">System-wide statistics and insights</p>
-          </div>
-          <Link href="/dashboard" className="btn-secondary">
-            Back to Dashboard
-          </Link>
-        </div>
-
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">{error}</div>}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Jobs</h3>
-            <p className="text-3xl font-bold text-primary-600">-</p>
-            <p className="text-sm text-gray-500 mt-1">Active job postings</p>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Applications</h3>
-            <p className="text-3xl font-bold text-green-600">-</p>
-            <p className="text-sm text-gray-500 mt-1">Job applications received</p>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Users</h3>
-            <p className="text-3xl font-bold text-blue-600">-</p>
-            <p className="text-sm text-gray-500 mt-1">Registered users</p>
-          </div>
-        </div>
-
-        <div className="card">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Popular Locations</h2>
-          {popularLocations.length === 0 ? (
-            <p className="text-gray-500">No location data available</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      City
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      State
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Country
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Job Count
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {popularLocations.map((location, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {location.city || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {location.state || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {location.country || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                        {location.job_count}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <FaChartLine size={28} />
+                </div>
+                Analytics Dashboard
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">System-wide statistics and insights</p>
             </div>
-          )}
+            <div className="flex gap-3">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as any)}
+                className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium bg-white"
+              >
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+                <option value="all">All time</option>
+              </select>
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
+              >
+                ← Back to Dashboard
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-6 card">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Additional Analytics</h2>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-700">
-              More analytics features coming soon, including:
+        {/* Error Message */}
+        {error && (
+          <div className="mb-5 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+            <p className="font-medium">{error}</p>
+          </div>
+        )}
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Jobs</p>
+              <div className="bg-brand-100 rounded-lg p-2">
+                <div className="text-brand-600">
+                  <FaBriefcase size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalJobs.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Active postings</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Applications</p>
+              <div className="bg-green-100 rounded-lg p-2">
+                <div className="text-green-600">
+                  <FaMousePointer size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalApplications.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Total received</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+              <div className="bg-blue-100 rounded-lg p-2">
+                <div className="text-blue-600">
+                  <FaUser size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Registered users</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">SPAs</p>
+              <div className="bg-purple-100 rounded-lg p-2">
+                <div className="text-purple-600">
+                  <FaBuilding size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalSPAs.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Total businesses</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Page Views</p>
+              <div className="bg-gold-100 rounded-lg p-2">
+                <div className="text-gold-600">
+                  <FaEye size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Total views</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Clicks</p>
+              <div className="bg-orange-100 rounded-lg p-2">
+                <div className="text-orange-600">
+                  <FaMousePointer size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalClicks.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Total clicks</p>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+          {/* Popular Locations */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <FaMapMarkerAlt size={18} />
+                </div>
+                Popular Locations
+              </h2>
+            </div>
+            {popularLocations.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p>No location data available</p>
+                <p className="text-sm mt-2">Analytics events will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {popularLocations.map((location, index) => {
+                  const maxCount = popularLocations[0]?.event_count || 1;
+                  const percentage = (location.event_count / maxCount) * 100;
+                  return (
+                    <div key={index} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-gray-900">{location.city || 'Unknown'}</span>
+                        <span className="text-gray-600 font-semibold">{location.event_count.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-brand-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Event Types */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <FaChartLine size={18} />
+                </div>
+                Event Types
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-brand-100 rounded-lg p-2">
+                    <div className="text-brand-600">
+                      <FaEye size={14} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Page Views</p>
+                    <p className="text-xs text-gray-500">Job detail page views</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-900">{stats.totalViews.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 rounded-lg p-2">
+                    <div className="text-green-600">
+                      <FaMousePointer size={14} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Apply Clicks</p>
+                    <p className="text-xs text-gray-500">Application button clicks</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-900">{stats.totalClicks.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 rounded-lg p-2">
+                    <div className="text-blue-600">
+                      <FaBriefcase size={14} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Applications</p>
+                    <p className="text-xs text-gray-500">Total applications submitted</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-900">{stats.totalApplications.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Analytics Section */}
+        <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="text-brand-600">
+              <FaCalendarAlt size={18} />
+            </div>
+            Time-based Analytics
+          </h2>
+          <div className="bg-brand-50 border border-brand-200 rounded-lg p-4">
+            <p className="text-brand-700 text-sm font-medium mb-2">Coming Soon</p>
+            <p className="text-brand-600 text-sm">
+              Advanced analytics features including time-series charts, conversion rates, and detailed event tracking will be available here.
             </p>
-            <ul className="list-disc list-inside mt-2 text-yellow-700 space-y-1">
-              <li>Job view statistics</li>
-              <li>Application conversion rates</li>
-              <li>Popular job types</li>
-              <li>User engagement metrics</li>
+            <ul className="list-disc list-inside mt-3 text-brand-600 text-sm space-y-1">
+              <li>Daily/Weekly/Monthly trends</li>
+              <li>Job performance metrics</li>
+              <li>User engagement analytics</li>
+              <li>Conversion funnel analysis</li>
             </ul>
           </div>
         </div>
@@ -144,4 +366,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-

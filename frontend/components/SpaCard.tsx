@@ -2,143 +2,202 @@
 
 import Link from 'next/link';
 import { Spa } from '@/lib/spa';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { FaGlobe, FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 
 interface SpaCardProps {
   spa: Spa;
   distance?: number;
   showDistance?: boolean;
+  jobCount?: number;
 }
 
-export default function SpaCard({ spa, distance, showDistance = true }: SpaCardProps) {
-  const formatDistance = (dist: number): string => {
-    if (dist < 1) {
-      return `${Math.round(dist * 1000)}m away`;
-    }
-    return `${dist.toFixed(1)}km away`;
-  };
-
+export default function SpaCard({ spa, distance, showDistance = true, jobCount: initialJobCount }: SpaCardProps) {
+  const [jobCount, setJobCount] = useState<number | null>(initialJobCount ?? null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+  useEffect(() => {
+    if (jobCount === null && spa.id) {
+      // Fetch job count for this spa
+      axios.get(`${API_URL}/api/jobs?spa_id=${spa.id}`)
+        .then(res => {
+          setJobCount(Array.isArray(res.data) ? res.data.length : 0);
+        })
+        .catch(() => setJobCount(0));
+    }
+  }, [spa.id, jobCount, API_URL]);
+
+  const formatDistance = (dist: number): string => {
+    if (dist < 1) {
+      return `${dist.toFixed(1)} km`;
+    }
+    return `${dist.toFixed(1)} km`;
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (navigator.share) {
+      navigator.share({
+        title: spa.name,
+        text: spa.description || `Check out ${spa.name}`,
+        url: `${window.location.origin}/spas/${spa.slug}`,
+      }).catch(() => {});
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(`${window.location.origin}/spas/${spa.slug}`);
+    }
+  };
+
+  const getDirectionsUrl = () => {
+    if (spa.latitude && spa.longitude) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${spa.latitude},${spa.longitude}`;
+    }
+    if (spa.directions) {
+      return spa.directions;
+    }
+    if (spa.address) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spa.address)}`;
+    }
+    return '#';
+  };
+
+  const renderStars = (rating: number) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return (
+      <div className="flex items-center gap-0.5">
+        {[...Array(fullStars)].map((_, i) => (
+          <FaStar key={`full-${i}`} className="w-4 h-4 text-yellow-400" />
+        ))}
+        {hasHalfStar && (
+          <FaStarHalfAlt key="half" className="w-4 h-4 text-yellow-400" />
+        )}
+        {[...Array(emptyStars)].map((_, i) => (
+          <FaRegStar key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <Link href={`/spas/${spa.slug}`}>
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group">
-        {/* Image */}
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200">
+      {/* Image Section */}
+      <div className="relative h-48 sm:h-56 bg-gray-200">
         {spa.spa_images && spa.spa_images.length > 0 ? (
-          <div className="relative h-48 bg-gray-200">
-            <img
-              src={`${API_URL}/${spa.spa_images[0]}`}
-              alt={spa.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-            {spa.is_verified && (
-              <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Verified</span>
-              </div>
-            )}
-            {showDistance && distance !== undefined && (
-              <div className="absolute top-2 left-2 bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                {formatDistance(distance)}
-              </div>
-            )}
-          </div>
+          <img
+            src={`${API_URL}/${spa.spa_images[0]}`}
+            alt={spa.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
         ) : (
-          <div className="h-48 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-            <div className="text-white text-4xl font-bold">
+          <div className="h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+            <div className="text-white text-4xl sm:text-5xl font-bold">
               {spa.name.charAt(0).toUpperCase()}
             </div>
           </div>
         )}
+        
+        {/* Distance Badge - Bottom Left */}
+        {showDistance && distance !== undefined && (
+          <div className="absolute bottom-2 left-2 bg-white px-3 py-1 rounded-md shadow-md">
+            <span className="text-sm font-semibold text-gray-900">{formatDistance(distance)}</span>
+          </div>
+        )}
 
-        {/* Content */}
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-              {spa.name}
-            </h3>
-            {!spa.spa_images && showDistance && distance !== undefined && (
-              <span className="bg-primary-600 text-white px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2">
-                {formatDistance(distance)}
-              </span>
+        {/* Verified Badge - Top Right */}
+        {spa.is_verified && (
+          <div className="absolute top-2 right-2 bg-brand-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
+            <FaCheckCircle className="w-4 h-4" />
+            <span>Verified</span>
+          </div>
+        )}
+      </div>
+
+      {/* Content Section */}
+      <div className="p-5">
+        {/* Business Name */}
+        <Link href={`/spas/${spa.slug}`}>
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 hover:text-brand-600 transition-colors">
+            {spa.name}
+          </h3>
+        </Link>
+
+        {/* Category */}
+        <p className="text-sm text-gray-500 mb-3">Spa & Massage</p>
+
+        {/* Rating */}
+        {spa.rating !== undefined && spa.rating > 0 && (
+          <div className="flex items-center gap-2 mb-3">
+            {renderStars(spa.rating)}
+            <span className="text-sm font-semibold text-gray-900">{spa.rating.toFixed(1)}</span>
+            {spa.reviews !== undefined && spa.reviews > 0 && (
+              <span className="text-sm text-gray-600">({spa.reviews} reviews)</span>
             )}
           </div>
+        )}
 
-          {spa.description && (
-            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{spa.description}</p>
-          )}
+        {/* Address */}
+        {spa.address && (
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{spa.address}</p>
+        )}
 
-          <div className="space-y-2 mb-4 text-sm text-gray-600">
-            {spa.address && (
-              <div className="flex items-start space-x-2">
-                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="line-clamp-2 text-xs">{spa.address}</span>
-              </div>
-            )}
-            {spa.phone && (
-              <div className="flex items-center space-x-2">
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                <a href={`tel:${spa.phone}`} className="text-xs hover:text-primary-600" onClick={(e) => e.stopPropagation()}>
-                  {spa.phone}
-                </a>
-              </div>
-            )}
-            {(spa.opening_hours || spa.closing_hours) && (
-              <div className="flex items-center space-x-2">
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-xs">
-                  {spa.opening_hours} - {spa.closing_hours}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex space-x-2">
-            <span className="flex-1 bg-blue-600 text-white text-center px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-semibold text-sm">
-              View Details
-            </span>
-            {spa.website && (
-              <a
-                href={spa.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors font-semibold text-sm"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Website
-              </a>
-            )}
-          </div>
-
-          {spa.booking_url_website && (
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2">
+          {/* Website Button */}
+          {spa.website && (
             <a
-              href={spa.booking_url_website}
+              href={spa.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 w-full block text-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors font-semibold text-sm"
               onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
             >
-              Book Now
+              <FaGlobe className="w-5 h-5 text-brand-600" />
+              <span>Website</span>
             </a>
           )}
+
+          {/* Directions Button */}
+          <a
+            href={getDirectionsUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
+          >
+            <FaDirections className="w-5 h-5 text-green-600" />
+            <span>Directions</span>
+          </a>
+
+          {/* Jobs Button */}
+          {jobCount !== null && jobCount > 0 && (
+            <Link
+              href={`/spas/${spa.slug}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
+            >
+              <FaBriefcase className="w-5 h-5 text-purple-600" />
+              <span>{jobCount} {jobCount === 1 ? 'Job' : 'Jobs'} open</span>
+            </Link>
+          )}
+
+          {/* Share Button */}
+          <button
+            onClick={handleShare}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
+          >
+            <FaShareAlt className="w-5 h-5 text-gray-600" />
+            <span>Share</span>
+          </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

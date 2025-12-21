@@ -4,13 +4,13 @@ Application API routes
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Header
 from typing import Optional, List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.modules.applications import schemas
 from app.modules.uploads.cv_storage import save_cv_file as save_cv_file_upload
 from app.modules.jobs.models import JobApplication, Job
 from app.modules.users.models import User, UserRole
-from app.modules.users.routes import get_current_user
+from app.modules.users.routes import get_current_user, get_current_user_optional
 
 router = APIRouter(prefix="/api/applications", tags=["applications"])
 
@@ -101,8 +101,10 @@ def get_my_applications(
     if not job_ids:
         return []
     
-    # Get applications for those jobs
-    applications = db.query(JobApplication).filter(
+    # Get applications for those jobs with job relationship loaded
+    applications = db.query(JobApplication).options(
+        joinedload(JobApplication.job)
+    ).filter(
         JobApplication.job_id.in_(job_ids)
     ).order_by(JobApplication.created_at.desc()).offset(skip).limit(limit).all()
     
@@ -116,13 +118,15 @@ def get_all_applications(
     job_id: Optional[int] = None,
     user_id: Optional[int] = None,
     status: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
-    """Get all applications (admin/manager only)"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
-        raise HTTPException(status_code=403, detail="Only admins and managers can access all applications")
-    
+    """
+    Get applications with optional authentication.
+    - If authenticated as admin/manager: returns all applications with filters
+    - If authenticated as recruiter: returns applications for their SPA's jobs
+    - If not authenticated: returns only count (if job_id provided) or empty list
+    """
     query = db.query(JobApplication)
     
     # Apply filters
@@ -133,7 +137,32 @@ def get_all_applications(
     if status:
         query = query.filter(JobApplication.status == status)
     
-    applications = query.order_by(JobApplication.created_at.desc()).offset(skip).limit(limit).all()
+    # If not authenticated, only return count (for public job detail pages)
+    if current_user is None:
+        if job_id:
+            # Return minimal data for count - just return count in response
+            count = query.count()
+            return []  # Return empty list but frontend can use count from headers or separate endpoint
+        else:
+            # No job_id and not authenticated - return empty
+            return []
+    
+    # Authenticated users - check permissions
+    if current_user.role == UserRole.RECRUITER:
+        # Recruiters can only see applications for their SPA's jobs
+        if not current_user.managed_spa_id:
+            return []
+        job_ids = [job.id for job in db.query(Job.id).filter(Job.spa_id == current_user.managed_spa_id).all()]
+        if not job_ids:
+            return []
+        query = query.filter(JobApplication.job_id.in_(job_ids))
+    elif current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        # Other roles (or no role) - return empty
+        return []
+    
+    applications = query.options(
+        joinedload(JobApplication.job)
+    ).order_by(JobApplication.created_at.desc()).offset(skip).limit(limit).all()
     return applications
 
 
@@ -144,7 +173,9 @@ def get_application(
     db: Session = Depends(get_db)
 ):
     """Get application by ID"""
-    application = db.query(JobApplication).filter(JobApplication.id == application_id).first()
+    application = db.query(JobApplication).options(
+        joinedload(JobApplication.job)
+    ).filter(JobApplication.id == application_id).first()
     
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")

@@ -2,14 +2,17 @@
 Job Pydantic schemas
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from app.modules.locations.schemas import CityResponse, AreaResponse, StateResponse, CountryResponse
 from app.modules.spas.schemas import SpaResponse
+from app.modules.users.schemas import UserResponse
 
 
 class JobBase(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
     title: str
     description: str
     requirements: Optional[str] = None
@@ -40,7 +43,7 @@ class JobBase(BaseModel):
     longitude: Optional[float] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
-    schema_json: Optional[str] = None
+    seo_schema_json: Optional[str] = Field(None, description="JSON-LD schema for SEO", alias="schema_json", serialization_alias="schema_json")
     canonical_url: Optional[str] = None
 
 
@@ -130,7 +133,7 @@ class JobUpdate(BaseModel):
     expires_at: Optional[datetime] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
-    schema_json: Optional[str] = None
+    seo_schema_json: Optional[str] = Field(None, description="JSON-LD schema for SEO", alias="schema_json", serialization_alias="schema_json")
     canonical_url: Optional[str] = None
 
 
@@ -153,6 +156,7 @@ class JobResponse(JobBase):
     spa: Optional[SpaResponse] = None
     job_type: Optional[JobTypeResponse] = None
     job_category: Optional[JobCategoryResponse] = None
+    created_by_user: Optional[UserResponse] = None
     
     class Config:
         from_attributes = True

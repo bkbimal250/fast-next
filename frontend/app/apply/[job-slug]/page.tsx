@@ -7,6 +7,7 @@ import { applicationAPI } from '@/lib/application';
 import { tokenManager } from '@/lib/auth';
 import type { Job } from '@/lib/job';
 import Link from 'next/link';
+import { showToast, showErrorToast } from '@/lib/toast';
 
 export default function ApplyPage({ params }: { params: { 'job-slug': string } }) {
   const router = useRouter();
@@ -40,7 +41,9 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
           // For now, we'll let the backend handle it
         }
       } catch (err: any) {
-        setError(err.response?.data?.detail || 'Failed to load job details');
+        const errorMsg = err.response?.data?.detail || 'Failed to load job details';
+        setError(errorMsg);
+        showErrorToast(err, 'Failed to load job details');
       } finally {
         setLoading(false);
       }
@@ -74,13 +77,17 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
       const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
       
       if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension || '')) {
-        setError('Please upload a PDF, DOC, DOCX, or image file (JPG, PNG, GIF, WEBP)');
+        const errorMsg = 'Please upload a PDF, DOC, DOCX, or image file (JPG, PNG, GIF, WEBP)';
+        setError(errorMsg);
+        showToast.error(errorMsg);
         return;
       }
       
       // Validate file size (10MB max to match backend)
       if (file.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB');
+        const errorMsg = 'File size must be less than 10MB';
+        setError(errorMsg);
+        showToast.error(errorMsg);
         return;
       }
       
@@ -125,14 +132,18 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
     const token = tokenManager.getToken();
     if (!token) {
       if (!formData.name || !formData.email || !formData.phone) {
-        setError('Name, Email, and Phone are required');
+        const errorMsg = 'Name, Email, and Phone are required';
+        setError(errorMsg);
+        showToast.error(errorMsg);
         setSubmitting(false);
         return;
       }
     }
 
     if (!job) {
-      setError('Job not found');
+      const errorMsg = 'Job not found';
+      setError(errorMsg);
+      showToast.error(errorMsg);
       setSubmitting(false);
       return;
     }
@@ -152,13 +163,16 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
       await applicationAPI.createApplication(formDataToSend);
       
       setSuccess(true);
+      showToast.success('Application submitted successfully!', 'You will be redirected to the job page shortly.');
       
       // Redirect after 3 seconds
       setTimeout(() => {
         router.push(`/jobs/${job.slug}`);
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to submit application. Please try again.');
+      const errorMsg = err.response?.data?.detail || 'Failed to submit application. Please try again.';
+      setError(errorMsg);
+      showErrorToast(err, 'Failed to submit application');
     } finally {
       setSubmitting(false);
     }
@@ -166,9 +180,9 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-light flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading job details...</p>
         </div>
       </div>
@@ -177,11 +191,11 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-light flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h1>
           <p className="text-gray-600 mb-4">The job you're looking for doesn't exist.</p>
-          <Link href="/jobs" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/jobs" className="text-brand-600 hover:text-brand-700 font-medium">
             Browse All Jobs
           </Link>
         </div>
@@ -191,78 +205,90 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-surface-light flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 sm:p-10 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Application Submitted!</h2>
+          <p className="text-gray-600 mb-6 leading-relaxed">
             Your application has been successfully submitted. The employer will review your profile and get back to you soon.
           </p>
-          <p className="text-sm text-gray-500">Redirecting to job page...</p>
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Redirecting to job page...</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-surface-light py-6 sm:py-8 md:py-12 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <Link href={`/jobs/${job.slug}`} className="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center gap-1 mb-4">
+        <div className="mb-6 sm:mb-8">
+          <Link href={`/jobs/${job.slug}`} className="text-brand-600 hover:text-brand-700 text-sm font-medium inline-flex items-center gap-2 mb-4 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Job Details
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Apply for this Job</h1>
-          <p className="text-gray-600 mt-2">Fill in your details to apply for this position</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Apply for this Job</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Fill in your details to apply for this position</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Job Summary Card - Left Sidebar */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
-              <div className="mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl mb-4">
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-4">
+              <div className="mb-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-md">
                   {job.spa?.name?.charAt(0).toUpperCase() || 'S'}
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-1">{job.title}</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2 leading-tight">{job.title}</h2>
                 <p className="text-sm text-gray-600 font-medium">{job.spa?.name || 'SPA'}</p>
               </div>
 
-              <div className="space-y-3 border-t border-gray-200 pt-4">
+              <div className="space-y-4 border-t border-gray-200 pt-6">
                 <div className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <div className="w-10 h-10 bg-gold-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   <div>
-                    <p className="text-xs text-gray-500">Salary</p>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Salary</p>
                     <p className="text-sm font-semibold text-gray-900">{formatSalary(job)}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                  <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
                   <div>
-                    <p className="text-xs text-gray-500">Experience</p>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Experience</p>
                     <p className="text-sm font-semibold text-gray-900">{formatExperience(job)}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
                   <div>
-                    <p className="text-xs text-gray-500">Location</p>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Location</p>
                     <p className="text-sm font-semibold text-gray-900">
                       {[job.city?.name, job.state?.name, job.country?.name].filter(Boolean).join(', ') || 'Not specified'}
                     </p>
@@ -270,12 +296,12 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                 </div>
 
                 {job.job_type && (
-                  <div className="flex items-center gap-2 pt-2">
-                    <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-50 text-brand-700 border border-brand-200">
                       {job.job_type.name}
                     </span>
                     {job.job_category && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-100 text-brand-800 border border-brand-300">
                         {job.job_category.name}
                       </span>
                     )}
@@ -286,25 +312,29 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
           </div>
 
           {/* Application Form - Right Side */}
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 md:p-10">
+              <div className="mb-6 pb-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Form</h2>
+                <p className="text-sm text-gray-600">Please fill in all required fields to complete your application</p>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Error Message */}
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-start gap-3">
+                  <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-md flex items-start gap-3">
                     <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p>{error}</p>
+                    <p className="font-medium">{error}</p>
                   </div>
                 )}
 
                 {/* Personal Information Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Personal Information</h3>
+                  <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                         Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -314,13 +344,13 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                         value={formData.name}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-white"
                         placeholder="Enter your full name"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                         Email Address <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -330,13 +360,13 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-white"
                         placeholder="your.email@example.com"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                         Phone Number <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -346,13 +376,13 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-white"
                         placeholder="+91 98765 43210"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="location" className="block text-sm font-semibold text-gray-700 mb-2">
                         Current Location
                       </label>
                       <input
@@ -361,7 +391,7 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                         name="location"
                         value={formData.location}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-white"
                         placeholder="City, State"
                       />
                     </div>
@@ -370,9 +400,9 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
 
                 {/* Professional Information Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Professional Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Professional Information</h3>
                   <div>
-                    <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="experience" className="block text-sm font-semibold text-gray-700 mb-2">
                       Years of Experience
                     </label>
                     <input
@@ -381,28 +411,28 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                       name="experience"
                       value={formData.experience}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-white"
                       placeholder="e.g., 2 years, 3-5 years"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Optional: Describe your relevant work experience</p>
+                    <p className="mt-2 text-xs text-gray-500">Optional: Describe your relevant work experience</p>
                   </div>
                 </div>
 
                 {/* Resume Upload Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Resume/CV</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Upload Resume/CV</h3>
                   <div>
-                    <label htmlFor="cv_file" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="cv_file" className="block text-sm font-semibold text-gray-700 mb-3">
                       Resume/CV (PDF, DOC, DOCX, or Image)
                     </label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-400 transition-colors">
-                      <div className="space-y-1 text-center">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <div className="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-xl hover:border-brand-400 hover:bg-brand-50/50 transition-all cursor-pointer">
+                      <div className="space-y-2 text-center">
+                        <svg className="mx-auto h-14 w-14 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                           <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <div className="flex text-sm text-gray-600">
-                          <label htmlFor="cv_file" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                            <span>Upload a file</span>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-1 text-sm text-gray-600">
+                          <label htmlFor="cv_file" className="relative cursor-pointer bg-white rounded-md font-semibold text-brand-600 hover:text-brand-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500 transition-colors">
+                            <span className="underline">Upload a file</span>
                             <input
                               id="cv_file"
                               name="cv_file"
@@ -412,11 +442,16 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                               className="sr-only"
                             />
                           </label>
-                          <p className="pl-1">or drag and drop</p>
+                          <span className="text-gray-500">or drag and drop</span>
                         </div>
-                        <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG, GIF, WEBP up to 10MB</p>
+                        <p className="text-xs text-gray-500 pt-1">PDF, DOC, DOCX, JPG, PNG, GIF, WEBP up to 10MB</p>
                         {cvFileName && (
-                          <p className="text-sm text-green-600 font-medium mt-2">Selected: {cvFileName}</p>
+                          <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-brand-50 text-brand-700 rounded-lg border border-brand-200">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-medium">Selected: {cvFileName}</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -424,11 +459,11 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-6 border-t border-gray-200">
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                    className="flex-1 bg-gold-500 hover:bg-gold-600 text-white font-semibold py-3.5 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg min-h-[48px] flex items-center justify-center"
                   >
                     {submitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -444,14 +479,17 @@ export default function ApplyPage({ params }: { params: { 'job-slug': string } }
                   </button>
                   <Link
                     href={`/jobs/${job.slug}`}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all text-center min-h-[48px] flex items-center justify-center"
                   >
                     Cancel
                   </Link>
                 </div>
 
-                <p className="text-xs text-gray-500 text-center">
-                  By submitting this application, you agree to our Terms of Service and Privacy Policy.
+                <p className="text-xs text-gray-500 text-center pt-2">
+                  By submitting this application, you agree to our{' '}
+                  <Link href="/terms" className="text-brand-600 hover:text-brand-700 underline">Terms of Service</Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="text-brand-600 hover:text-brand-700 underline">Privacy Policy</Link>.
                 </p>
               </form>
             </div>

@@ -27,6 +27,35 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login", auto_error=False)
 
 
+def get_current_user_optional(
+    request: Request,
+    token: Optional[str] = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> Optional[models.User]:
+    """Get current authenticated user from JWT token, returns None if not authenticated"""
+    from jose import jwt, JWTError
+    
+    # Try to get token from OAuth2PasswordBearer first
+    if not token:
+        # Fallback: extract from Authorization header directly
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        else:
+            return None
+    
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: int = payload.get("sub")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+    
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    return user
+
+
 def get_current_user(
     request: Request,
     token: Optional[str] = Depends(oauth2_scheme),

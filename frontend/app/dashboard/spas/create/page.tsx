@@ -40,6 +40,8 @@ export default function CreateSpaPage() {
     area_id: '',
     latitude: '',
     longitude: '',
+    rating: '',
+    reviews: '',
   });
   const [logoImage, setLogoImage] = useState<File | null>(null);
   const [logoImagePreview, setLogoImagePreview] = useState<string | null>(null);
@@ -158,6 +160,8 @@ export default function CreateSpaPage() {
       if (formData.area_id) data.append('area_id', formData.area_id);
       if (formData.latitude) data.append('latitude', formData.latitude);
       if (formData.longitude) data.append('longitude', formData.longitude);
+      if (formData.rating) data.append('rating', formData.rating);
+      if (formData.reviews) data.append('reviews', formData.reviews);
       if (logoImage) data.append('logo_image', logoImage);
 
       images.forEach((image) => {
@@ -469,6 +473,41 @@ export default function CreateSpaPage() {
                     onChange={handleChange}
                     className="input-field"
                   />
+                </div>
+                <div>
+                  <label htmlFor="rating" className="block text-sm font-medium text-gray-700">
+                    Rating
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    id="rating"
+                    name="rating"
+                    value={formData.rating}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="e.g., 4.5"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Rating from 0.0 to 5.0</p>
+                </div>
+                <div>
+                  <label htmlFor="reviews" className="block text-sm font-medium text-gray-700">
+                    Number of Reviews
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    id="reviews"
+                    name="reviews"
+                    value={formData.reviews}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="e.g., 150"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Total number of reviews</p>
                 </div>
                 <div className="md:col-span-2">
                   <label htmlFor="directions" className="block text-sm font-medium text-gray-700">

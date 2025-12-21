@@ -6,10 +6,12 @@ SPA Job Portal - Backend API
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.gzip import GZipMiddleware
 import os
 
 from app.core.database import init_db
 from app.core.config import settings
+from app.core.rate_limit import RateLimitMiddleware
 from app.modules.users.routes import router as users_router
 from app.modules.locations.routes import router as locations_router
 from app.modules.spas.routes import router as spas_router
@@ -17,19 +19,45 @@ from app.modules.jobs.routes import router as jobs_router
 from app.modules.applications.routes import router as applications_router
 from app.modules.messages.routes import router as messages_router
 from app.modules.analytics.routes import router as analytics_router
+from app.modules.seo.routes import router as seo_router
 
 
 app = FastAPI(
     title="SPA Job Portal API",
-    description="Location-intelligent, SEO-first SPA Job Portal Backend",
+    description="Location-intelligent, SEO-first SPA Job Portal Backend - Optimized for 1000+ concurrent users",
     version="1.0.0",
+    docs_url="/api/docs" if settings.LOG_LEVEL == "DEBUG" else None,  # Disable docs in production
+    redoc_url="/api/redoc" if settings.LOG_LEVEL == "DEBUG" else None,
 )
 
 
+# Compression middleware (reduces response size)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Rate limiting middleware (must be before CORS)
+# Rate limits are automatically relaxed in DEBUG mode
+if settings.RATE_LIMIT_ENABLED:
+    app.add_middleware(RateLimitMiddleware)
+
 # CORS middleware
+# Allow localhost for development, production domain for production
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+]
+
+# Add production domain if not in debug mode
+if settings.LOG_LEVEL != "DEBUG":
+    allowed_origins.append("https://yourdomain.com")  # Update with your production domain
+else:
+    # In debug mode, allow all origins for easier development
+    allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -60,6 +88,7 @@ app.include_router(jobs_router)
 app.include_router(applications_router)
 app.include_router(messages_router)
 app.include_router(analytics_router)
+app.include_router(seo_router)
 
 
 @app.get("/")

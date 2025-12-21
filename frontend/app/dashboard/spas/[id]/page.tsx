@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { spaAPI, Spa, locationAPI } from '@/lib/spa';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { showToast, showErrorToast } from '@/lib/toast';
 
 export default function ViewSpaPage() {
   const { user } = useAuth();
@@ -230,7 +231,7 @@ export default function ViewSpaPage() {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(`${window.location.origin}/spas/${spa.slug}`);
-                        alert('Slug copied to clipboard!');
+                        showToast.success('Slug copied to clipboard!');
                       }}
                       className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                       title="Copy slug"

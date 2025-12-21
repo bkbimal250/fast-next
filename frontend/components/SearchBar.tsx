@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaSearch, FaMapMarkerAlt } from 'react-icons/fa';
 
 export default function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,35 +19,30 @@ export default function SearchBar() {
 
   return (
     <form onSubmit={handleSearch} className="w-full">
-      <div className="flex flex-col md:flex-row gap-2 bg-white rounded-lg shadow-lg p-2 md:p-4">
-        <div className="flex-1 flex items-center border-r border-gray-200 pr-2 md:pr-4">
-          <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+      <div className="flex flex-col md:flex-row gap-2 md:gap-0 bg-white rounded-lg shadow-xl p-2 md:p-1.5">
+        <div className="flex-1 flex items-center border md:border-r md:border-0 border-gray-200 rounded-lg md:rounded-none md:rounded-l-lg pr-3 md:pr-4 pl-4 md:pl-5 py-3 md:py-4">
+          <FaSearch className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
           <input
             type="text"
             placeholder="Job title, keywords, or company"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 outline-none text-gray-700 placeholder-gray-400"
+            className="flex-1 outline-none text-gray-700 placeholder-gray-500 text-sm sm:text-base md:text-lg"
           />
         </div>
-        <div className="flex-1 flex items-center border-r border-gray-200 pr-2 md:pr-4">
-          <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+        <div className="flex-1 flex items-center border md:border-r md:border-0 border-gray-200 rounded-lg md:rounded-none pr-3 md:pr-4 pl-4 md:pl-5 py-3 md:py-4">
+          <FaMapMarkerAlt className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
           <input
             type="text"
             placeholder="City, state, or zip"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="flex-1 outline-none text-gray-700 placeholder-gray-400"
+            className="flex-1 outline-none text-gray-700 placeholder-gray-500 text-sm sm:text-base md:text-lg"
           />
         </div>
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 md:px-8 py-3 rounded-lg transition-colors whitespace-nowrap"
+          className="bg-gold-500 hover:bg-gold-600 text-white font-semibold px-6 md:px-10 py-3 md:py-4 rounded-lg transition-all duration-200 whitespace-nowrap text-sm sm:text-base md:text-lg shadow-md hover:shadow-lg w-full md:w-auto"
         >
           Search Jobs
         </button>

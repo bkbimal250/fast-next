@@ -1,8 +1,8 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
-# PostgreSQL driver (optional, only needed for production)
-# psycopg2-binary==2.9.9
+# PostgreSQL driver (REQUIRED for production with 1000+ users)
+psycopg2-binary==2.9.9
 alembic==1.12.1
 pydantic==2.5.0
 pydantic-settings==2.1.0
@@ -14,4 +14,9 @@ python-dotenv==1.0.0
 python-slugify==8.0.1
 httpx==0.25.2
 Pillow==10.1.0
+# Caching and Performance
+redis==5.0.1  # Redis for caching and rate limiting (optional but recommended)
+# Background Tasks (optional)
+# celery==5.3.4  # Uncomment if using background tasks
+# celery[redis]==5.3.4  # Uncomment if using Celery with Redis
 

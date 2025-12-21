@@ -111,7 +111,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium"
           >
             Clear All
           </button>
@@ -331,7 +331,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
                     }}
                     className={`text-xs px-2.5 py-1 rounded border ${
                       filters.salaryMin === range.min && filters.salaryMax === range.max
-                        ? 'bg-blue-50 border-blue-500 text-blue-700'
+                        ? 'bg-brand-50 border-brand-500 text-brand-700'
                         : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
@@ -399,7 +399,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
                     }}
                     className={`text-xs px-2.5 py-1 rounded border ${
                       filters.experienceMin === range.min && filters.experienceMax === range.max
-                        ? 'bg-blue-50 border-blue-500 text-blue-700'
+                        ? 'bg-brand-50 border-brand-500 text-brand-700'
                         : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
@@ -418,7 +418,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
               type="checkbox"
               checked={filters.isFeatured === true}
               onChange={(e) => updateFilter('isFeatured', e.target.checked ? true : undefined)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
             />
             <span className="ml-2 text-sm text-gray-700 font-medium">Featured Jobs Only</span>
           </label>

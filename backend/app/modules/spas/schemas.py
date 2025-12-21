@@ -26,6 +26,8 @@ class SpaBase(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     spa_images: Optional[List[str]] = None
+    rating: Optional[float] = 0.0
+    reviews: Optional[float] = 0.0
 
 
 class SpaCreate(SpaBase):
@@ -51,6 +53,8 @@ class SpaUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     spa_images: Optional[List[str]] = None
+    rating: Optional[float] = None
+    reviews: Optional[float] = None
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
 

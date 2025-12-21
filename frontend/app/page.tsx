@@ -25,56 +25,104 @@ export default function HomePage() {
       .catch(console.error);
   }, []);
 
+  // Generate structured data for homepage
+  const homepageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'SPA Jobs Portal',
+    description: 'Find the best spa jobs near you. Apply directly to spas without login.',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/jobs?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'SPA Jobs Portal',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com',
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/logo.png`,
+    description: 'India\'s leading platform for spa job opportunities',
+    sameAs: [
+      // Add social media links here when available
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
       <Navbar />
       
-      {/* Hero Section with Search - Naukri Style */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">
-              Find Your Dream SPA Job
+      {/* Hero Section with Search */}
+      <div className="bg-brand-800 text-white relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2"></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 relative z-10">
+          <div className="text-center mb-8 sm:mb-10 animate-fade-in">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 leading-tight px-2">
+              Find Trusted Spa Jobs Across India
             </h1>
-            <p className="text-lg md:text-xl text-blue-100 mb-8">
-              Search from thousands of spa jobs across India
+            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 sm:mb-10 px-4">
+              Verified spa jobs for therapists, managers & wellness professionals
             </p>
           </div>
           
           {/* Search Bar */}
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto mb-6 sm:mb-8 transform transition-all duration-300 hover:scale-[1.01]">
             <SearchBar />
           </div>
 
           {/* Quick Links */}
-          <div className="flex flex-wrap justify-center gap-4 mt-8 text-sm">
-            <Link href="/jobs?job_type=full-time" className="text-blue-100 hover:text-white underline">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 sm:mt-10 text-xs sm:text-sm md:text-base px-4">
+            <Link href="/jobs?job_type=full-time" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
               Full Time Jobs
             </Link>
-            <Link href="/jobs?job_type=part-time" className="text-blue-100 hover:text-white underline">
+            <Link href="/jobs?job_type=part-time" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
               Part Time Jobs
             </Link>
-            <Link href="/spa-near-me" className="text-blue-100 hover:text-white underline">
+            <Link href="/spa-near-me" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
               SPAs Near Me
             </Link>
-            <Link href="/jobs?is_featured=true" className="text-blue-100 hover:text-white underline">
+            <Link href="/jobs?is_featured=true" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
               Featured Jobs
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
         {/* Featured Jobs Section */}
-        {featuredJobs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Featured Jobs</h2>
-              <Link href="/jobs?is_featured=true" className="text-blue-600 hover:text-blue-700 font-medium">
+        <section className="mb-12 sm:mb-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Featured Jobs</h2>
+              <p className="text-sm sm:text-base text-gray-600">Handpicked opportunities from top spas</p>
+            </div>
+            {featuredJobs.length > 0 && (
+              <Link href="/jobs?is_featured=true" className="text-brand-600 hover:text-brand-700 font-semibold text-base sm:text-lg transition-colors whitespace-nowrap">
                 View All →
               </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            )}
+          </div>
+          {featuredJobs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredJobs.slice(0, 6).map((job) => (
                 <JobCard
                   key={job.id}
@@ -103,22 +151,43 @@ export default function HomePage() {
                   viewCount={job.view_count}
                   created_at={job.created_at}
                   description={job.description}
+                  logoImage={job.spa?.logo_image}
+                  postedBy={job.created_by_user ? {
+                    id: job.created_by_user.id,
+                    name: job.created_by_user.name,
+                    profile_photo: job.created_by_user.profile_photo,
+                  } : undefined}
                 />
               ))}
             </div>
-          </section>
-        )}
-
-        {/* Popular Jobs Section */}
-        {popularJobs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Popular Jobs</h2>
-              <Link href="/jobs/popular" className="text-blue-600 hover:text-blue-700 font-medium">
-                View All →
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <p className="text-gray-600 text-lg">No featured jobs available at the moment</p>
+              <Link href="/jobs" className="inline-block mt-4 text-brand-600 hover:text-brand-700 font-medium">
+                Browse all jobs →
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          )}
+        </section>
+
+        {/* Popular Jobs Section */}
+        <section className="mb-12 sm:mb-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Popular Jobs</h2>
+              <p className="text-sm sm:text-base text-gray-600">Most viewed and applied positions</p>
+            </div>
+            {popularJobs.length > 0 && (
+              <Link href="/jobs/popular" className="text-brand-600 hover:text-brand-700 font-semibold text-base sm:text-lg transition-colors whitespace-nowrap">
+                View All →
+              </Link>
+            )}
+          </div>
+          {popularJobs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {popularJobs.slice(0, 6).map((job) => (
                 <JobCard
                   key={job.id}
@@ -147,47 +216,68 @@ export default function HomePage() {
                   viewCount={job.view_count}
                   created_at={job.created_at}
                   description={job.description}
+                  logoImage={job.spa?.logo_image}
+                  postedBy={job.created_by_user ? {
+                    id: job.created_by_user.id,
+                    name: job.created_by_user.name,
+                    profile_photo: job.created_by_user.profile_photo,
+                  } : undefined}
                 />
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <p className="text-gray-600 text-lg">No popular jobs available at the moment</p>
+              <Link href="/jobs" className="inline-block mt-4 text-brand-600 hover:text-brand-700 font-medium">
+                Browse all jobs →
+              </Link>
+            </div>
+          )}
+        </section>
 
         {/* Features Section */}
-        <section className="bg-white rounded-lg shadow-sm p-8 md:p-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Why Choose Us?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <section className="bg-white rounded-lg shadow-sm p-6 sm:p-8 md:p-12 mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 sm:mb-12 text-center">Why Choose Us?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-brand-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <svg className="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Verified Jobs</h3>
-              <p className="text-gray-600">All jobs are verified and from trusted spas</p>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Verified Jobs</h3>
+              <p className="text-gray-600 text-base leading-relaxed">All jobs are verified and from trusted spas</p>
             </div>
             <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-gold-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style={{ backgroundColor: '#FDF4E3' }}>
+                <svg className="w-10 h-10 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Easy Application</h3>
-              <p className="text-gray-600">Apply with or without creating an account</p>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Easy Application</h3>
+              <p className="text-gray-600 text-base leading-relaxed">Apply with or without creating an account</p>
             </div>
             <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-brand-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <svg className="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Location Based</h3>
-              <p className="text-gray-600">Find jobs and spas near your location</p>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Location Based</h3>
+              <p className="text-gray-600 text-base leading-relaxed">Find jobs and spas near your location</p>
             </div>
           </div>
         </section>
+
+
       </div>
+
+
+      
     </div>
   );
 }

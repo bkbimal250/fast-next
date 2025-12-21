@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { FaImages } from 'react-icons/fa';
 
 interface SpaGalleryProps {
   spaName: string;
@@ -13,12 +13,14 @@ export default function SpaGallery({ spaName, images, apiUrl, onImageClick }: Sp
   if (images.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <span className="w-1 h-8 bg-blue-600 rounded-full"></span>
+    <div className="bg-white rounded-xl shadow-sm p-5 sm:p-6 border border-gray-200">
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <div className="text-brand-600">
+          <FaImages size={18} />
+        </div>
         Photo Gallery
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {images.map((image, index) => (
           <div
             key={index}
@@ -33,7 +35,12 @@ export default function SpaGallery({ spaName, images, apiUrl, onImageClick }: Sp
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-900">
+                View
+              </div>
+            </div>
           </div>
         ))}
       </div>

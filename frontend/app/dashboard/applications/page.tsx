@@ -6,8 +6,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { applicationAPI, Application } from '@/lib/application';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { FaFileAlt, FaSearch, FaFilter, FaCheckCircle, FaClock, FaTimesCircle, FaEye } from 'react-icons/fa';
 import ApplicationsList from './components/ApplicationsList';
 import ApplicationDetailsModal from './components/ApplicationDetailsModal';
+import { showToast, showErrorToast } from '@/lib/toast';
 
 export default function ManageApplicationsPage() {
   const { user } = useAuth();
@@ -35,18 +37,9 @@ export default function ManageApplicationsPage() {
         const fetchedApplications = await applicationAPI.getMyApplications();
         setApplications(fetchedApplications);
       } else {
-        // For admin/manager, try to get all applications
-        try {
-          const fetchedApplications = await applicationAPI.getAllApplications();
-          setApplications(fetchedApplications);
-        } catch (err: any) {
-          // If endpoint doesn't exist, show helpful message
-          if (err.response?.status === 404 || err.response?.status === 405) {
-            setError('Applications endpoint is not available. Please contact the administrator.');
-          } else {
-            throw err;
-          }
-        }
+        // For admin/manager, get all applications
+        const fetchedApplications = await applicationAPI.getAllApplications({ skip: 0, limit: 1000 });
+        setApplications(fetchedApplications);
       }
     } catch (err: any) {
       console.error('Failed to fetch applications:', err);
@@ -54,6 +47,7 @@ export default function ManageApplicationsPage() {
         err.response?.data?.detail ||
         (err.response?.status === 404 ? 'No applications found' : 'Failed to fetch applications');
       setError(errorMessage);
+      showErrorToast(err, 'Failed to fetch applications');
     } finally {
       setLoading(false);
     }
@@ -82,58 +76,126 @@ export default function ManageApplicationsPage() {
       }
       // Close modal after update
       handleCloseModal();
-      // Optionally refresh the list
-      fetchApplications();
+      // Refresh the list
+      await fetchApplications();
+      showToast.success('Application status updated successfully');
     } catch (err: any) {
       console.error('Failed to update application status:', err);
-      alert(err.response?.data?.detail || 'Failed to update application status');
+      showErrorToast(err, 'Failed to update application status');
     }
   };
 
-  if (loading || !user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
+  if (loading && applications.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-surface-light">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading applications...</p>
         </div>
       </div>
     );
   }
 
+  if (!user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
+    return null;
+  }
+
+  const stats = {
+    total: applications.length,
+    pending: applications.filter((a) => a.status.toLowerCase() === 'pending').length,
+    reviewed: applications.filter((a) => a.status.toLowerCase() === 'reviewed').length,
+    accepted: applications.filter((a) => a.status.toLowerCase() === 'accepted').length,
+    rejected: applications.filter((a) => a.status.toLowerCase() === 'rejected').length,
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-surface-light">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Manage Applications</h1>
-              <p className="text-gray-600 mt-2">View and manage all job applications</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <FaFileAlt size={28} />
+                </div>
+                Manage Applications
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">View and manage all job applications</p>
             </div>
             <Link
               href="/dashboard"
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
             >
               ← Back to Dashboard
             </Link>
+          </div>
+
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-5">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
+                <div className="bg-brand-100 rounded-lg p-2">
+                  <div className="text-brand-600">
+                    <FaFileAlt size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                <div className="bg-yellow-100 rounded-lg p-2">
+                  <div className="text-yellow-600">
+                    <FaClock size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Reviewed</p>
+                <div className="bg-blue-100 rounded-lg p-2">
+                  <div className="text-blue-600">
+                    <FaEye size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.reviewed}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Accepted</p>
+                <div className="bg-green-100 rounded-lg p-2">
+                  <div className="text-green-600">
+                    <FaCheckCircle size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.accepted}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Rejected</p>
+                <div className="bg-red-100 rounded-lg p-2">
+                  <div className="text-red-600">
+                    <FaTimesCircle size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.rejected}</p>
+            </div>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p>{error}</p>
-            </div>
+          <div className="mb-5 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+            <p className="font-medium">{error}</p>
           </div>
         )}
 

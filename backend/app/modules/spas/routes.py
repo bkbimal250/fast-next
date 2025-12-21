@@ -112,6 +112,8 @@ async def create_spa(
     area_id: Optional[int] = Form(None),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
+    rating: Optional[float] = Form(None),
+    reviews: Optional[float] = Form(None),
     logo_image: Optional[UploadFile] = File(None),
     images: List[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
@@ -172,6 +174,21 @@ async def create_spa(
         except (ValueError, TypeError):
             longitude_val = None
     
+    # Convert rating and reviews
+    rating_val = None
+    if rating is not None:
+        try:
+            rating_val = float(rating) if str(rating).strip() else 0.0
+        except (ValueError, TypeError):
+            rating_val = 0.0
+    
+    reviews_val = None
+    if reviews is not None:
+        try:
+            reviews_val = float(reviews) if str(reviews).strip() else 0.0
+        except (ValueError, TypeError):
+            reviews_val = 0.0
+    
     spa_data = schemas.SpaCreate(
         name=name,
         description=clean_optional(description),
@@ -190,7 +207,9 @@ async def create_spa(
         area_id=area_id_int,
         latitude=latitude_val,
         longitude=longitude_val,
-        spa_images=spa_images if spa_images else None
+        spa_images=spa_images if spa_images else None,
+        rating=rating_val if rating_val is not None else 0.0,
+        reviews=reviews_val if reviews_val is not None else 0.0
     )
     
     is_recruiter = current_user.role == UserRole.RECRUITER
@@ -220,6 +239,8 @@ async def update_spa(
     area_id: Optional[int] = Form(None),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
+    rating: Optional[float] = Form(None),
+    reviews: Optional[float] = Form(None),
     is_active: Optional[bool] = Form(None),
     is_verified: Optional[bool] = Form(None),
     existing_images: Optional[str] = Form(None),  # JSON string of existing image paths to keep
@@ -304,6 +325,21 @@ async def update_spa(
         except (ValueError, TypeError):
             longitude_val = None
     
+    # Convert rating and reviews
+    rating_val = None
+    if rating is not None:
+        try:
+            rating_val = float(rating) if str(rating).strip() else None
+        except (ValueError, TypeError):
+            rating_val = None
+    
+    reviews_val = None
+    if reviews is not None:
+        try:
+            reviews_val = float(reviews) if str(reviews).strip() else None
+        except (ValueError, TypeError):
+            reviews_val = None
+    
     # Build update data - only include fields that are provided (not None)
     # Empty strings are converted to None to clear optional fields
     update_dict = {}
@@ -341,6 +377,12 @@ async def update_spa(
         update_dict['latitude'] = latitude_val
     if longitude is not None:
         update_dict['longitude'] = longitude_val
+    if rating is not None:
+        update_dict['rating'] = rating_val
+    if reviews is not None:
+        update_dict['reviews'] = reviews_val
+    if spa_images is not None:
+        update_dict['spa_images'] = spa_images
     if is_active is not None:
         update_dict['is_active'] = is_active
     if is_verified is not None:
