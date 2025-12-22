@@ -2,7 +2,7 @@
 Job API routes
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
@@ -12,6 +12,8 @@ from app.modules.jobs.models import Job, JobCategory, JobType
 from app.modules.locations.models import City, State, Area
 from app.modules.users.routes import get_current_user, require_role
 from app.modules.users.models import User, UserRole
+from app.modules.subscribe.notification_service import send_notifications_for_jobs
+from app.modules.subscribe.models import SubscriptionFrequency
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -38,6 +40,36 @@ def get_job_types(
     ]
 
 
+@router.post("/types", response_model=schemas.JobTypeResponse, status_code=status.HTTP_201_CREATED)
+def create_job_type(
+    job_type: schemas.JobTypeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a new job type.
+    
+    Only admin and manager can create job types.
+    """
+    # Check permissions
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and manager can create job types"
+        )
+    
+    # Check if job type with same name already exists
+    existing = db.query(JobType).filter(JobType.name == job_type.name).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job type with name '{job_type.name}' already exists"
+        )
+    
+    created_type = services.create_job_type(db, job_type)
+    return created_type
+
+
 @router.get("/categories")
 def get_job_categories(
     skip: int = 0,
@@ -58,6 +90,212 @@ def get_job_categories(
         }
         for category in job_categories
     ]
+
+
+@router.post("/categories", response_model=schemas.JobCategoryResponse, status_code=status.HTTP_201_CREATED)
+def create_job_category(
+    job_category: schemas.JobCategoryCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a new job category.
+    
+    Only admin and manager can create job categories.
+    """
+    # Check permissions
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and manager can create job categories"
+        )
+    
+    # Check if job category with same name already exists
+    existing = db.query(JobCategory).filter(JobCategory.name == job_category.name).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job category with name '{job_category.name}' already exists"
+        )
+    
+    created_category = services.create_job_category(db, job_category)
+    return created_category
+
+
+@router.put("/types/{type_id}", response_model=schemas.JobTypeResponse)
+def update_job_type(
+    type_id: int,
+    job_type_update: schemas.JobTypeUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update a job type.
+    
+    Only admin and manager can update job types.
+    """
+    # Check permissions
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and manager can update job types"
+        )
+    
+    # Check if job type exists
+    existing = db.query(JobType).filter(JobType.id == type_id).first()
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job type with id {type_id} not found"
+        )
+    
+    # Check for duplicate name if name is being updated
+    if job_type_update.name and job_type_update.name != existing.name:
+        duplicate = db.query(JobType).filter(JobType.name == job_type_update.name).first()
+        if duplicate:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Job type with name '{job_type_update.name}' already exists"
+            )
+    
+    updated_type = services.update_job_type(db, type_id, job_type_update)
+    if not updated_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job type with id {type_id} not found"
+        )
+    return updated_type
+
+
+@router.delete("/types/{type_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_job_type(
+    type_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete a job type.
+    
+    Only admin and manager can delete job types.
+    """
+    # Check permissions
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and manager can delete job types"
+        )
+    
+    # Check if job type exists
+    existing = db.query(JobType).filter(JobType.id == type_id).first()
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job type with id {type_id} not found"
+        )
+    
+    # Check if any jobs are using this job type
+    jobs_count = db.query(Job).filter(Job.job_type_id == type_id).count()
+    if jobs_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete job type. {jobs_count} job(s) are using this type."
+        )
+    
+    deleted = services.delete_job_type(db, type_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job type with id {type_id} not found"
+        )
+    return None
+
+
+@router.put("/categories/{category_id}", response_model=schemas.JobCategoryResponse)
+def update_job_category(
+    category_id: int,
+    job_category_update: schemas.JobCategoryUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update a job category.
+    
+    Only admin and manager can update job categories.
+    """
+    # Check permissions
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and manager can update job categories"
+        )
+    
+    # Check if job category exists
+    existing = db.query(JobCategory).filter(JobCategory.id == category_id).first()
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job category with id {category_id} not found"
+        )
+    
+    # Check for duplicate name if name is being updated
+    if job_category_update.name and job_category_update.name != existing.name:
+        duplicate = db.query(JobCategory).filter(JobCategory.name == job_category_update.name).first()
+        if duplicate:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Job category with name '{job_category_update.name}' already exists"
+            )
+    
+    updated_category = services.update_job_category(db, category_id, job_category_update)
+    if not updated_category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job category with id {category_id} not found"
+        )
+    return updated_category
+
+
+@router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_job_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete a job category.
+    
+    Only admin and manager can delete job categories.
+    """
+    # Check permissions
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and manager can delete job categories"
+        )
+    
+    # Check if job category exists
+    existing = db.query(JobCategory).filter(JobCategory.id == category_id).first()
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job category with id {category_id} not found"
+        )
+    
+    # Check if any jobs are using this job category
+    jobs_count = db.query(Job).filter(Job.job_category_id == category_id).count()
+    if jobs_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete job category. {jobs_count} job(s) are using this category."
+        )
+    
+    deleted = services.delete_job_category(db, category_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job category with id {category_id} not found"
+        )
+    return None
 
 
 @router.get("/", response_model=list[schemas.JobResponse])
@@ -252,6 +490,7 @@ def get_popular_jobs(
 @router.post("/", response_model=schemas.JobResponse, status_code=status.HTTP_201_CREATED)
 def create_job(
     job: schemas.JobCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -259,8 +498,29 @@ def create_job(
     Create a new job posting.
     
     Only authenticated users can create jobs.
+    Sends email notifications to subscribers with instant frequency.
     """
-    return services.create_job(db, job, current_user.id)
+    created_job = services.create_job(db, job, current_user.id)
+    
+    # Send instant notifications to subscribers (in background)
+    if created_job and created_job.id:
+        # Create a new DB session for the background task
+        from app.core.database import SessionLocal
+        def send_notifications():
+            db_bg = SessionLocal()
+            try:
+                import asyncio
+                asyncio.run(send_notifications_for_jobs(
+                    db_bg,
+                    [created_job.id],
+                    SubscriptionFrequency.INSTANT
+                ))
+            finally:
+                db_bg.close()
+        
+        background_tasks.add_task(send_notifications)
+    
+    return created_job
 
 
 @router.put("/{job_id}", response_model=schemas.JobResponse)

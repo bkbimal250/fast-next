@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import Footer from '@/components/Footer'
+import ChatWidget from '@/components/Chatbot/ChatWidget'
 import { Toaster } from 'sonner'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'
@@ -87,6 +88,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <ChatWidget />
           <Toaster 
             position="top-right"
             richColors

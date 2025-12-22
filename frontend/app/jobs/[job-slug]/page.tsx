@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
+import MessageForm from '@/components/MessageForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { jobAPI, Job } from '@/lib/job';
 import { spaAPI, Spa } from '@/lib/spa';
@@ -11,6 +12,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import JobCard from '@/components/JobCard';
 import { FaBriefcase, FaDollarSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye, FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle, FaBuilding } from 'react-icons/fa';
+import SEOHead from '@/components/SEOHead';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -255,18 +257,20 @@ export default function JobDetailPage() {
     );
   }
 
-  const locationParts = [
-    job.area?.name,
-    job.city?.name,
-    job.state?.name,
-  ].filter(Boolean);
-
   const skills = parseSkills(job.key_skills);
   const responsibilities = parseResponsibilities(job.responsibilities);
   const logoUrl = getLogoUrl(job.spa?.logo_image);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
   const jobUrl = `${siteUrl}/jobs/${job.slug}`;
+
+  const locationParts = [
+    job.area?.name,
+    job.city?.name,
+    job.state?.name,
+  ].filter(Boolean);
+  const locationStr = locationParts.join(', ') || 'Location not specified';
+  const salaryStr = formatSalary();
 
   // Generate breadcrumb schema
   const breadcrumbSchema = {
@@ -343,6 +347,19 @@ export default function JobDetailPage() {
 
   return (
     <div className="min-h-screen bg-surface-light">
+      {/* Dynamic SEO Metadata */}
+      <SEOHead
+        title={`${job.title} at ${job.spa?.name || 'SPA'} - ${locationStr}`}
+        description={`Apply for ${job.title} position at ${job.spa?.name || 'SPA'} in ${locationStr}. ${salaryStr !== 'Not Disclosed' ? `Salary: ${salaryStr}. ` : ''}View job details, requirements, and apply directly.`}
+        keywords={[
+          job.title.toLowerCase(),
+          `${job.title} jobs`,
+          `spa jobs ${locationStr}`,
+          job.spa?.name?.toLowerCase() || '',
+          typeof job.job_category === 'string' ? job.job_category : job.job_category?.name || '',
+        ]}
+        url={`${siteUrl}/jobs/${job.slug}`}
+      />
       {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
@@ -847,6 +864,9 @@ export default function JobDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Message Form */}
+            <MessageForm jobId={job.id} jobTitle={job.title} />
           </div>
         </div>
       </div>

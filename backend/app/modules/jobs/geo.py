@@ -17,8 +17,9 @@ def get_jobs_near_location(
     limit: int = 50
 ):
     """
-    Get jobs near a location.
-    Uses PostGIS ST_DWithin for PostgreSQL, or Python calculation for SQLite.
+    Get jobs near a location using PostgreSQL.
+    Uses PostGIS ST_DWithin for optimal performance (when PostGIS is enabled),
+    otherwise filters by distance in Python.
     """
     # Eagerly load relationships for better performance
     query_options = [
@@ -31,25 +32,15 @@ def get_jobs_near_location(
         joinedload(Job.job_category),
     ]
     
-    if settings.DATABASE_TYPE == "postgresql":
-        # PostGIS query: ST_DWithin(geom, point, distance_in_meters)
-        # radius_km * 1000 converts to meters
-        radius_meters = radius_km * 1000
-        
-        # TODO: Implement PostGIS query when PostGIS extension is enabled
-        # For now, return all active jobs
-        jobs = db.query(Job).options(*query_options).filter(
-            Job.is_active == True
-        ).limit(limit * 2).all()  # Get more to filter by distance
-    else:
-        # SQLite: Get all active jobs and filter by distance in Python
-        jobs = db.query(Job).options(*query_options).filter(
-            Job.is_active == True,
-            Job.latitude.isnot(None),
-            Job.longitude.isnot(None)
-        ).limit(limit * 2).all()
+    # TODO: Implement PostGIS query when PostGIS extension is enabled
+    # For now, get all active jobs with coordinates and filter by distance in Python
+    jobs = db.query(Job).options(*query_options).filter(
+        Job.is_active == True,
+        Job.latitude.isnot(None),
+        Job.longitude.isnot(None)
+    ).limit(limit * 2).all()  # Get more to filter by distance
     
-    # Filter by distance (works for both SQLite and PostgreSQL)
+    # Filter by distance
     nearby_jobs = []
     for job in jobs:
         if job.latitude and job.longitude:

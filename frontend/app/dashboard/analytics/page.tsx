@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { analyticsAPI } from '@/lib/analytics';
+import { analyticsAPI, ChatbotUsageStats, TimeSeriesPoint } from '@/lib/analytics';
 import { jobAPI } from '@/lib/job';
 import { userAPI } from '@/lib/user';
 import { spaAPI } from '@/lib/spa';
@@ -41,6 +41,8 @@ export default function AnalyticsPage() {
   });
   const [popularLocations, setPopularLocations] = useState<PopularLocation[]>([]);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
+  const [chatbotUsage, setChatbotUsage] = useState<ChatbotUsageStats | null>(null);
+  const [timeSeries, setTimeSeries] = useState<TimeSeriesPoint[]>([]);
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
@@ -55,7 +57,7 @@ export default function AnalyticsPage() {
     setError(null);
     try {
       // Fetch all statistics in parallel - only fetch users for admins
-      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData] = await Promise.all([
+      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData, chatbotUsageData, timeSeriesData] = await Promise.all([
         jobAPI.getJobCount().catch(() => ({ count: 0 })),
         user && user.role === 'admin' 
           ? userAPI.getAllUsers(0, 1000).catch(() => [])
@@ -66,7 +68,19 @@ export default function AnalyticsPage() {
         user && (user.role === 'admin' || user.role === 'manager' || user.role === 'recruiter')
           ? applicationAPI.getAllApplications({ skip: 0, limit: 1000 }).catch(() => [])
           : Promise.resolve([]),
-        analyticsAPI.getPopularLocations(10).catch(() => []),
+        analyticsAPI
+          .getPopularLocations(10)
+          .catch(() => []),
+        analyticsAPI.getChatbotUsage().catch(() => ({
+          total: 0,
+          daily: 0,
+          weekly: 0,
+          monthly: 0,
+          yearly: 0,
+        })),
+        analyticsAPI
+          .getTimeSeries(timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365)
+          .catch(() => []),
       ]);
 
       // Calculate statistics
@@ -92,6 +106,9 @@ export default function AnalyticsPage() {
             }))
           : []
       );
+
+      setChatbotUsage(chatbotUsageData);
+      setTimeSeries(Array.isArray(timeSeriesData) ? timeSeriesData : []);
     } catch (err: any) {
       // Only show error if it's not a permission error (403)
       if (err.response?.status !== 403) {
@@ -241,6 +258,40 @@ export default function AnalyticsPage() {
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalClicks.toLocaleString()}</p>
             <p className="text-xs text-gray-500 mt-1">Total clicks</p>
           </div>
+
+          {/* Chatbot Usage */}
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200 lg:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Chatbot Users</p>
+              <div className="bg-indigo-100 rounded-lg p-2">
+                <div className="text-indigo-600">
+                  <FaChartLine size={16} />
+                </div>
+              </div>
+            </div>
+            {chatbotUsage ? (
+              <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs sm:text-sm">
+                <div>
+                  <p className="text-gray-500">Today</p>
+                  <p className="text-lg sm:text-xl font-bold text-gray-900">{chatbotUsage.daily}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">This Week</p>
+                  <p className="text-lg sm:text-xl font-bold text-gray-900">{chatbotUsage.weekly}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">This Month</p>
+                  <p className="text-lg sm:text-xl font-bold text-gray-900">{chatbotUsage.monthly}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">This Year</p>
+                  <p className="text-lg sm:text-xl font-bold text-gray-900">{chatbotUsage.yearly}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 mt-2">No chatbot usage data available yet.</p>
+            )}
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -341,7 +392,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Additional Analytics Section */}
+        {/* Time-based Analytics Section */}
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <div className="text-brand-600">
@@ -349,18 +400,43 @@ export default function AnalyticsPage() {
             </div>
             Time-based Analytics
           </h2>
-          <div className="bg-brand-50 border border-brand-200 rounded-lg p-4">
-            <p className="text-brand-700 text-sm font-medium mb-2">Coming Soon</p>
-            <p className="text-brand-600 text-sm">
-              Advanced analytics features including time-series charts, conversion rates, and detailed event tracking will be available here.
-            </p>
-            <ul className="list-disc list-inside mt-3 text-brand-600 text-sm space-y-1">
-              <li>Daily/Weekly/Monthly trends</li>
-              <li>Job performance metrics</li>
-              <li>User engagement analytics</li>
-              <li>Conversion funnel analysis</li>
-            </ul>
-          </div>
+          {timeSeries.length === 0 ? (
+            <div className="bg-brand-50 border border-brand-200 rounded-lg p-4 text-brand-700 text-sm">
+              No analytics events recorded yet for the selected period.
+            </div>
+          ) : (
+            <div className="bg-brand-50 border border-brand-200 rounded-lg p-4">
+              <p className="text-brand-700 text-sm font-medium mb-3">
+                Daily events for the last{' '}
+                {timeRange === '7d' ? '7 days' : timeRange === '30d' ? '30 days' : timeRange === '90d' ? '90 days' : 'year'}
+              </p>
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {timeSeries.map((point) => {
+                  const maxCount = timeSeries[timeSeries.length - 1]?.event_count || 1;
+                  const percentage = maxCount ? Math.max((point.event_count / maxCount) * 100, 5) : 0;
+                  return (
+                    <div key={point.date} className="flex items-center gap-3 text-xs sm:text-sm">
+                      <div className="w-24 text-gray-700 font-medium">
+                        {new Date(point.date).toLocaleDateString()}
+                      </div>
+                      <div className="flex-1 h-2 bg-white rounded-full overflow-hidden border border-brand-100">
+                        <div
+                          className="h-2 bg-brand-500 rounded-full"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="w-10 text-right text-gray-700 font-semibold">
+                        {point.event_count}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs text-brand-600">
+                Showing total analytics events (page views, clicks, chatbot opens, etc.) grouped by day.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

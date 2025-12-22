@@ -111,6 +111,7 @@ class Job(Base):
     updated_by_user = relationship("User", foreign_keys=[updated_by], back_populates="updated_jobs")
     job_type = relationship("JobType")
     job_category = relationship("JobCategory")
+    messages = relationship("Message", back_populates="job")
 
 
 @event.listens_for(JobType, "before_insert")

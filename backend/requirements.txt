@@ -14,6 +14,9 @@ python-dotenv==1.0.0
 python-slugify==8.0.1
 httpx==0.25.2
 Pillow==10.1.0
+# Email
+aiosmtplib==3.0.1  # Async SMTP for email sending
+jinja2==3.1.2  # Template engine for email templates
 # Caching and Performance
 redis==5.0.1  # Redis for caching and rate limiting (optional but recommended)
 # Background Tasks (optional)

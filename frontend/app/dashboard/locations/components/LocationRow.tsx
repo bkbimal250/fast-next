@@ -86,47 +86,57 @@ export default function LocationRow({
   };
 
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{location.id}</td>
-      <td className="px-4 py-3 whitespace-nowrap">
-        <div className="flex items-center gap-2">
-          <div className="text-brand-600">
-            <Icon size={14} />
+    <tr className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className="text-sm font-medium text-gray-900">#{location.id}</span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center gap-3">
+          <div className="text-brand-600 flex-shrink-0">
+            <Icon size={16} />
           </div>
           {getLocationName()}
         </div>
       </td>
       {type === 'states' && (
-        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-          {(location as State).country?.name || 'N/A'}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span className="text-sm text-gray-600">
+            {(location as State).country?.name || <span className="text-gray-400 italic">N/A</span>}
+          </span>
         </td>
       )}
       {type === 'cities' && (
         <>
-          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-            {(location as City).state?.name || 'N/A'}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <span className="text-sm text-gray-600">
+              {(location as City).state?.name || <span className="text-gray-400 italic">N/A</span>}
+            </span>
           </td>
-          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-            {(location as City).country?.name || 'N/A'}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <span className="text-sm text-gray-600">
+              {(location as City).country?.name || <span className="text-gray-400 italic">N/A</span>}
+            </span>
           </td>
         </>
       )}
       {type === 'areas' && (
-        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-          {(location as Area).city?.name || 'N/A'}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span className="text-sm text-gray-600">
+            {(location as Area).city?.name || <span className="text-gray-400 italic">N/A</span>}
+          </span>
         </td>
       )}
       {(type === 'cities' || type === 'areas' || type === 'states' || type === 'countries') && (
-        <td className="px-4 py-3 whitespace-nowrap">{getJobCountLink()}</td>
+        <td className="px-6 py-4 whitespace-nowrap">{getJobCountLink()}</td>
       )}
-      <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+      <td className="px-6 py-4 whitespace-nowrap text-right">
         <div className="flex justify-end gap-2">
           <Link
             href={`/dashboard/locations/${type}/${location.id}/edit`}
             className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
             title="Edit"
           >
-            <FaEdit size={14} />
+            <FaEdit size={16} />
           </Link>
           {userRole === 'admin' && (
             <button
@@ -134,7 +144,7 @@ export default function LocationRow({
               className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete"
             >
-              <FaTrash size={14} />
+              <FaTrash size={16} />
             </button>
           )}
         </div>

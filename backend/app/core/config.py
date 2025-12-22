@@ -7,17 +7,13 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    # Database
-    DATABASE_TYPE: str = "sqlite"  # "sqlite" or "postgresql"
-    DATABASE_URL: Optional[str] = None  # Optional explicit database URL
+    # Database - PostgreSQL Only
+    DATABASE_URL: Optional[str] = None  # Optional explicit database URL (overrides individual settings)
     
-    # SQLite settings (for testing)
-    SQLITE_DB_PATH: str = "spajobs.db"
-    
-    # PostgreSQL settings (for production)
-    POSTGRES_USER: Optional[str] = None
-    POSTGRES_PASSWORD: Optional[str] = None
-    POSTGRES_DB: Optional[str] = None
+    # PostgreSQL settings (required)
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     

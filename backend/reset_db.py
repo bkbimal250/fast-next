@@ -25,7 +25,7 @@ def reset_database():
     import app.modules.analytics.models
     
     try:
-        # Drop all tables first (works for both SQLite and PostgreSQL)
+        # Drop all tables first
         print("\nDropping all existing tables...")
         try:
             Base.metadata.drop_all(bind=engine)
@@ -33,21 +33,6 @@ def reset_database():
         except Exception as e:
             print(f"Warning: Error dropping tables (may not exist): {e}")
             # Try to continue anyway
-        
-        # For SQLite, also try to delete the file if tables were dropped
-        if settings.DATABASE_TYPE == "sqlite":
-            # Close connections
-            engine.dispose()
-            db_path = settings.SQLITE_DB_PATH
-            if os.path.exists(db_path):
-                try:
-                    # Try to delete the file, but it's OK if we can't (we already dropped tables)
-                    os.remove(db_path)
-                    print(f"OK: Database file deleted: {db_path}")
-                except (PermissionError, OSError):
-                    # File is locked, but tables are dropped, so continue
-                    print(f"Info: Could not delete database file (may be locked), but tables are dropped.")
-                    print(f"     The database will be recreated when we create tables.")
         
         # Recreate all tables
         print("\nCreating all database tables...")

@@ -18,7 +18,8 @@ import {
   FaMapMarkerAlt,
   FaShieldAlt,
   FaCog,
-  FaArrowRight
+  FaArrowRight,
+  FaEnvelope
 } from 'react-icons/fa';
 
 interface DashboardStats {
@@ -113,6 +114,13 @@ export default function DashboardPage() {
     if (user.role === 'admin') {
       return [
         {
+          title: 'Messages',
+          description: 'View job inquiry messages',
+          link: '/dashboard/messages',
+          icon: FaEnvelope,
+          color: 'bg-indigo-100 text-indigo-600',
+        },
+        {
           title: 'Analytics',
           description: 'System-wide statistics',
           link: '/dashboard/analytics',
@@ -157,6 +165,13 @@ export default function DashboardPage() {
       ];
     } else if (user.role === 'manager') {
       return [
+        {
+          title: 'Messages',
+          description: 'View job inquiry messages',
+          link: '/dashboard/messages',
+          icon: FaEnvelope,
+          color: 'bg-indigo-100 text-indigo-600',
+        },
         {
           title: 'Manage SPAs',
           description: 'View and edit your SPAs',

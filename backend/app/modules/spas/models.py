@@ -25,6 +25,7 @@ class Spa(Base):
     opening_hours = Column(String, nullable=True)
     closing_hours = Column(String, nullable=True)
     booking_url_website = Column(String, nullable=True)
+    booking_click_count = Column(Integer, default=0)
     country_id = Column(Integer, ForeignKey("countries.id"), index=True)
     state_id = Column(Integer, ForeignKey("states.id"), index=True)
     city_id = Column(Integer, ForeignKey("cities.id"), index=True)

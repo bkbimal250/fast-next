@@ -2,15 +2,17 @@
 SPA API routes
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
+
 from app.core.database import get_db
 from app.modules.spas import schemas, services
 from app.modules.users.routes import get_current_user
 from app.modules.users.models import User, UserRole
 from app.modules.uploads.image_storage import save_image_file
+from app.modules.analytics import trackers
 
 router = APIRouter(prefix="/api/spas", tags=["spas"])
 
@@ -92,6 +94,44 @@ def get_spa_by_id(spa_id: int, db: Session = Depends(get_db)):
     if not spa:
         raise HTTPException(status_code=404, detail="SPA not found")
     return spa
+
+
+@router.post("/{spa_id}/track-booking-click")
+def track_spa_booking_click(
+    spa_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Track a booking URL click for a SPA.
+    - Increments Spa.booking_click_count
+    - Logs an analytics event 'spa_booking_click'
+    """
+    spa = services.get_spa_by_id(db, spa_id)
+    if not spa:
+        raise HTTPException(status_code=404, detail="SPA not found")
+
+    updated_spa = services.increment_spa_booking_click(db, spa_id)
+
+    # Log analytics event (best-effort)
+    try:
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        trackers.track_event(
+            db=db,
+            event_type="spa_booking_click",
+            spa_id=spa_id,
+            city=None,
+            latitude=spa.latitude,
+            longitude=spa.longitude,
+            user_agent=user_agent,
+            ip_address=client_ip,
+        )
+    except Exception:
+        # Analytics should not affect main behaviour
+        pass
+
+    return {"status": "tracked", "booking_click_count": updated_spa.booking_click_count if updated_spa else 0}
 
 
 @router.post("/", response_model=schemas.SpaResponse, status_code=201)

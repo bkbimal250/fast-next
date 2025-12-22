@@ -4,71 +4,63 @@ Location-intelligent, SEO-first SPA Job Portal Backend built with FastAPI.
 
 ## Features
 
-- ✅ Location-based job search (SQLite for testing, PostGIS for production)
+- ✅ Location-based job search (PostgreSQL with PostGIS support)
 - ✅ SEO-optimized job listings
 - ✅ Apply without login (CV upload)
 - ✅ Message SPA directly
 - ✅ Analytics tracking
 - ✅ Admin dashboard
+- ✅ High concurrency support (1000+ users)
 
 ## Setup
 
-### Quick Start (SQLite - Testing)
+### Prerequisites
 
-1. Install dependencies:
+1. **PostgreSQL** installed and running
+2. **Python 3.9+** installed
+
+### Installation Steps
+
+1. **Install dependencies**:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. The `.env` file is already configured for SQLite testing. No additional setup needed!
-
-3. Test database setup:
-```bash
-python test_db.py
+2. **Create PostgreSQL database**:
+```sql
+CREATE DATABASE spajobsindia;
+GRANT ALL PRIVILEGES ON DATABASE spajobsindia TO postgres;
 ```
 
-4. Start server:
-```bash
-uvicorn app.main:app --reload
-```
-
-### Production Setup (PostgreSQL)
-
-1. Install PostgreSQL and PostGIS extension
-
-2. Update `.env` file:
-```
-DATABASE_TYPE=postgresql
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=spajobs
+3. **Configure environment variables**:
+Create a `.env` file in the `backend` directory:
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=Spajobs@8989
+POSTGRES_DB=spajobsindia
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
+SECRET_KEY=your-secret-key-change-this-in-production
+SITE_URL=http://localhost:3000
 ```
 
-3. Install PostgreSQL driver:
-```bash
-pip install psycopg2-binary
-```
-
-4. Run migrations:
-```bash
-alembic upgrade head
-```
-
-5. Start server:
+4. **Start server** (tables will be created automatically):
 ```bash
 uvicorn app.main:app --reload
+```
+
+5. **Create indexes for performance** (optional but recommended):
+```bash
+python create_indexes.py
 ```
 
 ## Database Configuration
 
-The application supports both SQLite (for testing) and PostgreSQL (for production):
+The application uses **PostgreSQL only** for production-ready performance:
 
-- **SQLite** (default): No setup required, database file created automatically
-- **PostgreSQL**: Requires database server and PostGIS extension for advanced geo queries
-
-Set `DATABASE_TYPE=sqlite` or `DATABASE_TYPE=postgresql` in `.env`
+- **PostgreSQL**: Required database server
+- **PostGIS**: Optional extension for advanced geo queries (can be enabled later)
+- **Connection Pooling**: Configured for high concurrency (20 base + 40 overflow connections)
 
 ## API Documentation
 

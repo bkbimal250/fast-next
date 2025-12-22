@@ -118,7 +118,7 @@ def get_spas_near_location(db: Session, latitude: float, longitude: float, radiu
         models.Spa.longitude.isnot(None)
     ).all()
     
-    # Filter by distance (works for both SQLite and PostgreSQL)
+    # Filter by distance using Python calculation
     nearby_spas = []
     for spa in spas:
         if spa.latitude and spa.longitude:
@@ -137,3 +137,13 @@ def get_recruiter_spa(db: Session, user_id: int):
         return None
     return get_spa_by_id(db, user.managed_spa_id)
 
+
+def increment_spa_booking_click(db: Session, spa_id: int) -> models.Spa | None:
+    """Increase booking_click_count when a booking URL is clicked."""
+    spa = get_spa_by_id(db, spa_id)
+    if not spa:
+        return None
+    spa.booking_click_count = (spa.booking_click_count or 0) + 1
+    db.commit()
+    db.refresh(spa)
+    return spa

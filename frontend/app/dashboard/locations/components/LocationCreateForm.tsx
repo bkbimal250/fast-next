@@ -84,7 +84,7 @@ export default function LocationCreateForm({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveAndAddAnother: boolean = false) => {
     e.preventDefault();
     setSubmitting(true);
     try {
@@ -94,12 +94,25 @@ export default function LocationCreateForm({
         state_id: formData.state_id ? parseInt(formData.state_id) : undefined,
         city_id: formData.city_id ? parseInt(formData.city_id) : undefined,
       });
-      setFormData({
-        name: '',
-        country_id: initialData?.country_id?.toString() || '',
-        state_id: initialData?.state_id?.toString() || '',
-        city_id: initialData?.city_id?.toString() || '',
-      });
+      
+      if (saveAndAddAnother) {
+        // Reset only the name field, keep parent selections
+        setFormData({
+          name: '',
+          country_id: formData.country_id,
+          state_id: formData.state_id,
+          city_id: formData.city_id,
+        });
+      } else {
+        // Reset all fields and close form
+        setFormData({
+          name: '',
+          country_id: initialData?.country_id?.toString() || '',
+          state_id: initialData?.state_id?.toString() || '',
+          city_id: initialData?.city_id?.toString() || '',
+        });
+        onClose();
+      }
     } finally {
       setSubmitting(false);
     }
@@ -235,14 +248,23 @@ export default function LocationCreateForm({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+            className="px-5 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
             disabled={submitting}
           >
             Cancel
           </button>
           <button
+            type="button"
+            onClick={(e) => handleSubmit(e, true)}
+            className="px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={submitting}
+          >
+            {submitting ? 'Saving...' : 'Save & Add Another'}
+          </button>
+          <button
             type="submit"
-            className="px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
+            onClick={(e) => handleSubmit(e, false)}
+            className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={submitting}
           >
             {submitting ? 'Saving...' : 'Save'}

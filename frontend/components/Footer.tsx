@@ -2,9 +2,14 @@
 
 import Link from 'next/link';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe, FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Footer() {
+  const { user } = useAuth();
   const currentYear = new Date().getFullYear();
+  
+  // Check if user can post jobs (admin, manager, or recruiter)
+  const canPostJobs = user && (user.role === 'admin' || user.role === 'manager' || user.role === 'recruiter');
 
   return (
     <footer className="bg-brand-800 text-white">
@@ -30,7 +35,7 @@ export default function Footer() {
                 className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Facebook"
               >
-                <FaFacebook className="w-4 h-4" />
+                <FaFacebook size={16} color="white" />
               </a>
               <a
                 href="#"
@@ -39,7 +44,7 @@ export default function Footer() {
                 className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Twitter"
               >
-                <FaTwitter className="w-4 h-4" />
+                <FaTwitter size={16} color="white" />
               </a>
               <a
                 href="#"
@@ -48,7 +53,7 @@ export default function Footer() {
                 className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="LinkedIn"
               >
-                <FaLinkedin className="w-4 h-4" />
+                <FaLinkedin size={16} color="white" />
               </a>
               <a
                 href="#"
@@ -57,7 +62,7 @@ export default function Footer() {
                 className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Instagram"
               >
-                <FaInstagram className="w-4 h-4" />
+                <FaInstagram size={16} color="white" />
               </a>
             </div>
           </div>
@@ -98,26 +103,61 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">For Employers</h3>
             <ul className="space-y-2.5">
-              <li>
-                <Link href="/register" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Post a Job
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Employer Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Create Account
-                </Link>
-              </li>
-              <li>
-                <Link href="/login" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Login
-                </Link>
-              </li>
+              {user ? (
+                <>
+                  {canPostJobs && (
+                    <>
+                      <li>
+                        <Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white transition-colors text-sm">
+                          Post a Job
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/dashboard/jobs" className="text-white/80 hover:text-white transition-colors text-sm">
+                          Manage Jobs
+                        </Link>
+                      </li>
+                    </>
+                  )}
+                  <li>
+                    <Link href="/dashboard" className="text-white/80 hover:text-white transition-colors text-sm">
+                      {user.role === 'admin' ? 'Admin Dashboard' : user.role === 'manager' ? 'Manager Dashboard' : user.role === 'recruiter' ? 'Recruiter Dashboard' : 'My Dashboard'}
+                    </Link>
+                  </li>
+                  {user.role === 'admin' || user.role === 'manager' ? (
+                    <li>
+                      <Link href="/dashboard/spas" className="text-white/80 hover:text-white transition-colors text-sm">
+                        Manage SPAs
+                      </Link>
+                    </li>
+                  ) : null}
+                  {user.role === 'admin' ? (
+                    <li>
+                      <Link href="/dashboard/analytics" className="text-white/80 hover:text-white transition-colors text-sm">
+                        Analytics
+                      </Link>
+                    </li>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white transition-colors text-sm">
+                      Post a Job
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/register" className="text-white/80 hover:text-white transition-colors text-sm">
+                      Create Account
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/login" className="text-white/80 hover:text-white transition-colors text-sm">
+                      Login
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -126,25 +166,33 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-white">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5">
-                <FaMapMarkerAlt className="w-4 h-4 text-brand-300 mt-0.5 flex-shrink-0" />
+                <div className="mt-0.5 flex-shrink-0">
+                  <FaMapMarkerAlt size={16} color="#7dd3fc" />
+                </div>
                 <span className="text-white/80 text-sm leading-relaxed">
                   India
                 </span>
               </li>
               <li className="flex items-center gap-2.5">
-                <FaPhone className="w-4 h-4 text-brand-300 flex-shrink-0" />
+                <div className="flex-shrink-0">
+                  <FaPhone size={16} color="#7dd3fc" />
+                </div>
                 <a href="tel:+911234567890" className="text-white/80 hover:text-white transition-colors text-sm">
                   +91 123 456 7890
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
-                <FaEnvelope className="w-4 h-4 text-brand-300 flex-shrink-0" />
+                <div className="flex-shrink-0">
+                  <FaEnvelope size={16} color="#7dd3fc" />
+                </div>
                 <a href="mailto:info@spajobs.com" className="text-white/80 hover:text-white transition-colors text-sm break-all">
                   info@spajobs.com
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
-                <FaGlobe className="w-4 h-4 text-brand-300 flex-shrink-0" />
+                <div className="flex-shrink-0">
+                  <FaGlobe size={16} color="#7dd3fc" />
+                </div>
                 <a href="#" className="text-white/80 hover:text-white transition-colors text-sm">
                   www.spajobs.com
                 </a>

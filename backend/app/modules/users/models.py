@@ -58,6 +58,7 @@ class User(Base):
     country = relationship("Country", back_populates="users")
     state = relationship("State", back_populates="users")
     city = relationship("City", back_populates="users")
+    subscriptions = relationship("JobSubscription", back_populates="user")
     
     # Recruiter: Can have one business (spa)
     managed_spa_id = Column(Integer, ForeignKey("spas.id"), nullable=True, index=True)

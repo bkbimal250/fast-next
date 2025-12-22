@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import JobCard from '@/components/JobCard';
 import JobFilters from '@/components/JobFilters';
+import SubscribeForm from '@/components/SubscribeForm';
 import Navbar from '@/components/Navbar';
 import Pagination from '@/components/Pagination';
 import { jobAPI, Job } from '@/lib/job';
@@ -169,8 +170,9 @@ export default function JobsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-4">
+            <div className="sticky top-4 space-y-4">
               <JobFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+              <SubscribeForm />
             </div>
           </div>
 

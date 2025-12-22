@@ -28,7 +28,7 @@ This guide outlines the optimizations and configurations needed to handle 1000+ 
 ## 📋 Required Setup for Production
 
 ### 1. Database (REQUIRED)
-**SQLite CANNOT handle 1000+ concurrent users. You MUST use PostgreSQL.**
+**PostgreSQL is required for production with 1000+ concurrent users.**
 
 ```bash
 # Install PostgreSQL
@@ -229,7 +229,7 @@ With these optimizations:
 
 ## 🚨 Important Notes
 
-1. **SQLite is NOT suitable for production** with 1000+ users. Use PostgreSQL.
+1. **PostgreSQL is required** for production with 1000+ users.
 2. **Redis is highly recommended** for caching to reduce database load.
 3. **Monitor your database connections** - adjust pool_size based on your server capacity.
 4. **Use a load balancer** if you need to scale beyond a single server.

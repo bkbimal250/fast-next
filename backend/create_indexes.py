@@ -11,14 +11,8 @@ from sqlalchemy import text
 from app.core.config import settings
 
 def create_indexes():
-    """Create all performance indexes"""
-    
-    if settings.DATABASE_TYPE == "sqlite":
-        print("⚠️  WARNING: SQLite is not recommended for production with 1000+ users.")
-        print("   Please use PostgreSQL for production.")
-        return
-    
-    print("Creating database indexes for performance optimization...")
+    """Create all performance indexes for PostgreSQL"""
+    print("Creating PostgreSQL database indexes for performance optimization...")
     
     indexes = [
         # Jobs table indexes
@@ -98,10 +92,10 @@ def create_indexes():
     
     print("\n✅ Index creation completed!")
     print("\nNote: For optimal performance with 1000+ users:")
-    print("  1. Use PostgreSQL (not SQLite)")
-    print("  2. Enable Redis caching")
-    print("  3. Configure connection pooling")
-    print("  4. Use a load balancer for multiple servers")
+    print("  1. Enable Redis caching")
+    print("  2. Configure connection pooling (already set in database.py)")
+    print("  3. Use a load balancer for multiple servers")
+    print("  4. Consider enabling PostGIS extension for advanced geo queries")
 
 
 if __name__ == "__main__":

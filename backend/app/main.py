@@ -20,6 +20,9 @@ from app.modules.applications.routes import router as applications_router
 from app.modules.messages.routes import router as messages_router
 from app.modules.analytics.routes import router as analytics_router
 from app.modules.seo.routes import router as seo_router
+from app.modules.subscribe.routes import router as subscribe_router
+from app.modules.chatbot.routes import router as chatbot_router
+from app.modules.contact.routes import router as contact_router
 
 
 app = FastAPI(
@@ -89,6 +92,9 @@ app.include_router(applications_router)
 app.include_router(messages_router)
 app.include_router(analytics_router)
 app.include_router(seo_router)
+app.include_router(subscribe_router)
+app.include_router(chatbot_router)
+app.include_router(contact_router)
 
 
 @app.get("/")

@@ -25,6 +25,7 @@ export default function ManageJobsPage() {
 
   // Inline form states
   const [showInlineForm, setShowInlineForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [inlineFormData, setInlineFormData] = useState({
     name: '',
@@ -80,41 +81,72 @@ export default function ManageJobsPage() {
     setSuccess(null);
 
     try {
-      if (activeTab === 'types') {
-        await jobAPI.createJobType({
-          name: inlineFormData.name,
-          description: inlineFormData.description || undefined,
-        });
-        setSuccess('Job type created successfully!');
-      } else if (activeTab === 'categories') {
-        await jobAPI.createJobCategory({
-          name: inlineFormData.name,
-          description: inlineFormData.description || undefined,
-        });
-        setSuccess('Job category created successfully!');
+      if (editingId) {
+        // Update existing
+        if (activeTab === 'types') {
+          await jobAPI.updateJobType(editingId, {
+            name: inlineFormData.name,
+            description: inlineFormData.description || undefined,
+          });
+        } else if (activeTab === 'categories') {
+          await jobAPI.updateJobCategory(editingId, {
+            name: inlineFormData.name,
+            description: inlineFormData.description || undefined,
+          });
+        }
+        setSuccess(`${activeTab === 'types' ? 'Job type' : 'Job category'} updated successfully!`);
+        setEditingId(null);
+      } else {
+        // Create new
+        if (activeTab === 'types') {
+          await jobAPI.createJobType({
+            name: inlineFormData.name,
+            description: inlineFormData.description || undefined,
+          });
+        } else if (activeTab === 'categories') {
+          await jobAPI.createJobCategory({
+            name: inlineFormData.name,
+            description: inlineFormData.description || undefined,
+          });
+        }
+        setSuccess(`${activeTab === 'types' ? 'Job type' : 'Job category'} created successfully!`);
       }
 
       await fetchData();
 
-      const successMsg = `${activeTab === 'types' ? 'Job type' : 'Job category'} created successfully!`;
+      const successMsg = editingId 
+        ? `${activeTab === 'types' ? 'Job type' : 'Job category'} updated successfully!`
+        : `${activeTab === 'types' ? 'Job type' : 'Job category'} created successfully!`;
       showToast.success(successMsg);
       
-      if (saveAndAddAnother) {
+      if (saveAndAddAnother && !editingId) {
         setInlineFormData({ name: '', description: '' });
         setSuccess(`${activeTab === 'types' ? 'Job type' : 'Job category'} created! Add another?`);
       } else {
         setShowInlineForm(false);
+        setEditingId(null);
         setInlineFormData({ name: '', description: '' });
         setSuccess(successMsg);
         setTimeout(() => setSuccess(null), 3000);
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || `Failed to create ${activeTab.slice(0, -1)}`;
+      const errorMsg = err.response?.data?.detail || `Failed to ${editingId ? 'update' : 'create'} ${activeTab.slice(0, -1)}`;
       setError(errorMsg);
-      showErrorToast(err, `Failed to create ${activeTab.slice(0, -1)}`);
+      showErrorToast(err, `Failed to ${editingId ? 'update' : 'create'} ${activeTab.slice(0, -1)}`);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (type: 'types' | 'categories', item: JobType | JobCategory) => {
+    setEditingId(item.id);
+    setInlineFormData({
+      name: item.name,
+      description: (item as any).description || '',
+    });
+    setShowInlineForm(true);
+    setError(null);
+    setSuccess(null);
   };
 
   const handleDelete = async (type: 'types' | 'categories', id: number) => {
@@ -126,10 +158,13 @@ export default function ManageJobsPage() {
       if (type === 'types') {
         await jobAPI.deleteJobType(id);
         setJobTypes(jobTypes.filter((t) => t.id !== id));
+        showToast.success('Job type deleted successfully');
       } else {
         await jobAPI.deleteJobCategory(id);
         setJobCategories(jobCategories.filter((c) => c.id !== id));
+        showToast.success('Job category deleted successfully');
       }
+      await fetchData();
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || `Failed to delete ${type.slice(0, -1)}`;
       setError(errorMsg);
@@ -187,6 +222,7 @@ export default function ManageJobsPage() {
                     onClick={() => {
                       setActiveTab(tab);
                       setShowInlineForm(false);
+                      setEditingId(null);
                       setInlineFormData({ name: '', description: '' });
                       setError(null);
                       setSuccess(null);
@@ -210,11 +246,12 @@ export default function ManageJobsPage() {
           <div className="bg-white rounded-xl shadow-sm p-5 mb-5 border-2 border-brand-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-semibold text-gray-900">
-                Add New {activeTab === 'types' ? 'Job Type' : 'Job Category'}
+                {editingId ? `Edit ${activeTab === 'types' ? 'Job Type' : 'Job Category'}` : `Add New ${activeTab === 'types' ? 'Job Type' : 'Job Category'}`}
               </h3>
               <button
                 onClick={() => {
                   setShowInlineForm(false);
+                  setEditingId(null);
                   setInlineFormData({ name: '', description: '' });
                   setError(null);
                   setSuccess(null);
@@ -265,29 +302,32 @@ export default function ManageJobsPage() {
                   type="button"
                   onClick={() => {
                     setShowInlineForm(false);
+                    setEditingId(null);
                     setInlineFormData({ name: '', description: '' });
                     setError(null);
                     setSuccess(null);
                   }}
-                  className="px-4 py-2 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                  className="px-5 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
                   disabled={submitting}
                 >
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleInlineSubmit(true)}
-                  className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving...' : 'Save & Add Another'}
-                </button>
+                {!editingId && (
+                  <button
+                    type="button"
+                    onClick={() => handleInlineSubmit(true)}
+                    className="px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Saving...' : 'Save & Add Another'}
+                  </button>
+                )}
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors shadow-md"
+                  className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting}
                 >
-                  {submitting ? 'Saving...' : 'Save'}
+                  {submitting ? 'Saving...' : editingId ? 'Update' : 'Save'}
                 </button>
               </div>
             </form>
@@ -305,12 +345,17 @@ export default function ManageJobsPage() {
                 <button
                   onClick={() => {
                     setShowInlineForm(true);
+                    setEditingId(null);
+                    setInlineFormData({ name: '', description: '' });
                     setError(null);
                     setSuccess(null);
                   }}
-                  className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors text-sm"
+                  className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors text-sm shadow-sm flex items-center gap-2"
                 >
-                  + Quick Add
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Quick Add
                 </button>
               )}
             </div>
@@ -331,58 +376,64 @@ export default function ManageJobsPage() {
                         </Link>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto rounded-lg border border-gray-200">
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-brand-50">
+                          <thead className="bg-gradient-to-r from-brand-50 to-brand-100">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 ID
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Title
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 SPA
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Salary
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Views
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Status
                               </th>
-                              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Actions
                               </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {jobs.map((job) => (
-                              <tr key={job.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{job.id}</td>
-                                <td className="px-4 py-3">
+                              <tr key={job.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm font-medium text-gray-900">#{job.id}</span>
+                                </td>
+                                <td className="px-6 py-4">
                                   <div className="text-sm font-medium text-gray-900">{job.title}</div>
-                                  <div className="text-xs text-gray-500">{job.slug}</div>
+                                  <div className="text-xs text-gray-500 font-mono mt-1">{job.slug}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  SPA #{job.spa_id}
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm text-gray-600">
+                                    {job.spa?.name || `SPA #${job.spa_id}`}
+                                  </span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {job.salary_min && job.salary_max
-                                    ? `${job.salary_currency || 'INR'} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
-                                    : job.salary_min
-                                    ? `${job.salary_currency || 'INR'} ${job.salary_min.toLocaleString()}+`
-                                    : 'Not specified'}
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm text-gray-600">
+                                    {job.salary_min && job.salary_max
+                                      ? `${job.salary_currency || 'INR'} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
+                                      : job.salary_min
+                                      ? `${job.salary_currency || 'INR'} ${job.salary_min.toLocaleString()}+`
+                                      : <span className="text-gray-400 italic">Not specified</span>}
+                                  </span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {job.view_count || 0} views
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm text-gray-600">{job.view_count || 0} views</span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
+                                <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex flex-col gap-1">
                                     <span
-                                      className={`px-2 py-1 text-xs rounded-full inline-block w-fit font-medium ${
+                                      className={`px-2.5 py-1 text-xs rounded-full inline-block w-fit font-medium ${
                                         job.is_active
                                           ? 'bg-green-100 text-green-800'
                                           : 'bg-red-100 text-red-800'
@@ -391,20 +442,20 @@ export default function ManageJobsPage() {
                                       {job.is_active ? 'Active' : 'Inactive'}
                                     </span>
                                     {job.is_featured && (
-                                      <span className="px-2 py-1 text-xs rounded-full bg-gold-100 text-gold-800 inline-block w-fit font-medium">
+                                      <span className="px-2.5 py-1 text-xs rounded-full bg-gold-100 text-gold-800 inline-block w-fit font-medium">
                                         Featured
                                       </span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-right">
                                   <div className="flex justify-end gap-2">
                                     <Link
                                       href={`/dashboard/jobs/${job.id}`}
                                       className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
                                       title="View"
                                     >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                       </svg>
@@ -414,7 +465,7 @@ export default function ManageJobsPage() {
                                       className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
                                       title="Edit"
                                     >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                       </svg>
                                     </Link>
@@ -424,16 +475,19 @@ export default function ManageJobsPage() {
                                           if (confirm('Are you sure you want to delete this job?')) {
                                             try {
                                               await jobAPI.deleteJob(job.id);
-                                              fetchData();
+                                              showToast.success('Job deleted successfully');
+                                              await fetchData();
                                             } catch (err: any) {
-                                              setError(err.response?.data?.detail || 'Failed to delete job');
+                                              const errorMsg = err.response?.data?.detail || 'Failed to delete job';
+                                              setError(errorMsg);
+                                              showErrorToast(err, 'Failed to delete job');
                                             }
                                           }
                                         }}
                                         className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Delete"
                                       >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                       </button>
@@ -452,47 +506,75 @@ export default function ManageJobsPage() {
                 {activeTab === 'types' && (
                   <>
                     {jobTypes.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">No job types found</div>
+                      <div className="text-center py-16 text-gray-500 bg-white">
+                        <div className="mb-4">
+                          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-medium text-gray-900 mb-1">No job types found</p>
+                        <p className="text-sm text-gray-500">Get started by creating a new job type</p>
+                      </div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto rounded-lg border border-gray-200">
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-brand-50">
+                          <thead className="bg-gradient-to-r from-brand-50 to-brand-100">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 ID
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Name
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Slug
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Description
                               </th>
-                              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Actions
                               </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {jobTypes.map((jobType) => (
-                              <tr key={jobType.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{jobType.id}</td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {jobType.name}
+                              <tr key={jobType.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm font-medium text-gray-900">#{jobType.id}</span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{jobType.slug}</td>
-                                <td className="px-4 py-3 text-sm text-gray-500">
-                                  {jobType.description || 'N/A'}
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm font-medium text-gray-900">{jobType.name}</span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                  <button
-                                    onClick={() => handleDelete('types', jobType.id)}
-                                    className="px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium"
-                                  >
-                                    Delete
-                                  </button>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm text-gray-600 font-mono">{jobType.slug}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="text-sm text-gray-600">
+                                    {(jobType as any).description || <span className="text-gray-400 italic">N/A</span>}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <button
+                                      onClick={() => handleEdit('types', jobType)}
+                                      className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
+                                      title="Edit"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete('types', jobType.id)}
+                                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                      title="Delete"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -506,47 +588,75 @@ export default function ManageJobsPage() {
                 {activeTab === 'categories' && (
                   <>
                     {jobCategories.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">No job categories found</div>
+                      <div className="text-center py-16 text-gray-500 bg-white">
+                        <div className="mb-4">
+                          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-medium text-gray-900 mb-1">No job categories found</p>
+                        <p className="text-sm text-gray-500">Get started by creating a new job category</p>
+                      </div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto rounded-lg border border-gray-200">
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-brand-50">
+                          <thead className="bg-gradient-to-r from-brand-50 to-brand-100">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 ID
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Name
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Slug
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Description
                               </th>
-                              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
                                 Actions
                               </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {jobCategories.map((category) => (
-                              <tr key={category.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{category.id}</td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {category.name}
+                              <tr key={category.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm font-medium text-gray-900">#{category.id}</span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{category.slug}</td>
-                                <td className="px-4 py-3 text-sm text-gray-500">
-                                  {category.description || 'N/A'}
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm font-medium text-gray-900">{category.name}</span>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                  <button
-                                    onClick={() => handleDelete('categories', category.id)}
-                                    className="px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium"
-                                  >
-                                    Delete
-                                  </button>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm text-gray-600 font-mono">{category.slug}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="text-sm text-gray-600">
+                                    {(category as any).description || <span className="text-gray-400 italic">N/A</span>}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <button
+                                      onClick={() => handleEdit('categories', category)}
+                                      className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
+                                      title="Edit"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete('categories', category.id)}
+                                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                      title="Delete"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}

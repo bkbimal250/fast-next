@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { jobAPI, JobType, JobCategory } from '@/lib/job';
 import { locationAPI } from '@/lib/location';
+import { FaFilter, FaBriefcase, FaTags, FaMapMarkerAlt, FaRupeeSign, FaUserTie, FaStar, FaChevronDown, FaChevronUp, FaTimes } from 'react-icons/fa';
 
 interface JobFiltersProps {
   onFilterChange: (filters: FilterState) => void;
@@ -77,6 +78,16 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
       setJobTypes(typesData);
       setJobCategories(categoriesData);
       setCountries(countriesData);
+      
+      // Set default country to India if no country is selected
+      const india = countriesData.find((c: any) => c.name.toLowerCase() === 'india');
+      if (india && !filters.countryId && !initialFilters?.countryId) {
+        const newFilters = { ...filters, countryId: india.id };
+        setFilters(newFilters);
+        onFilterChange(newFilters);
+        // Load states for India
+        locationAPI.getStates(india.id).then(setStates).catch(console.error);
+      }
     } catch (error) {
       console.error('Error fetching filter data:', error);
     }
@@ -104,43 +115,47 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
   const hasActiveFilters = Object.values(filters).some((value) => value !== undefined && value !== null && value !== '');
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+      <div className="bg-gradient-to-r from-brand-600 to-brand-700 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FaFilter color="white" size={18} />
+          <h3 className="text-lg font-semibold text-white">Filters</h3>
+        </div>
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-sm text-brand-600 hover:text-brand-700 font-medium"
+            className="text-sm text-white hover:text-gray-200 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
           >
+            <FaTimes size={12} />
             Clear All
           </button>
         )}
       </div>
 
-      <div className="p-4 space-y-1">
+      <div className="p-4 space-y-2">
         {/* Job Type Filter */}
-        <div className="border-b border-gray-100 pb-3">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => toggleSection('jobType')}
-            className="w-full flex items-center justify-between py-2 text-left"
+            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <span className="text-sm font-semibold text-gray-900">Job Type</span>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.jobType ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <FaBriefcase color="#115e59" size={16} />
+              <span className="text-sm font-semibold text-gray-900">Job Type</span>
+            </div>
+            {expandedSections.jobType ? (
+              <FaChevronUp color="#6b7280" size={14} />
+            ) : (
+              <FaChevronDown color="#6b7280" size={14} />
+            )}
           </button>
           {expandedSections.jobType && (
-            <div className="mt-2 space-y-2">
+            <div className="px-3 pb-3 pt-1 bg-gray-50">
               <select
                 value={filters.jobTypeId || ''}
                 onChange={(e) => updateFilter('jobTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
-                className="w-full input-field text-sm"
+                className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
               >
                 <option value="">All Job Types</option>
                 {jobTypes.map((type) => (
@@ -154,27 +169,27 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         </div>
 
         {/* Job Category Filter */}
-        <div className="border-b border-gray-100 pb-3">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => toggleSection('jobCategory')}
-            className="w-full flex items-center justify-between py-2 text-left"
+            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <span className="text-sm font-semibold text-gray-900">Job Category</span>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.jobCategory ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <FaTags color="#115e59" size={16} />
+              <span className="text-sm font-semibold text-gray-900">Job Category</span>
+            </div>
+            {expandedSections.jobCategory ? (
+              <FaChevronUp color="#6b7280" size={14} />
+            ) : (
+              <FaChevronDown color="#6b7280" size={14} />
+            )}
           </button>
           {expandedSections.jobCategory && (
-            <div className="mt-2 space-y-2">
+            <div className="px-3 pb-3 pt-1 bg-gray-50">
               <select
                 value={filters.jobCategoryId || ''}
                 onChange={(e) => updateFilter('jobCategoryId', e.target.value ? parseInt(e.target.value) : undefined)}
-                className="w-full input-field text-sm"
+                className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
               >
                 <option value="">All Categories</option>
                 {jobCategories.map((category) => (
@@ -188,29 +203,29 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         </div>
 
         {/* Location Filter */}
-        <div className="border-b border-gray-100 pb-3">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => toggleSection('location')}
-            className="w-full flex items-center justify-between py-2 text-left"
+            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <span className="text-sm font-semibold text-gray-900">Location</span>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.location ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <FaMapMarkerAlt color="#115e59" size={16} />
+              <span className="text-sm font-semibold text-gray-900">Location</span>
+            </div>
+            {expandedSections.location ? (
+              <FaChevronUp color="#6b7280" size={14} />
+            ) : (
+              <FaChevronDown color="#6b7280" size={14} />
+            )}
           </button>
           {expandedSections.location && (
-            <div className="mt-2 space-y-3">
+            <div className="px-3 pb-3 pt-1 bg-gray-50 space-y-3">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Country</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Country</label>
                 <select
                   value={filters.countryId || ''}
                   onChange={(e) => updateFilter('countryId', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full input-field text-sm"
+                  className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                 >
                   <option value="">Select Country</option>
                   {countries.map((country) => (
@@ -222,11 +237,11 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
               </div>
               {filters.countryId && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">State</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">State</label>
                   <select
                     value={filters.stateId || ''}
                     onChange={(e) => updateFilter('stateId', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   >
                     <option value="">Select State</option>
                     {states.map((state) => (
@@ -239,11 +254,11 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
               )}
               {filters.stateId && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">City</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">City</label>
                   <select
                     value={filters.cityId || ''}
                     onChange={(e) => updateFilter('cityId', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   >
                     <option value="">Select City</option>
                     {cities.map((city) => (
@@ -256,11 +271,11 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
               )}
               {filters.cityId && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Area</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Area</label>
                   <select
                     value={filters.areaId || ''}
                     onChange={(e) => updateFilter('areaId', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   >
                     <option value="">Select Area</option>
                     {areas.map((area) => (
@@ -276,46 +291,46 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         </div>
 
         {/* Salary Filter */}
-        <div className="border-b border-gray-100 pb-3">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => toggleSection('salary')}
-            className="w-full flex items-center justify-between py-2 text-left"
+            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <span className="text-sm font-semibold text-gray-900">Salary (₹)</span>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.salary ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <FaRupeeSign color="#115e59" size={16} />
+              <span className="text-sm font-semibold text-gray-900">Salary (₹)</span>
+            </div>
+            {expandedSections.salary ? (
+              <FaChevronUp color="#6b7280" size={14} />
+            ) : (
+              <FaChevronDown color="#6b7280" size={14} />
+            )}
           </button>
           {expandedSections.salary && (
-            <div className="mt-2 space-y-2">
+            <div className="px-3 pb-3 pt-1 bg-gray-50 space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Min</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Min (₹)</label>
                   <input
                     type="number"
                     placeholder="0"
                     value={filters.salaryMin || ''}
                     onChange={(e) => updateFilter('salaryMin', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Max</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Max (₹)</label>
                   <input
                     type="number"
                     placeholder="Any"
                     value={filters.salaryMax || ''}
                     onChange={(e) => updateFilter('salaryMax', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   />
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { label: '0-20k', min: 0, max: 20000 },
                   { label: '20k-40k', min: 20000, max: 40000 },
@@ -329,10 +344,10 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
                       updateFilter('salaryMin', range.min);
                       updateFilter('salaryMax', range.max);
                     }}
-                    className={`text-xs px-2.5 py-1 rounded border ${
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
                       filters.salaryMin === range.min && filters.salaryMax === range.max
-                        ? 'bg-brand-50 border-brand-500 text-brand-700'
-                        : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                        ? 'bg-brand-600 text-white shadow-sm'
+                        : 'bg-white border border-gray-300 text-gray-700 hover:border-brand-400 hover:text-brand-700'
                     }`}
                   >
                     ₹{range.label}
@@ -344,46 +359,46 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         </div>
 
         {/* Experience Filter */}
-        <div className="border-b border-gray-100 pb-3">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => toggleSection('experience')}
-            className="w-full flex items-center justify-between py-2 text-left"
+            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <span className="text-sm font-semibold text-gray-900">Experience</span>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.experience ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <FaUserTie color="#115e59" size={16} />
+              <span className="text-sm font-semibold text-gray-900">Experience</span>
+            </div>
+            {expandedSections.experience ? (
+              <FaChevronUp color="#6b7280" size={14} />
+            ) : (
+              <FaChevronDown color="#6b7280" size={14} />
+            )}
           </button>
           {expandedSections.experience && (
-            <div className="mt-2 space-y-2">
+            <div className="px-3 pb-3 pt-1 bg-gray-50 space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Min (Years)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Min (Years)</label>
                   <input
                     type="number"
                     placeholder="0"
                     value={filters.experienceMin || ''}
                     onChange={(e) => updateFilter('experienceMin', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Max (Years)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Max (Years)</label>
                   <input
                     type="number"
                     placeholder="Any"
                     value={filters.experienceMax || ''}
                     onChange={(e) => updateFilter('experienceMax', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm"
+                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
                   />
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { label: '0-1', min: 0, max: 1 },
                   { label: '1-3', min: 1, max: 3 },
@@ -397,10 +412,10 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
                       updateFilter('experienceMin', range.min);
                       updateFilter('experienceMax', range.max);
                     }}
-                    className={`text-xs px-2.5 py-1 rounded border ${
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
                       filters.experienceMin === range.min && filters.experienceMax === range.max
-                        ? 'bg-brand-50 border-brand-500 text-brand-700'
-                        : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                        ? 'bg-brand-600 text-white shadow-sm'
+                        : 'bg-white border border-gray-300 text-gray-700 hover:border-brand-400 hover:text-brand-700'
                     }`}
                   >
                     {range.label} {range.max ? 'years' : '+'}
@@ -412,15 +427,20 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         </div>
 
         {/* Featured Jobs Filter */}
-        <div className="pb-2">
-          <label className="flex items-center py-2 cursor-pointer">
+        <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+          <label className="flex items-center cursor-pointer group">
             <input
               type="checkbox"
               checked={filters.isFeatured === true}
               onChange={(e) => updateFilter('isFeatured', e.target.checked ? true : undefined)}
-              className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+              className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4"
             />
-            <span className="ml-2 text-sm text-gray-700 font-medium">Featured Jobs Only</span>
+            <div className="flex items-center gap-2 ml-3">
+              <FaStar color={filters.isFeatured ? "#fbbf24" : "#9ca3af"} size={14} />
+              <span className={`text-sm font-medium ${filters.isFeatured ? 'text-gray-900' : 'text-gray-700'}`}>
+                Featured Jobs Only
+              </span>
+            </div>
           </label>
         </div>
       </div>

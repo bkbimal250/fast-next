@@ -162,15 +162,23 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                 </a>
               )}
               {spa.booking_url_website && (
-                <a
-                  href={spa.booking_url_website}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const { spaAPI } = await import('@/lib/spa');
+                      await spaAPI.trackBookingClick(spa.id);
+                    } catch {
+                      // Ignore tracking failures
+                    } finally {
+                      window.open(spa.booking_url_website as string, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm sm:text-base"
                 >
                   <FaCalendarCheck size={18} />
                   <span>Book Appointment</span>
-                </a>
+                </button>
               )}
               {((spa.latitude && spa.longitude) || spa.address || spa.directions) && (
                 <a

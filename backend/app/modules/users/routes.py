@@ -2,7 +2,7 @@
 User API routes: authentication, profile, applications
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Request, Header, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from typing import Optional, List
@@ -14,6 +14,9 @@ from app.core.config import settings
 from datetime import timedelta
 from app.modules.uploads.image_storage import save_image_file
 from app.modules.uploads.cv_storage import save_cv_file
+from app.modules.subscribe import models as subscribe_models
+from app.modules.subscribe.models import SubscriptionFrequency
+from app.modules.subscribe.utils import generate_unsubscribe_token
 
 # Ensure all related models are imported to resolve SQLAlchemy relationships
 # This ensures relationships in User model (to Spa, Job, etc.) can be properly configured
@@ -134,8 +137,15 @@ def require_role(allowed_roles: list[UserRole]):
 
 # Authentication
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: schemas.UserRegister, db: Session = Depends(get_db)):
-    """Register a new user (default role: USER)"""
+def register(
+    user_data: schemas.UserRegister,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Register a new user (default role: USER).
+    Automatically subscribes user to job notifications.
+    """
     # Check if email already exists
     if services.get_user_by_email(db, user_data.email):
         raise HTTPException(
@@ -144,6 +154,35 @@ def register(user_data: schemas.UserRegister, db: Session = Depends(get_db)):
         )
     
     user = services.create_user(db, user_data)
+    
+    # Auto-subscribe to job notifications
+    try:
+        existing_subscription = db.query(subscribe_models.JobSubscription).filter(
+            subscribe_models.JobSubscription.email == user.email.lower()
+        ).first()
+        
+        if not existing_subscription:
+            subscription = subscribe_models.JobSubscription(
+                email=user.email.lower(),
+                name=user.name,
+                frequency=SubscriptionFrequency.DAILY,
+                user_id=user.id,
+                unsubscribe_token=generate_unsubscribe_token(),
+                is_active=True
+            )
+            db.add(subscription)
+            db.commit()
+            
+            # Send welcome email in background
+            from app.modules.subscribe.routes import send_welcome_email
+            import asyncio
+            def send_welcome_sync():
+                asyncio.run(send_welcome_email(subscription.email, subscription.name, subscription.unsubscribe_token))
+            background_tasks.add_task(send_welcome_sync)
+    except Exception as e:
+        # Don't fail registration if subscription fails
+        print(f"[REGISTRATION] Failed to auto-subscribe user: {e}")
+    
     return user
 
 
