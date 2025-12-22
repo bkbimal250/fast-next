@@ -61,7 +61,7 @@ export default function ApplicationDetailsModal({
 
   if (!isOpen || !application) return null;
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
   const cvUrl = application.cv_file_path ? `${API_URL}/${application.cv_file_path}` : null;
   const isImageFile = application.cv_file_path
     ? /\.(jpg|jpeg|png|gif|webp)$/i.test(application.cv_file_path)

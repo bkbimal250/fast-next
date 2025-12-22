@@ -30,7 +30,11 @@ pip install psycopg2-binary
 ### 3. Start the Server
 
 ```bash
-uvicorn app.main:app --reload
+# Default port is 8010 (configured in config.py)
+uvicorn app.main:app --reload --port 8010
+
+# Or set PORT in .env file
+PORT=8010 uvicorn app.main:app --reload
 ```
 
 **That's it!** The server will:

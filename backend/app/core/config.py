@@ -75,6 +75,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
     LOG_FILE: Optional[str] = None  # Optional log file path
     
+    # Server
+    PORT: int = 8010  # Server port (default: 8010)
+    
     class Config:
         env_file = ".env"
 

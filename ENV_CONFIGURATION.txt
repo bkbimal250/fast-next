@@ -29,7 +29,7 @@ FRONTEND .env.local FILE CONTENT
 ==========================================
 Location: frontend/.env.local
 
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8010
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_GOOGLE_VERIFICATION=
 NEXT_PUBLIC_YANDEX_VERIFICATION=

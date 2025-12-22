@@ -99,7 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 #### Using Uvicorn with Multiple Workers
 ```bash
 # Production command (4 workers for 4 CPU cores)
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4 --log-level info
+uvicorn app.main:app --host 0.0.0.0 --port 8010 --workers 4 --log-level info
 ```
 
 #### Using Gunicorn with Uvicorn Workers (Recommended)
@@ -108,7 +108,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4 --log-level info
 pip install gunicorn
 
 # Run with gunicorn
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8010
 ```
 
 ### 5. Load Balancer (For Multiple Servers)
@@ -118,7 +118,7 @@ If running multiple backend servers, use a load balancer:
 ```nginx
 upstream backend {
     least_conn;  # Use least connections algorithm
-    server 127.0.0.1:8000;
+    server 127.0.0.1:8010;
     server 127.0.0.1:8001;
     server 127.0.0.1:8002;
     server 127.0.0.1:8003;

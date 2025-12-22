@@ -147,7 +147,7 @@ export default function SpaDetailPage() {
   }
 
   // These variables are safe to use here since we've checked spa is not null above
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
   const allImages = spa.logo_image
     ? [spa.logo_image, ...(spa.spa_images || [])]
     : spa.spa_images || [];

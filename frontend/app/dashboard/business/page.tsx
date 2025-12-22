@@ -89,7 +89,7 @@ export default function BusinessPage() {
                   {spa.logo_image && (
                     <div className="mt-4">
                       <img
-                        src={`http://localhost:8000/${spa.logo_image}`}
+                        src={`http://localhost:8010/${spa.logo_image}`}
                         alt={spa.name}
                         className="w-full h-64 object-cover rounded-lg"
                       />

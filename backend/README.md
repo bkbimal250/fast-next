@@ -64,5 +64,5 @@ The application uses **PostgreSQL only** for production-ready performance:
 
 ## API Documentation
 
-Visit `http://localhost:8000/docs` for interactive API documentation.
+Visit `http://localhost:8010/docs` for interactive API documentation.
 

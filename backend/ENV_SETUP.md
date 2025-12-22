@@ -48,7 +48,7 @@ Create a `.env.local` file in the `frontend` directory with the following conten
 
 ```env
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8010
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=http://localhost:3000

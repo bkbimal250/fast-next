@@ -10,7 +10,7 @@ import Features from './Features/page';
 import ProcessPage from './Process/Page';
 import SEOHead from '@/components/SEOHead';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
 
 export default function HomePage() {
   const [featuredJobs, setFeaturedJobs] = useState<any[]>([]);

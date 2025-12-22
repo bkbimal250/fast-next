@@ -18,7 +18,7 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
 
   const jobUrl = `${siteUrl}/jobs/${job.slug}`
   const ogImage = spa?.logo_image 
-    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/${spa.logo_image}`
+    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'}/${spa.logo_image}`
     : `${siteUrl}/og-image.jpg`
 
   return {

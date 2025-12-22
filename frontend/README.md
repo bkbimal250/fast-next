@@ -20,7 +20,7 @@ npm install
 
 2. Configure environment variables in `.env.local`:
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8010
 ```
 
 3. Run development server:

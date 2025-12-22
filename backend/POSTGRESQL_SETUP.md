@@ -46,8 +46,8 @@ pip install psycopg2-binary
 
 2. **Initialize the database**:
 ```bash
-# Start the server - it will automatically create all tables
-uvicorn app.main:app --reload
+# Start the server on port 8010 - it will automatically create all tables
+uvicorn app.main:app --reload --port 8010
 ```
 
 3. **Create indexes for performance** (optional but recommended):

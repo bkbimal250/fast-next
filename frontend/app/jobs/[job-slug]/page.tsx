@@ -14,7 +14,7 @@ import JobCard from '@/components/JobCard';
 import { FaBriefcase, FaDollarSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye, FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle, FaBuilding } from 'react-icons/fa';
 import SEOHead from '@/components/SEOHead';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
 
 interface JobWithRelations extends Job {
   spa?: Spa & {

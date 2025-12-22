@@ -8,7 +8,7 @@ import { jobAPI, Job } from '@/lib/job';
 import axios from 'axios';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
 
 export default function CityPage({ params }: { params: { city: string } }) {
   const [jobs, setJobs] = useState<Job[]>([]);

@@ -101,7 +101,7 @@ export function generateSpaMetadata(
     : `${spa.name}${locationDisplay ? ` located in ${locationDisplay}` : ''}. ${jobs.length > 0 ? `We have ${jobs.length} job opening${jobs.length > 1 ? 's' : ''} available.` : ''} Contact us for more information.`;
 
   const ogImage = spa.logo_image
-    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/${spa.logo_image}`
+    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'}/${spa.logo_image}`
     : `${baseUrl}/og-image-default.jpg`;
 
   // Structured Data (JSON-LD) for SPA
@@ -112,7 +112,7 @@ export function generateSpaMetadata(
     description: spa.description || `${spa.name} - Professional SPA Services`,
     url: spa.website || canonical,
     image: spa.logo_image
-      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/${spa.logo_image}`
+      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'}/${spa.logo_image}`
       : undefined,
     address: {
       '@type': 'PostalAddress',

@@ -53,7 +53,7 @@ allowed_origins = [
 
 # Add production domain if not in debug mode
 if settings.LOG_LEVEL != "DEBUG":
-    allowed_origins.append("https://yourdomain.com")  # Update with your production domain
+    allowed_origins.append("spajob.api.spajob.spajobs.co.in")  # Update with your production domain
 else:
     # In debug mode, allow all origins for easier development
     allowed_origins = ["*"]

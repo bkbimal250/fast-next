@@ -8,7 +8,7 @@ import JobSuggestionCard from './JobSuggestionCard';
 import { chatbotAPI, ChatbotJob } from '@/lib/chatbot';
 import { useLocation } from '@/hooks/useLocation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
 
 interface Message {
   text: string;

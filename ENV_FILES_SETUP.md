@@ -52,7 +52,7 @@ Create this file manually with the following content:
 
 ```env
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8010
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -85,7 +85,7 @@ LOG_LEVEL=INFO
 # Frontend
 cd ..\frontend
 @"
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8010
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 "@ | Out-File -FilePath .env.local -Encoding utf8
 ```
@@ -111,7 +111,7 @@ EOF
 # Frontend
 cd ../frontend
 cat > .env.local << EOF
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8010
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 EOF
 ```

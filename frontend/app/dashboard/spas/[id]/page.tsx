@@ -103,7 +103,7 @@ export default function ViewSpaPage() {
     );
   }
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">

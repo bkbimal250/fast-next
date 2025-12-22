@@ -99,7 +99,7 @@ export default function JobCard({
   const displayLocation = location && location !== 'Location not specified' ? location : null;
 
   // Construct logo image URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
   const logoUrl = logoImage 
     ? `${API_URL}${logoImage.startsWith('/') ? logoImage : `/${logoImage}`}`
     : null;
