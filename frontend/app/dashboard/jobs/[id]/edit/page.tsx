@@ -99,6 +99,34 @@ export default function EditJobPage() {
     }
   };
 
+  // Helper function to extract error message from API response
+  const extractErrorMessage = (error: any): string => {
+    if (!error) return 'An unexpected error occurred';
+    
+    // If it's already a string, return it
+    if (typeof error === 'string') return error;
+    
+    // Handle FastAPI/Pydantic validation errors
+    if (error.response?.data?.detail) {
+      const detail = error.response.data.detail;
+      
+      // If detail is an array of validation errors
+      if (Array.isArray(detail)) {
+        return detail.map((err: any) => {
+          const field = err.loc && err.loc.length > 1 ? err.loc[err.loc.length - 1] : 'field';
+          return `${field}: ${err.msg}`;
+        }).join(', ');
+      }
+      
+      // If detail is a string
+      if (typeof detail === 'string') return detail;
+    }
+    
+    // Fallback error messages
+    if (error.message) return error.message;
+    return 'An unexpected error occurred. Please try again.';
+  };
+
   const fetchJob = async () => {
     if (!jobId) return;
     setLoading(true);
@@ -132,7 +160,7 @@ export default function EditJobPage() {
         required_gender: data.required_gender || 'Female',
       });
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to fetch job');
+      setError(extractErrorMessage(err));
       console.error('Failed to fetch job:', err);
     } finally {
       setLoading(false);
@@ -195,7 +223,7 @@ export default function EditJobPage() {
         router.push(`/dashboard/jobs/${jobId}`);
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to update job');
+      setError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
