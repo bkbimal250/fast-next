@@ -547,7 +547,19 @@ def update_job(
             detail="Not authorized to update this job"
         )
     
-    return services.update_job(db, job_id, job_update)
+    try:
+        updated_job = services.update_job(db, job_id, job_update, current_user.id, current_user.role)
+        return updated_job
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating job: {str(e)}"
+        )
 
 
 @router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
