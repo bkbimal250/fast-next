@@ -9,6 +9,8 @@ import Navbar from '@/components/Navbar';
 import Pagination from '@/components/Pagination';
 import { jobAPI, Job } from '@/lib/job';
 import Link from 'next/link';
+import { useLocation } from '@/hooks/useLocation';
+import { FaMapMarkerAlt, FaCrosshairs } from 'react-icons/fa';
 
 interface FilterState {
   jobTypeId?: number;
@@ -36,9 +38,12 @@ export default function JobsPage() {
   const searchQuery = searchParams.get('q') || '';
   const locationQuery = searchParams.get('location') || '';
 
+  const { location: userLocation, loading: locationLoading } = useLocation(false);
+  const [useNearMe, setUseNearMe] = useState(false);
+
   useEffect(() => {
     fetchJobs();
-  }, [searchParams, sortBy, filters]);
+  }, [searchParams, sortBy, filters, useNearMe, userLocation]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -53,6 +58,13 @@ export default function JobsPage() {
 
       if (locationQuery) {
         params.location = locationQuery;
+      }
+
+      // Add location-based search if near me is enabled
+      if (useNearMe && userLocation?.latitude && userLocation?.longitude) {
+        params.latitude = userLocation.latitude;
+        params.longitude = userLocation.longitude;
+        params.radius_km = 10; // 10km radius
       }
 
       // Apply filters
@@ -171,7 +183,13 @@ export default function JobsPage() {
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-4 space-y-4">
-              <JobFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+              <JobFilters 
+                onFilterChange={handleFilterChange} 
+                initialFilters={filters}
+                userLocation={userLocation}
+                onNearMeToggle={setUseNearMe}
+                useNearMe={useNearMe}
+              />
               <SubscribeForm />
             </div>
           </div>

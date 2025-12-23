@@ -10,6 +10,7 @@ from app.modules.locations import schemas, services, geocoding
 from app.modules.users.routes import get_current_user, require_role
 from app.modules.users.models import User, UserRole
 import httpx
+from app.utils.ip_location import get_location_from_ip
 
 router = APIRouter(prefix="/api/locations", tags=["locations"])
 
@@ -376,4 +377,21 @@ async def get_ip_location(request: Request):
             latitude=None,
             longitude=None,
         )
+
+
+@router.get("/location-from-ip")
+async def get_location_from_ip_endpoint(request: Request):
+    """Get location information from client IP address"""
+    client_ip = request.client.host if request.client else "unknown"
+    location = get_location_from_ip(client_ip)
+    
+    if location:
+        return {
+            "success": True,
+            "location": location
+        }
+    return {
+        "success": False,
+        "message": "Could not determine location from IP"
+    }
 

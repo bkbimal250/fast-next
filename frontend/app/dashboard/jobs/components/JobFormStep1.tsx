@@ -144,7 +144,7 @@ export default function JobFormStep1({
       </div>
 
       {/* Job Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Job Type */}
         <div>
           <label htmlFor="job_type_id" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -221,6 +221,24 @@ export default function JobFormStep1({
             <option value="Temporary">Temporary</option>
             <option value="Internship">Internship</option>
             <option value="Freelance">Freelance</option>
+          </select>
+        </div>
+
+        {/* Required Gender */}
+        <div>
+          <label htmlFor="required_gender" className="block text-sm font-semibold text-gray-700 mb-2">
+            Required Gender
+          </label>
+          <select
+            id="required_gender"
+            name="required_gender"
+            value={formData.required_gender}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+          >
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+            <option value="Any">Any</option>
           </select>
         </div>
       </div>

@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { jobAPI, Job, JobType, JobCategory, spaAPI, Spa, locationAPI } from '@/lib/job';
+import { jobAPI, Job, JobType, JobCategory } from '@/lib/job';
+import { spaAPI, Spa } from '@/lib/spa';
+import { locationAPI } from '@/lib/location';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
@@ -48,6 +50,9 @@ export default function EditJobPage() {
     is_active: true,
     is_featured: false,
     expires_at: '',
+    Industry_type: '',
+    Employee_type: '',
+    required_gender: 'Female',
   });
 
   useEffect(() => {
@@ -122,6 +127,9 @@ export default function EditJobPage() {
         is_active: data.is_active ?? true,
         is_featured: data.is_featured ?? false,
         expires_at: data.expires_at ? new Date(data.expires_at).toISOString().split('T')[0] : '',
+        Industry_type: data.Industry_type || 'Beauty and Spa',
+        Employee_type: data.Employee_type || 'Full Time',
+        required_gender: data.required_gender || 'Female',
       });
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to fetch job');
@@ -169,6 +177,9 @@ export default function EditJobPage() {
         is_active: formData.is_active,
         is_featured: formData.is_featured,
         expires_at: formData.expires_at || undefined,
+        Industry_type: formData.Industry_type || undefined,
+        Employee_type: formData.Employee_type || undefined,
+        required_gender: formData.required_gender || undefined,
       };
 
       // Remove undefined values
@@ -324,6 +335,55 @@ export default function EditJobPage() {
                       {category.name}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="Industry_type" className="block text-sm font-medium text-gray-700">
+                  Industry Type
+                </label>
+                <input
+                  type="text"
+                  id="Industry_type"
+                  name="Industry_type"
+                  value={formData.Industry_type}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Beauty and Spa"
+                />
+              </div>
+              <div>
+                <label htmlFor="Employee_type" className="block text-sm font-medium text-gray-700">
+                  Employment Type
+                </label>
+                <select
+                  id="Employee_type"
+                  name="Employee_type"
+                  value={formData.Employee_type}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="Full Time">Full Time</option>
+                  <option value="Part Time">Part Time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Temporary">Temporary</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="required_gender" className="block text-sm font-medium text-gray-700">
+                  Required Gender
+                </label>
+                <select
+                  id="required_gender"
+                  name="required_gender"
+                  value={formData.required_gender}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Any">Any</option>
                 </select>
               </div>
             </div>

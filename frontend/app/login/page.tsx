@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Navbar from '@/components/Navbar';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -29,13 +30,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-brand-600 mb-2">SPA Jobs</h1>
-          <p className="text-lg text-gray-600">Log in to your account</p>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Logo/Brand */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-brand-600 mb-2">Work Spa</h1>
+            <p className="text-lg text-gray-600">Log in to your account</p>
+          </div>
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-sm p-6">
@@ -99,6 +102,7 @@ export default function LoginPage() {
             </Link>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

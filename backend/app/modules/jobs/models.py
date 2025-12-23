@@ -53,6 +53,7 @@ class Job(Base):
     key_skills = Column(Text)
     Industry_type = Column(String(255), nullable=False,default="Beauty and Spa")
     Employee_type = Column(String(255), nullable=False,default="Full Time")
+    required_gender=Column(String(255), nullable=False,default="Female")
 
 
     salary_min = Column(Integer)

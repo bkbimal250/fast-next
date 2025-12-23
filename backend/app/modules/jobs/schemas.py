@@ -20,6 +20,7 @@ class JobBase(BaseModel):
     key_skills: Optional[str] = None
     Industry_type: Optional[str] = "Beauty and Spa"
     Employee_type: Optional[str] = "Full Time"
+    required_gender: Optional[str] = "Female"
     job_opening_count: Optional[int] = 1
     salary_min: Optional[int] = None
     salary_max: Optional[int] = None
@@ -115,6 +116,7 @@ class JobUpdate(BaseModel):
     key_skills: Optional[str] = None
     Industry_type: Optional[str] = None
     Employee_type: Optional[str] = None
+    required_gender: Optional[str] = None
     job_opening_count: Optional[int] = None
     spa_id: Optional[int] = None
     job_type_id: Optional[int] = None

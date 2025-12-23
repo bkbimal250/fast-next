@@ -19,7 +19,7 @@ export default function Navbar() {
               <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-xl">S</span>
               </div>
-              <span className="text-2xl font-bold text-white hidden sm:block">SPA Jobs</span>
+              <span className="text-2xl font-bold text-white hidden sm:block">Workspa</span>
             </Link>
           </div>
 

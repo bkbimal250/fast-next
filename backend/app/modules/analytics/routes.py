@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.analytics import trackers, reports
 from app.modules.analytics.chatbot_reports import get_chatbot_usage
+from app.utils.ip_location import get_location_from_ip
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -26,6 +27,14 @@ async def track_event(
     """Track an analytics event"""
     client_ip = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
+    
+    # Auto-detect location from IP if not provided
+    if not latitude or not longitude:
+        ip_location = get_location_from_ip(client_ip)
+        if ip_location:
+            latitude = latitude or ip_location.get('latitude')
+            longitude = longitude or ip_location.get('longitude')
+            city = city or ip_location.get('city')
 
     trackers.track_event(
         db=db,
@@ -80,4 +89,21 @@ def get_time_series(
     Used for time-based analytics charts.
     """
     return reports.get_event_counts_by_day(db, days=days)
+
+
+@router.get("/location-from-ip")
+async def get_location_from_ip_endpoint(request: Request):
+    """Get location information from client IP address"""
+    client_ip = request.client.host if request.client else "unknown"
+    location = get_location_from_ip(client_ip)
+    
+    if location:
+        return {
+            "success": True,
+            "location": location
+        }
+    return {
+        "success": False,
+        "message": "Could not determine location from IP"
+    }
 

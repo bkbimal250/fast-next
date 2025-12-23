@@ -43,11 +43,13 @@ async def extract_filters(message: str) -> Dict:
     
     # Extract job role
     job_roles = {
-        "therapist": ["therapist", "massage therapist", "spa therapist"],
-        "manager": ["manager", "spa manager", "salon manager"],
-        "receptionist": ["receptionist", "front desk", "reception"],
-        "beautician": ["beautician", "beauty therapist", "aesthetician"],
+        "therapist": ["therapist", "massage therapist", "spa therapist", "massage", "body massage"],
+        "manager": ["manager", "spa manager", "salon manager", "supervisor"],
+        "receptionist": ["receptionist", "front desk", "reception", "front office"],
+        "beautician": ["beautician", "beauty therapist", "aesthetician", "beauty"],
         "technician": ["technician", "nail technician", "hair technician"],
+        "housekeeping": ["housekeeping", "attendant", "helper", "cleaning"],
+        "sales": ["sales", "marketing", "telecaller", "membership"],
     }
     for role, keywords in job_roles.items():
         if any(keyword in message_lower for keyword in keywords):
@@ -55,8 +57,12 @@ async def extract_filters(message: str) -> Dict:
             break
     
     # Extract location (simple pattern matching)
-    # Common Indian cities
-    cities = ["mumbai", "delhi", "bangalore", "hyderabad", "chennai", "pune", "kolkata", "ahmedabad", "jaipur", "surat"]
+    # Common Indian cities (expanded list)
+    cities = [
+        "mumbai", "delhi", "bangalore", "hyderabad", "chennai", "pune", "kolkata", 
+        "ahmedabad", "jaipur", "surat", "navi mumbai", "gurgaon", "noida", "faridabad",
+        "goa", "indore", "bhopal", "lucknow", "kanpur", "nagpur", "coimbatore", "kochi"
+    ]
     for city in cities:
         if city in message_lower:
             filters["city"] = city.title()

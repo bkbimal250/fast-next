@@ -24,7 +24,7 @@ export default function AboutPage() {
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
               <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center">
-                <FaBullseye className="text-white text-xl" />
+                <FaBullseye color="#ffffff" size={20} />
               </div>
             </div>
             <div>
@@ -44,7 +44,7 @@ export default function AboutPage() {
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
               <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center">
-                <FaAward className="text-white text-xl" />
+                <FaAward color="#ffffff" size={20} />
               </div>
             </div>
             <div>
@@ -63,7 +63,9 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Our Values</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-start gap-3">
-              <FaHeart className="text-brand-600 text-xl mt-1 flex-shrink-0" />
+              <div className="mt-1 flex-shrink-0">
+                <FaHeart color="#115e59" size={20} />
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Accessibility</h3>
                 <p className="text-gray-600 text-sm">
@@ -73,7 +75,9 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <FaHandshake className="text-brand-600 text-xl mt-1 flex-shrink-0" />
+              <div className="mt-1 flex-shrink-0">
+                <FaHandshake color="#115e59" size={20} />
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Transparency</h3>
                 <p className="text-gray-600 text-sm">
@@ -83,7 +87,9 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <FaUsers className="text-brand-600 text-xl mt-1 flex-shrink-0" />
+              <div className="mt-1 flex-shrink-0">
+                <FaUsers color="#115e59" size={20} />
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Community</h3>
                 <p className="text-gray-600 text-sm">
@@ -93,7 +99,9 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <FaAward className="text-brand-600 text-xl mt-1 flex-shrink-0" />
+              <div className="mt-1 flex-shrink-0">
+                <FaAward color="#115e59" size={20} />
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Excellence</h3>
                 <p className="text-gray-600 text-sm">

@@ -1,6 +1,7 @@
 'use client';
 
-import { FaUser, FaRobot } from 'react-icons/fa';
+import Image from 'next/image';
+import { FaUser } from 'react-icons/fa';
 
 interface ChatMessageProps {
   message: string;
@@ -10,14 +11,21 @@ interface ChatMessageProps {
 export default function ChatMessage({ message, isUser }: ChatMessageProps) {
   return (
     <div className={`flex gap-3 mb-4 ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div
-        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-          isUser
-            ? 'bg-brand-600 text-white'
-            : 'bg-gray-200 text-gray-700'
-        }`}
-      >
-        {isUser ? <FaUser size={14} /> : <FaRobot size={14} />}
+      <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md">
+        {isUser ? (
+          <div className="w-full h-full bg-brand-600 text-white flex items-center justify-center">
+            <FaUser size={14} />
+          </div>
+        ) : (
+          <Image
+            src="/uploads/chatbotimage.png"
+            alt="Workspa Assistant"
+            width={32}
+            height={32}
+            className="w-full h-full object-cover"
+            unoptimized
+          />
+        )}
       </div>
       <div
         className={`flex-1 rounded-lg px-4 py-2 ${

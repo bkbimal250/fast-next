@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { jobAPI, JobType, JobCategory } from '@/lib/job';
 import { locationAPI } from '@/lib/location';
-import { FaFilter, FaBriefcase, FaTags, FaMapMarkerAlt, FaRupeeSign, FaUserTie, FaStar, FaChevronDown, FaChevronUp, FaTimes } from 'react-icons/fa';
+import { FaFilter, FaBriefcase, FaTags, FaMapMarkerAlt, FaRupeeSign, FaUserTie, FaStar, FaChevronDown, FaChevronUp, FaTimes, FaCrosshairs } from 'react-icons/fa';
+import { useLocation } from '@/hooks/useLocation';
 
 interface JobFiltersProps {
   onFilterChange: (filters: FilterState) => void;
@@ -39,6 +40,8 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
     jobType: true,
     jobCategory: true,
   });
+  const [useNearMe, setUseNearMe] = useState(false);
+  const { location: userLocation, loading: locationLoading } = useLocation(false);
 
   useEffect(() => {
     fetchFilterData();
@@ -220,6 +223,51 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
           </button>
           {expandedSections.location && (
             <div className="px-3 pb-3 pt-1 bg-gray-50 space-y-3">
+              {/* Near Me Button */}
+              <div>
+                <button
+                  onClick={async () => {
+                    if (!useNearMe && userLocation) {
+                      setUseNearMe(true);
+                      // Clear location filters when using near me
+                      const newFilters = { ...filters };
+                      delete newFilters.countryId;
+                      delete newFilters.stateId;
+                      delete newFilters.cityId;
+                      delete newFilters.areaId;
+                      setFilters(newFilters);
+                      onFilterChange(newFilters);
+                    } else {
+                      setUseNearMe(false);
+                    }
+                  }}
+                  disabled={locationLoading}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                    useNearMe
+                      ? 'bg-brand-600 text-white shadow-sm'
+                      : 'bg-white border-2 border-brand-500 text-brand-700 hover:bg-brand-50'
+                  } ${locationLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {locationLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600"></div>
+                      <span>Detecting location...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaCrosshairs size={14} />
+                      <span>{useNearMe ? 'Using My Location' : 'Find Jobs Near Me'}</span>
+                    </>
+                  )}
+                </button>
+                {useNearMe && userLocation && (
+                  <p className="text-xs text-gray-600 mt-2 text-center">
+                    Showing jobs near {userLocation.city || 'your location'}
+                  </p>
+                )}
+              </div>
+              
+              {/* Rest of location filters */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Country</label>
                 <select
