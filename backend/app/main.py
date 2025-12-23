@@ -49,13 +49,12 @@ allowed_origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://spajob.api.spajob.spajobs.co.in",  # Production domain with HTTPS
+    "http://spajob.api.spajob.spajobs.co.in",   # Production domain with HTTP (if needed)
 ]
 
-# Add production domain if not in debug mode
-if settings.LOG_LEVEL != "DEBUG":
-    allowed_origins.append("spajob.api.spajob.spajobs.co.in")  # Update with your production domain
-else:
-    # In debug mode, allow all origins for easier development
+# In debug mode, allow all origins for easier development
+if settings.LOG_LEVEL == "DEBUG":
     allowed_origins = ["*"]
 
 app.add_middleware(
