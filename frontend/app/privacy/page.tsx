@@ -137,7 +137,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Cookie Preferences:</strong> Manage cookie settings through your browser</li>
               </ul>
               <p className="mt-4">
-                To exercise these rights, please contact us at <a href="mailto:privacy@spajobs.com" className="text-brand-600 hover:underline">privacy@spajobs.com</a>
+                To exercise these rights, please contact us at <a href="mailto:privacy@workspa.in" className="text-brand-600 hover:underline">privacy@workspa.in</a>
               </p>
             </div>
           </section>
@@ -234,7 +234,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <p className="text-gray-700">
-                <strong>Email:</strong> <a href="mailto:privacy@spajobs.com" className="text-brand-600 hover:underline">privacy@spajobs.com</a>
+                <strong>Email:</strong> <a href="mailto:privacy@workspa.in" className="text-brand-600 hover:underline">privacy@workspa.in</a>
               </p>
               <p className="text-gray-700">
                 <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91 123 456 7890</a>

@@ -385,10 +385,11 @@ def get_job_counts_by_location(
     Returns list of cities with their job counts.
     Useful for location-based job listing pages.
     """
+    from slugify import slugify
+    
     query = db.query(
         City.id,
         City.name,
-        City.slug,
         func.count(Job.id).label('job_count')
     ).join(
         Job, City.id == Job.city_id
@@ -401,16 +402,16 @@ def get_job_counts_by_location(
     if job_type:
         query = query.join(JobType).filter(JobType.name == job_type)
     
-    results = query.group_by(City.id, City.name, City.slug).all()
+    results = query.group_by(City.id, City.name).all()
     
     return [
         {
             "city_id": city_id,
             "city_name": city_name,
-            "city_slug": city_slug,
+            "city_slug": slugify(city_name),  # Generate slug from city name
             "job_count": job_count
         }
-        for city_id, city_name, city_slug, job_count in results
+        for city_id, city_name, job_count in results
     ]
 
 

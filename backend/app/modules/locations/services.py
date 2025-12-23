@@ -126,8 +126,14 @@ def get_city_by_id(db: Session, city_id: int):
 
 
 def get_city_by_slug(db: Session, slug: str):
-    """Get city by slug"""
-    return db.query(models.City).filter(models.City.slug == slug).first()
+    """Get city by slug (generates slug from city name for matching)"""
+    from slugify import slugify
+    # Since City model doesn't have a slug field, we need to match by generating slug from name
+    cities = db.query(models.City).all()
+    for city in cities:
+        if slugify(city.name) == slug:
+            return city
+    return None
 
 
 def get_all_cities(db: Session, state_id: Optional[int] = None, country_id: Optional[int] = None, skip: int = 0, limit: int = 100):

@@ -49,8 +49,10 @@ allowed_origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
-    "https://spajob.api.spajob.spajobs.co.in",  # Production domain with HTTPS
-    "http://spajob.api.spajob.spajobs.co.in",   # Production domain with HTTP (if needed)
+    "https://workspa.in",  # Production frontend domain
+    "http://workspa.in",   # Production frontend domain (HTTP fallback)
+    "https://spajob.api.spajob.spajobs.co.in",  # Production API domain with HTTPS
+    "http://spajob.api.spajob.spajobs.co.in",   # Production API domain with HTTP (if needed)
 ]
 
 # In debug mode, allow all origins for easier development

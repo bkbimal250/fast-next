@@ -42,10 +42,12 @@ def generate_sitemap(db: Session) -> str:
         sitemap.append(f'  </url>')
     
     # Cities
+    from slugify import slugify
     cities = db.query(City).all()
     for city in cities:
+        city_slug = slugify(city.name)  # Generate slug from city name
         sitemap.append(f'  <url>')
-        sitemap.append(f'    <loc>{base_url}/cities/{city.slug}</loc>')
+        sitemap.append(f'    <loc>{base_url}/cities/{city_slug}</loc>')
         sitemap.append(f'    <lastmod>{today}</lastmod>')
         sitemap.append(f'    <changefreq>weekly</changefreq>')
         sitemap.append(f'    <priority>0.8</priority>')
@@ -82,7 +84,6 @@ def generate_sitemap(db: Session) -> str:
         JobCategory.name,
         JobCategory.slug,
         City.name,
-        City.slug,
         func.count(Job.id).label('job_count')
     ).join(
         Job, JobCategory.id == Job.job_category_id
@@ -91,15 +92,15 @@ def generate_sitemap(db: Session) -> str:
     ).filter(
         Job.is_active == True
     ).group_by(
-        JobCategory.name, JobCategory.slug, City.name, City.slug
+        JobCategory.name, JobCategory.slug, City.name
     ).having(
         func.count(Job.id) >= 5  # Only include if 5+ jobs
     ).limit(100).all()
     
-    for category_name, category_slug, city_name, city_slug, job_count in category_city_combos:
+    for category_name, category_slug, city_name, job_count in category_city_combos:
         # Create slug-friendly versions
         category_slug_clean = category_slug.replace('_', '-').lower()
-        city_slug_clean = city_slug.replace('_', '-').lower()
+        city_slug_clean = slugify(city_name)  # Generate slug from city name
         
         sitemap.append(f'  <url>')
         sitemap.append(f'    <loc>{base_url}/jobs/category/{category_slug_clean}/location/{city_slug_clean}</loc>')

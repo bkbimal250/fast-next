@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Job } from '@/lib/job'
 import { Spa } from '@/lib/spa'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
 
 export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
   const locationParts = []
@@ -48,7 +48,7 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
           alt: `${job.title} at ${spa?.name || 'SPA'}`,
         },
       ],
-      siteName: 'SPA Jobs Portal',
+      siteName: 'Workspa - SPA Jobs Portal',
     },
     twitter: {
       card: 'summary_large_image',

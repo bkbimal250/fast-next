@@ -22,7 +22,7 @@ export async function generateMetadata({
         `${capitalizedCity} spa jobs`,
         `spa careers ${capitalizedCity}`,
       ],
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/cities/${params.city}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/cities/${params.city}`,
     }
   );
 }

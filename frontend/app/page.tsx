@@ -34,12 +34,12 @@ export default function HomePage() {
     '@type': 'WebSite',
     name: 'SPA Jobs Portal',
     description: 'Find the best spa jobs near you. Apply directly to spas without login.',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/jobs?q={search_term_string}`,
+        urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/jobs?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },
@@ -48,9 +48,9 @@ export default function HomePage() {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'SPA Jobs India',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com',
-    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/logo.png`,
+    name: 'Workspa - SPA Jobs India',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/logo.png`,
     description: 'India\'s leading platform for spa job opportunities',
     sameAs: [
       // Add social media links here when available

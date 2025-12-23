@@ -102,7 +102,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
     }
   };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const pageUrl = `${siteUrl}/cities/${params.city}`;
 
   const collectionPageSchema = {

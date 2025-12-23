@@ -86,7 +86,7 @@ export default function JobsPage() {
     setSortBy(newSort);
   };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
   // Generate structured data for job listings page
   const jobsListSchema = {

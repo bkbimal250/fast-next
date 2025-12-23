@@ -6,7 +6,7 @@ export const metadata: Metadata = generatePageMetadata(
   'Unsubscribe from SPA Jobs email notifications and job alerts.',
   {
     keywords: ['unsubscribe', 'email preferences'],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/unsubscribe`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/unsubscribe`,
     noindex: true, // Unsubscribe pages should not be indexed
   }
 );

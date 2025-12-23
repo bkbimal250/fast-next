@@ -261,7 +261,7 @@ export default function JobDetailPage() {
   const responsibilities = parseResponsibilities(job.responsibilities);
   const logoUrl = getLogoUrl(job.spa?.logo_image);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const jobUrl = `${siteUrl}/jobs/${job.slug}`;
 
   const locationParts = [

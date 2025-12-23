@@ -74,8 +74,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <a href="mailto:info@spajobs.com" className="text-brand-600 hover:text-brand-700">
-                      info@spajobs.com
+                    <a href="mailto:info@workspa.in" className="text-brand-600 hover:text-brand-700">
+                      info@workspa.in
                     </a>
                   </div>
                 </div>

@@ -5,7 +5,7 @@ import Footer from '@/components/Footer'
 import ChatWidget from '@/components/Chatbot/ChatWidget'
 import { Toaster } from 'sonner'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -14,10 +14,18 @@ export const metadata: Metadata = {
     template: '%s | SPA Jobs Portal'
   },
   description: 'Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience. Search for therapist, masseuse, and spa manager positions.',
-  keywords: ['spa jobs', 'spa therapist jobs', 'massage therapist jobs', 'spa manager jobs', 'beauty spa jobs', 'wellness jobs', 'spa jobs near me', 'spa careers', 'spa employment', 'spa hiring'],
-  authors: [{ name: 'SPA Jobs Portal' }],
-  creator: 'SPA Jobs Portal',
-  publisher: 'SPA Jobs Portal',
+  keywords: [
+    'spa jobs', 'spa jobs in india', 'spa job vacancy', 'spa job near me',
+    'spa therapist jobs', 'massage therapist jobs', 'spa manager jobs',
+    'beauty spa jobs', 'wellness jobs india', 'luxury spa jobs',
+    'female therapist jobs', 'male therapist jobs', 'spa hiring today',
+    'spa receptionist jobs', 'spa housekeeping jobs', 'beauty therapist jobs',
+    'spa jobs Mumbai', 'spa jobs Delhi', 'spa jobs Bangalore',
+    'spa jobs near me', 'spa careers', 'spa employment', 'spa hiring'
+  ],
+  authors: [{ name: 'Workspa - SPA Jobs Portal' }],
+  creator: 'Workspa - SPA Jobs Portal',
+  publisher: 'Workspa - SPA Jobs Portal',
   formatDetection: {
     email: false,
     address: false,
@@ -27,7 +35,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: siteUrl,
-    siteName: 'SPA Jobs Portal',
+    siteName: 'Workspa - SPA Jobs Portal',
     title: 'SPA Jobs Near Me - Find Spa Jobs in Your City',
     description: 'Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience.',
     images: [

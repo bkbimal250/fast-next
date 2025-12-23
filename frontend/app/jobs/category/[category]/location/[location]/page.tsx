@@ -95,7 +95,7 @@ export default function CategoryLocationJobsPage() {
   };
 
   // Generate structured data for SEO
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const pageUrl = `${siteUrl}/jobs/category/${category}/location/${location}`;
   
   const collectionPageSchema = {

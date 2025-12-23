@@ -6,7 +6,7 @@ export const metadata: Metadata = generatePageMetadata(
   'Manage your SPA Jobs profile, view saved jobs, track applications, and update your preferences.',
   {
     keywords: ['profile', 'my account', 'user profile'],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/profile`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/profile`,
     noindex: true, // Profile pages should not be indexed
   }
 );

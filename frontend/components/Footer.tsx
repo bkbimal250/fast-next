@@ -185,16 +185,16 @@ export default function Footer() {
                 <div className="flex-shrink-0">
                   <FaEnvelope size={16} color="#7dd3fc" />
                 </div>
-                <a href="mailto:info@spajobs.com" className="text-white/80 hover:text-white transition-colors text-sm break-all">
-                  info@spajobs.com
+                <a href="mailto:info@workspa.in" className="text-white/80 hover:text-white transition-colors text-sm break-all">
+                  info@workspa.in
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <div className="flex-shrink-0">
                   <FaGlobe size={16} color="#7dd3fc" />
                 </div>
-                <a href="#" className="text-white/80 hover:text-white transition-colors text-sm">
-                  www.spajobs.com
+                <a href="https://workspa.in" className="text-white/80 hover:text-white transition-colors text-sm">
+                  www.workspa.in
                 </a>
               </li>
             </ul>

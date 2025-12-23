@@ -23,8 +23,8 @@ export default function SEOHead({
   image,
   noindex = false,
 }: SEOHeadProps) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com';
-  const siteName = 'SPA Jobs Portal';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
+  const siteName = 'Workspa - SPA Jobs Portal';
   const pageTitle = title ? `${title} | ${siteName}` : `${siteName}`;
   const pageDescription = description || 'Find the best spa jobs near you. Apply directly to spas without login.';
   const pageUrl = url || siteUrl;

@@ -6,7 +6,7 @@ export const metadata: Metadata = generatePageMetadata(
   'Create a free account on SPA Jobs to save job searches, track applications, and get personalized job recommendations.',
   {
     keywords: ['register', 'sign up', 'create account', 'spa jobs account'],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/register`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/register`,
   }
 );
 

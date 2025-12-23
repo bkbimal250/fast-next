@@ -6,7 +6,7 @@ export const metadata: Metadata = generatePageMetadata(
   'Sign in to your SPA Jobs account to access saved jobs, applications, and personalized features.',
   {
     keywords: ['login', 'sign in', 'spa jobs login'],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'}/login`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/login`,
   }
 );
 

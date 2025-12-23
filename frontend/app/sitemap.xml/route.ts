@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spajobs.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'
 
 export async function GET() {
