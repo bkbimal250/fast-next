@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 3600
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL https://spajob.api.spajob.spajobs.co.in
 
 export async function GET() {
   // During build time, API might not be available, so use fallback

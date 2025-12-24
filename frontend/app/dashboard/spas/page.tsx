@@ -80,7 +80,7 @@ export default function ManageSpasPage() {
     verified: spas.filter((s) => s.is_verified).length,
   };
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL https://spajob.api.spajob.spajobs.co.in;
 
   if (loading && spas.length === 0) {
     return (

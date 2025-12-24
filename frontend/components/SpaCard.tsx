@@ -15,7 +15,7 @@ interface SpaCardProps {
 
 export default function SpaCard({ spa, distance, showDistance = true, jobCount: initialJobCount }: SpaCardProps) {
   const [jobCount, setJobCount] = useState<number | null>(initialJobCount ?? null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL https://spajob.api.spajob.spajobs.co.in;
 
   useEffect(() => {
     if (jobCount === null && spa.id) {

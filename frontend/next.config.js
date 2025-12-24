@@ -1,94 +1,169 @@
+// /** @type {import('next').NextConfig} */
+// const nextConfig = {
+//   reactStrictMode: true,
+//   // Performance optimizations
+//   compress: true,
+//   poweredByHeader: false,
+//   images: {
+//     remotePatterns: [
+//       {
+//         protocol: 'http',
+//         hostname: 'localhost',
+//         port: '8010',
+//         pathname: '/uploads/**',
+//       },
+//       {
+//         protocol: 'https',
+//         hostname: '**',
+//         pathname: '/uploads/**',
+//       },
+//     ],
+//     unoptimized: false,
+//     formats: ['image/webp', 'image/avif'],
+//   },
+//   // Enable path aliases
+//   webpack: (config, { isServer }) => {
+//     const path = require('path');
+//     config.resolve.alias = {
+//       ...config.resolve.alias,
+//       '@': path.resolve(__dirname),
+//     };
+//     // Ensure proper module resolution
+//     config.resolve.modules = [
+//       ...(config.resolve.modules || []),
+//       path.resolve(__dirname, 'lib'),
+//       path.resolve(__dirname),
+//     ];
+    
+//     // Optimize bundle size
+//     if (!isServer) {
+//       config.optimization = {
+//         ...config.optimization,
+//         splitChunks: {
+//           chunks: 'all',
+//           cacheGroups: {
+//             default: false,
+//             vendors: false,
+//             // Vendor chunk
+//             vendor: {
+//               name: 'vendor',
+//               chunks: 'all',
+//               test: /node_modules/,
+//               priority: 20,
+//             },
+//             // Common chunk
+//             common: {
+//               name: 'common',
+//               minChunks: 2,
+//               chunks: 'all',
+//               priority: 10,
+//               reuseExistingChunk: true,
+//               enforce: true,
+//             },
+//           },
+//         },
+//       };
+//     }
+    
+//     return config;
+//   },
+//   // Headers for security and caching
+//   async headers() {
+//     return [
+//       {
+//         source: '/:path*',
+//         headers: [
+//           {
+//             key: 'X-DNS-Prefetch-Control',
+//             value: 'on'
+//           },
+//           {
+//             key: 'X-Frame-Options',
+//             value: 'SAMEORIGIN'
+//           },
+//           {
+//             key: 'X-Content-Type-Options',
+//             value: 'nosniff'
+//           },
+//           {
+//             key: 'Referrer-Policy',
+//             value: 'origin-when-cross-origin'
+//           },
+//         ],
+//       },
+//       {
+//         source: '/uploads/:path*',
+//         headers: [
+//           {
+//             key: 'Cache-Control',
+//             value: 'public, max-age=31536000, immutable',
+//           },
+//         ],
+//       },
+//     ];
+//   },
+// }
+
+// module.exports = nextConfig
+
+
+
+
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
-  // Performance optimizations
-  compress: true,
+
   poweredByHeader: false,
+
   images: {
+    // ONLY list real production domains
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8010',
+        protocol: 'https',
+        hostname: 'workspa.in',
         pathname: '/uploads/**',
       },
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'www.workspa.in',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'spajob.api.spajob.spajobs.co.in',
         pathname: '/uploads/**',
       },
     ],
-    unoptimized: false,
+
     formats: ['image/webp', 'image/avif'],
   },
-  // Enable path aliases
-  webpack: (config, { isServer }) => {
-    const path = require('path');
+
+  webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname),
     };
-    // Ensure proper module resolution
+
     config.resolve.modules = [
       ...(config.resolve.modules || []),
       path.resolve(__dirname, 'lib'),
       path.resolve(__dirname),
     ];
-    
-    // Optimize bundle size
-    if (!isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Vendor chunk
-            vendor: {
-              name: 'vendor',
-              chunks: 'all',
-              test: /node_modules/,
-              priority: 20,
-            },
-            // Common chunk
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 10,
-              reuseExistingChunk: true,
-              enforce: true,
-            },
-          },
-        },
-      };
-    }
-    
+
     return config;
   },
-  // Headers for security and caching
+
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
         ],
       },
       {
@@ -102,6 +177,6 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
