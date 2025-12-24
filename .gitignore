@@ -114,7 +114,6 @@ lerna-debug.log*
 
 # Uploaded files (user content)
 backend/uploads/
-frontend/public/uploads/
 uploads/
 
 # Temporary files
