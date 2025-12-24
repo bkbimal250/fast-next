@@ -100,8 +100,9 @@ export function generateSpaMetadata(
     ? `${spa.description.substring(0, 155)}${spa.description.length > 155 ? '...' : ''}`
     : `${spa.name}${locationDisplay ? ` located in ${locationDisplay}` : ''}. ${jobs.length > 0 ? `We have ${jobs.length} job opening${jobs.length > 1 ? 's' : ''} available.` : ''} Contact us for more information.`;
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
   const ogImage = spa.logo_image
-    ? `${process.env.NEXT_PUBLIC_API_URL }/${spa.logo_image}`
+    ? `${apiUrl}/${spa.logo_image}`
     : `${baseUrl}/og-image-default.jpg`;
 
   // Structured Data (JSON-LD) for SPA
@@ -112,7 +113,7 @@ export function generateSpaMetadata(
     description: spa.description || `${spa.name} - Professional SPA Services`,
     url: spa.website || canonical,
     image: spa.logo_image
-      ? `${process.env.NEXT_PUBLIC_API_URL }/${spa.logo_image}`
+      ? `${apiUrl}/${spa.logo_image}`
       : undefined,
     address: {
       '@type': 'PostalAddress',

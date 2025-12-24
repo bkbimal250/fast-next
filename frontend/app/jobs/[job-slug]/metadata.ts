@@ -3,6 +3,7 @@ import { Job } from '@/lib/job'
 import { Spa } from '@/lib/spa'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in'
 
 export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
   const locationParts = []
@@ -18,7 +19,7 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
 
   const jobUrl = `${siteUrl}/jobs/${job.slug}`
   const ogImage = spa?.logo_image 
-    ? `${process.env.NEXT_PUBLIC_API_URL }/${spa.logo_image}`
+    ? `${apiUrl}/${spa.logo_image}`
     : `${siteUrl}/og-image.jpg`
 
   return {

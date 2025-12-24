@@ -61,7 +61,7 @@ export default function ApplicationDetailsModal({
 
   if (!isOpen || !application) return null;
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL ;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
   const cvUrl = application.cv_file_path ? `${API_URL}/${application.cv_file_path}` : null;
   const isImageFile = application.cv_file_path
     ? /\.(jpg|jpeg|png|gif|webp)$/i.test(application.cv_file_path)
