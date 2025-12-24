@@ -23,10 +23,17 @@ const nextConfig = {
   },
   // Enable path aliases
   webpack: (config, { isServer }) => {
+    const path = require('path');
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': require('path').resolve(__dirname),
+      '@': path.resolve(__dirname),
     };
+    // Ensure proper module resolution
+    config.resolve.modules = [
+      ...(config.resolve.modules || []),
+      path.resolve(__dirname, 'lib'),
+      path.resolve(__dirname),
+    ];
     
     // Optimize bundle size
     if (!isServer) {
