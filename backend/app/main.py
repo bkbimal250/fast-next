@@ -51,7 +51,7 @@ allowed_origins = [
     "http://127.0.0.1:3001",
     "https://workspa.in",  # Production frontend domain
     "http://workspa.in",   # Production frontend domain (HTTP fallback)
-    "https://spajob.api.spajob.spajobs.co.in",  # Production API domain with HTTPS
+    "|| https://spajob.api.spajob.spajobs.co.in",  # Production API domain with HTTPS
     "http://spajob.api.spajob.spajobs.co.in",   # Production API domain with HTTP (if needed)
 ]
 
