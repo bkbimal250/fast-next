@@ -177,6 +177,8 @@ export default function HomePage() {
                     name: job.created_by_user.name,
                     profile_photo: job.created_by_user.profile_photo,
                   } : undefined}
+                  hr_contact_phone={job.hr_contact_phone}
+                  required_gender={job.required_gender}
                 />
               ))}
             </div>
@@ -242,6 +244,8 @@ export default function HomePage() {
                     name: job.created_by_user.name,
                     profile_photo: job.created_by_user.profile_photo,
                   } : undefined}
+                  hr_contact_phone={job.hr_contact_phone}
+                  required_gender={job.required_gender}
                 />
               ))}
             </div>

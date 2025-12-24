@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaDollarSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaRupeeSign } from 'react-icons/fa';
+import { FaDollarSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaRupeeSign, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
 
 interface JobCardProps {
   id: number;
@@ -30,6 +30,8 @@ interface JobCardProps {
     name?: string;
     profile_photo?: string;
   };
+  hr_contact_phone?: string;
+  required_gender?: string;
 }
 
 export default function JobCard({
@@ -52,6 +54,8 @@ export default function JobCard({
   created_at,
   description,
   postedBy,
+  hr_contact_phone,
+  required_gender,
 }: JobCardProps) {
   const formatSalary = () => {
     if (!salaryMin && !salaryMax) return null;
@@ -120,6 +124,42 @@ export default function JobCard({
       .slice(0, 2);
   };
 
+  // Format phone number for WhatsApp (remove spaces, dashes, etc.)
+  const formatPhoneForWhatsApp = (phone?: string) => {
+    if (!phone) return null;
+    // Remove all non-digit characters except +
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    // If it starts with +, keep it, otherwise assume it's Indian number and add +91
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    // Remove leading 0 if present
+    const withoutZero = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
+    return `+91${withoutZero}`;
+  };
+
+  // Format phone number for call (tel: link)
+  const formatPhoneForCall = (phone?: string) => {
+    if (!phone) return null;
+    // Remove all non-digit characters except +
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    // If it starts with +, keep it, otherwise assume it's Indian number and add +91
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    // Remove leading 0 if present
+    const withoutZero = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
+    return `+91${withoutZero}`;
+  };
+
+  const whatsappUrl = hr_contact_phone 
+    ? `https://wa.me/${formatPhoneForWhatsApp(hr_contact_phone)?.replace('+', '')}?text=${encodeURIComponent(`Hi, I'm interested in the ${title} position at ${spaName || 'your company'}.`)}`
+    : null;
+
+  const callUrl = hr_contact_phone 
+    ? `tel:${formatPhoneForCall(hr_contact_phone)}`
+    : null;
+
   return (
     <Link href={`/jobs/${slug}`} className="block">
       <div className="bg-white border border-gray-300 rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden">
@@ -170,13 +210,17 @@ export default function JobCard({
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2">
                   {formatSalary() && (
                     <div className="flex items-center gap-1.5">
-                      <FaDollarSign className="w-4 h-4 text-gold-600 flex-shrink-0" />
+                      <div className="w-4 h-4 text-gold-600 flex-shrink-0">
+                        <FaDollarSign size={16} />
+                      </div>
                       <span className="font-semibold text-gray-900">{formatSalary()}</span>
                     </div>
                   )}
                   {formatExperience() && (
                     <div className="flex items-center gap-1.5">
-                      <FaBriefcase className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                      <div className="w-4 h-4 text-brand-600 flex-shrink-0">
+                        <FaBriefcase size={16} />
+                      </div>
                       <span>{formatExperience()}</span>
                     </div>
                   )}
@@ -184,14 +228,26 @@ export default function JobCard({
 
                   {displayLocation && (
                     <div className="flex items-center gap-1.5">
-                      <FaMapMarkerAlt className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0">
+                        <FaMapMarkerAlt size={14} />
+                      </div>
                       <span className="truncate max-w-[150px] sm:max-w-[250px]" title={displayLocation}>{displayLocation}</span>
                     </div>
                   )}
                   {jobOpeningCount !== undefined && jobOpeningCount > 0 && (
                     <div className="flex items-center gap-1.5">
-                      <FaUsers className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                      <div className="w-4 h-4 text-brand-600 flex-shrink-0">
+                        <FaUsers size={16} />
+                      </div>
                       <span className="text-gray-900 font-medium">{jobOpeningCount} {jobOpeningCount === 1 ? 'opening' : 'openings'}</span>
+                    </div>
+                  )}
+                  {required_gender && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-4 h-4 text-purple-600 flex-shrink-0">
+                        <FaUser size={16} />
+                      </div>
+                      <span className="text-gray-600">{required_gender === 'Any' ? 'Any Gender' : `${required_gender} Only`}</span>
                     </div>
                   )}
                 </div>
@@ -199,7 +255,9 @@ export default function JobCard({
                 {/* Spa Address - Shown separately for better visibility */}
                 {spaAddress && (
                   <div className="flex items-start gap-1.5 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                    <FaMapMarkerAlt className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0 mt-0.5">
+                      <FaMapMarkerAlt size={14} />
+                    </div>
                     <span className="text-gray-700 line-clamp-2" title={spaAddress}>{spaAddress}</span>
                   </div>
                 )}
@@ -216,6 +274,34 @@ export default function JobCard({
                 >
                   Apply
                 </button>
+                {hr_contact_phone && (
+                  <>
+                    {callUrl && (
+                      <a
+                        href={callUrl}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none flex items-center justify-center gap-1.5"
+                        title="Call HR"
+                      >
+                        <FaPhone size={12} />
+                        <span className="hidden sm:inline">Call</span>
+                      </a>
+                    )}
+                    {whatsappUrl && (
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-green-500 hover:bg-green-600 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none flex items-center justify-center gap-1.5"
+                        title="WhatsApp HR"
+                      >
+                        <FaWhatsapp size={14} />
+                        <span className="hidden sm:inline">WhatsApp</span>
+                      </a>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
@@ -266,13 +352,17 @@ export default function JobCard({
                 )}
                 {formatDate(created_at) && (
                   <span className="flex items-center gap-1">
-                    <FaCalendarAlt className="w-3.5 h-3.5" />
+                    <div className="w-3.5 h-3.5">
+                      <FaCalendarAlt size={14} />
+                    </div>
                     {formatDate(created_at)}
                   </span>
                 )}
                 {viewCount !== undefined && viewCount > 0 && (
                   <span className="flex items-center gap-1">
-                    <FaEye className="w-3.5 h-3.5" />
+                    <div className="w-3.5 h-3.5">
+                      <FaEye size={14} />
+                    </div>
                     {viewCount} views
                   </span>
                 )}

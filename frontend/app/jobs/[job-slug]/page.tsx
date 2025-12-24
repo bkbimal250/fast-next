@@ -11,7 +11,7 @@ import { spaAPI, Spa } from '@/lib/spa';
 import axios from 'axios';
 import Link from 'next/link';
 import JobCard from '@/components/JobCard';
-import { FaBriefcase, FaDollarSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye, FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle, FaBuilding } from 'react-icons/fa';
+import { FaBriefcase, FaDollarSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye, FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle, FaBuilding, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
 import SEOHead from '@/components/SEOHead';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
@@ -212,6 +212,34 @@ export default function JobDetailPage() {
       .filter(Boolean);
   };
 
+  // Format phone number for WhatsApp (remove spaces, dashes, etc.)
+  const formatPhoneForWhatsApp = (phone?: string) => {
+    if (!phone) return null;
+    // Remove all non-digit characters except +
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    // If it starts with +, keep it, otherwise assume it's Indian number and add +91
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    // Remove leading 0 if present
+    const withoutZero = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
+    return `+91${withoutZero}`;
+  };
+
+  // Format phone number for call (tel: link)
+  const formatPhoneForCall = (phone?: string) => {
+    if (!phone) return null;
+    // Remove all non-digit characters except +
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    // If it starts with +, keep it, otherwise assume it's Indian number and add +91
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    // Remove leading 0 if present
+    const withoutZero = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
+    return `+91${withoutZero}`;
+  };
+
   // Get logo URL
   const getLogoUrl = (logoImage?: string) => {
     if (!logoImage) return null;
@@ -256,6 +284,16 @@ export default function JobDetailPage() {
       </div>
     );
   }
+
+  // Calculate WhatsApp URL after null check
+  const whatsappUrl = job.hr_contact_phone 
+    ? `https://wa.me/${formatPhoneForWhatsApp(job.hr_contact_phone)?.replace('+', '')}?text=${encodeURIComponent(`Hi, I'm interested in the ${job.title} position at ${job.spa?.name || 'your company'}.`)}`
+    : null;
+
+  // Calculate Call URL after null check
+  const callUrl = job.hr_contact_phone 
+    ? `tel:${formatPhoneForCall(job.hr_contact_phone)}`
+    : null;
 
   const skills = parseSkills(job.key_skills);
   const responsibilities = parseResponsibilities(job.responsibilities);
@@ -531,6 +569,30 @@ export default function JobDetailPage() {
                       >
                         Quick Apply
                       </Link>
+                      {job.hr_contact_phone && (
+                        <>
+                          {callUrl && (
+                            <a
+                              href={callUrl}
+                              className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
+                            >
+                              <FaPhone size={18} />
+                              Call HR
+                            </a>
+                          )}
+                          {whatsappUrl && (
+                            <a
+                              href={whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
+                            >
+                              <FaWhatsapp size={18} />
+                              WhatsApp HR
+                            </a>
+                          )}
+                        </>
+                      )}
                       <button
                         onClick={() => router.push(`/login?redirect=/jobs/${job.slug}`)}
                         className="flex-1 px-6 py-3 bg-gold-500 text-white font-semibold rounded-lg hover:bg-gold-600 transition-colors shadow-md min-h-[48px]"
@@ -539,13 +601,39 @@ export default function JobDetailPage() {
                       </button>
                     </>
                   ) : (
-                    <Link
-                      href={`/apply/${job.slug}`}
-                      onClick={() => axios.post(`${API_URL}/api/jobs/${job.id}/track-apply-click`).catch(() => {})}
-                      className="flex-1 px-8 py-3.5 bg-gold-500 text-white font-semibold rounded-lg hover:bg-gold-600 transition-colors shadow-md text-center min-h-[48px] flex items-center justify-center text-base"
-                    >
-                      Apply Now
-                    </Link>
+                    <>
+                      <Link
+                        href={`/apply/${job.slug}`}
+                        onClick={() => axios.post(`${API_URL}/api/jobs/${job.id}/track-apply-click`).catch(() => {})}
+                        className="flex-1 px-8 py-3.5 bg-gold-500 text-white font-semibold rounded-lg hover:bg-gold-600 transition-colors shadow-md text-center min-h-[48px] flex items-center justify-center text-base"
+                      >
+                        Apply Now
+                      </Link>
+                      {job.hr_contact_phone && (
+                        <>
+                          {callUrl && (
+                            <a
+                              href={callUrl}
+                              className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
+                            >
+                              <FaPhone size={18} />
+                              Call HR
+                            </a>
+                          )}
+                          {whatsappUrl && (
+                            <a
+                              href={whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
+                            >
+                              <FaWhatsapp size={18} />
+                              WhatsApp HR
+                            </a>
+                          )}
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -630,6 +718,17 @@ export default function JobDetailPage() {
                   <div className="p-3 bg-brand-50 rounded-lg border border-brand-100">
                     <span className="text-xs text-gray-600 block mb-1">Employment</span>
                     <p className="text-sm font-semibold text-gray-900">{job.Employee_type}</p>
+                  </div>
+                )}
+                {job.required_gender && (
+                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <span className="text-xs text-gray-600 block mb-1 flex items-center gap-1">
+                      <div className="text-purple-600">
+                        <FaUser size={12} />
+                      </div>
+                      Gender
+                    </span>
+                    <p className="text-sm font-semibold text-gray-900">{job.required_gender === 'Any' ? 'Any Gender' : `${job.required_gender} Only`}</p>
                   </div>
                 )}
               </div>

@@ -31,8 +31,8 @@ export default function JobSuggestionCard({ job }: JobSuggestionCardProps) {
             )}
           </div>
         </div>
-        <div className="ml-4">
-          <FaBriefcase className="text-brand-600" size={20} />
+        <div className="ml-4 text-brand-600">
+          <FaBriefcase size={20} />
         </div>
       </div>
     </Link>

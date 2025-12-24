@@ -165,7 +165,9 @@ export default function MessagesPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                <FaEnvelope className="text-brand-600" />
+                <div className="text-brand-600">
+                  <FaEnvelope size={24} />
+                </div>
                 Messages
               </h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">
@@ -210,7 +212,9 @@ export default function MessagesPage() {
               <div className="flex-1">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaSearch className="text-gray-400" size={16} />
+                    <div className="text-gray-400">
+                      <FaSearch size={16} />
+                    </div>
                   </div>
                   <input
                     type="text"
@@ -257,7 +261,9 @@ export default function MessagesPage() {
             </div>
           ) : filteredMessages.length === 0 ? (
             <div className="p-12 text-center">
-              <FaEnvelope className="mx-auto text-gray-400 mb-4" size={48} />
+              <div className="mx-auto text-gray-400 mb-4 flex justify-center">
+                <FaEnvelope size={48} />
+              </div>
               <p className="text-gray-600 font-medium">No messages found</p>
               <p className="text-sm text-gray-500 mt-1">
                 {searchTerm || selectedStatus ? 'Try adjusting your filters' : 'Messages will appear here when candidates send inquiries'}
@@ -300,11 +306,15 @@ export default function MessagesPage() {
 
                         <div className="space-y-2 mb-3">
                           <div className="flex items-center gap-2 text-sm text-gray-700">
-                            <FaUser className="text-gray-400" size={14} />
+                            <div className="text-gray-400">
+                              <FaUser size={14} />
+                            </div>
                             <span className="font-medium">{message.sender_name}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <FaPhone className="text-gray-400" size={14} />
+                            <div className="text-gray-400">
+                              <FaPhone size={14} />
+                            </div>
                             <span>{message.phone}</span>
                             {message.email && (
                               <>

@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 
@@ -15,11 +16,18 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-xl">S</span>
+            <Link href="/" className="flex items-center h-full">
+              <div className="h-14 w-auto flex items-center">
+                <Image
+                  src="/uploads/navbar.png"
+                  alt="Workspa Logo"
+                  width={200}
+                  height={56}
+                  className="h-full w-auto object-contain"
+                  priority
+                  unoptimized
+                />
               </div>
-              <span className="text-2xl font-bold text-white hidden sm:block">Workspa</span>
             </Link>
           </div>
 
@@ -72,9 +80,13 @@ export default function Navbar() {
               className="text-white hover:text-white/80 p-2"
             >
               {mobileMenuOpen ? (
-                <FaTimes className="h-6 w-6" />
+                <div className="text-white">
+                  <FaTimes size={24} />
+                </div>
               ) : (
-                <FaBars className="h-6 w-6" />
+                <div className="text-white">
+                  <FaBars size={24} />
+                </div>
               )}
             </button>
           </div>

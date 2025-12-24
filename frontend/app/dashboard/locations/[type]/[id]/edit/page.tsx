@@ -138,7 +138,7 @@ export default function EditLocationPage() {
     setSuccess(null);
 
     try {
-      let updatedData;
+      let updatedData: Country | State | City | Area | undefined;
       switch (type) {
         case 'countries':
           updatedData = await locationAPI.updateCountry(id, { name: formData.name });
@@ -178,19 +178,21 @@ export default function EditLocationPage() {
         
         // Update based on type
         if (type === 'states' && 'country_id' in updatedData) {
-          newFormData.country_id = updatedData.country_id.toString();
+          newFormData.country_id = (updatedData as State).country_id.toString();
         } else if (type === 'cities' && 'country_id' in updatedData && 'state_id' in updatedData) {
-          newFormData.country_id = updatedData.country_id.toString();
-          newFormData.state_id = updatedData.state_id.toString();
+          const cityData = updatedData as City;
+          newFormData.country_id = cityData.country_id.toString();
+          newFormData.state_id = cityData.state_id.toString();
         } else if (type === 'areas' && 'city_id' in updatedData) {
-          newFormData.city_id = updatedData.city_id.toString();
+          newFormData.city_id = (updatedData as Area).city_id.toString();
         }
         
         setFormData(newFormData);
         
         // If country changed for cities, reload states dropdown
         if (type === 'cities' && updatedData && 'country_id' in updatedData) {
-          const newCountryId = updatedData.country_id;
+          const cityData = updatedData as City;
+          const newCountryId = cityData.country_id;
           if (newCountryId && newCountryId.toString() !== formData.country_id) {
             locationAPI.getStates(newCountryId).then(setStates).catch(console.error);
           }

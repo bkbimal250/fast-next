@@ -16,7 +16,9 @@ export default function PrivacyPolicyPage() {
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <FaShieldAlt className="text-brand-600 text-3xl" />
+            <div className="text-brand-600">
+              <FaShieldAlt size={32} />
+            </div>
             <h1 className="text-3xl font-bold text-gray-900">Privacy Policy</h1>
           </div>
           <p className="text-gray-600">
@@ -33,7 +35,9 @@ export default function PrivacyPolicyPage() {
           {/* Section 1 */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FaDatabase className="text-brand-600 text-xl" />
+              <div className="text-brand-600">
+                <FaDatabase size={20} />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900">1. Information We Collect</h2>
             </div>
             <div className="space-y-4 text-gray-700">
@@ -70,7 +74,9 @@ export default function PrivacyPolicyPage() {
           {/* Section 2 */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FaEye className="text-brand-600 text-xl" />
+              <div className="text-brand-600">
+                <FaEye size={20} />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900">2. How We Use Your Information</h2>
             </div>
             <div className="space-y-3 text-gray-700">
@@ -90,7 +96,9 @@ export default function PrivacyPolicyPage() {
           {/* Section 3 */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FaLock className="text-brand-600 text-xl" />
+              <div className="text-brand-600">
+                <FaLock size={20} />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900">3. Information Sharing and Disclosure</h2>
             </div>
             <div className="space-y-4 text-gray-700">
@@ -123,7 +131,9 @@ export default function PrivacyPolicyPage() {
           {/* Section 4 */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FaUserShield className="text-brand-600 text-xl" />
+              <div className="text-brand-600">
+                <FaUserShield size={20} />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900">4. Your Rights and Choices</h2>
             </div>
             <div className="space-y-3 text-gray-700">
@@ -145,7 +155,9 @@ export default function PrivacyPolicyPage() {
           {/* Section 5 */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FaLock className="text-brand-600 text-xl" />
+              <div className="text-brand-600">
+                <FaLock size={20} />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900">5. Data Security</h2>
             </div>
             <div className="space-y-3 text-gray-700">
@@ -170,7 +182,9 @@ export default function PrivacyPolicyPage() {
           {/* Section 6 */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FaCookie className="text-brand-600 text-xl" />
+              <div className="text-brand-600">
+                <FaCookie size={20} />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900">6. Cookies and Tracking</h2>
             </div>
             <div className="space-y-3 text-gray-700">

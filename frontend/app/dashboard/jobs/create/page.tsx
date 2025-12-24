@@ -288,7 +288,7 @@ export default function CreateJobPage() {
         required_gender: formData.required_gender || 'Female',
         responsibilities: formData.responsibilities || undefined,
         key_skills: formData.key_skills || undefined,
-        expires_at: formData.expires_at || undefined,
+        expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : undefined,
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
       };

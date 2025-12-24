@@ -154,7 +154,7 @@ export default function EditJobPage() {
         hr_contact_phone: data.hr_contact_phone || '',
         is_active: data.is_active ?? true,
         is_featured: data.is_featured ?? false,
-        expires_at: data.expires_at ? new Date(data.expires_at).toISOString().split('T')[0] : '',
+        expires_at: data.expires_at ? new Date(data.expires_at).toISOString().slice(0, 16) : '',
         Industry_type: data.Industry_type || 'Beauty and Spa',
         Employee_type: data.Employee_type || 'Full Time',
         required_gender: data.required_gender || 'Female',
@@ -204,7 +204,7 @@ export default function EditJobPage() {
         hr_contact_phone: formData.hr_contact_phone || undefined,
         is_active: formData.is_active,
         is_featured: formData.is_featured,
-        expires_at: formData.expires_at || undefined,
+        expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : undefined,
         Industry_type: formData.Industry_type || undefined,
         Employee_type: formData.Employee_type || undefined,
         required_gender: formData.required_gender || undefined,
@@ -629,7 +629,7 @@ export default function EditJobPage() {
                   Expires At
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="expires_at"
                   name="expires_at"
                   value={formData.expires_at}

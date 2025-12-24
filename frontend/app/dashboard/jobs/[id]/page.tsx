@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { jobAPI, Job, spaAPI, Spa, locationAPI } from '@/lib/job';
+import { jobAPI, Job } from '@/lib/job';
+import { spaAPI, Spa } from '@/lib/spa';
+import { locationAPI } from '@/lib/location';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 

@@ -261,6 +261,8 @@ export default function CityPage({ params }: { params: { city: string } }) {
                 viewCount={job.view_count}
                 created_at={job.created_at}
                 description={job.description}
+                hr_contact_phone={job.hr_contact_phone}
+                required_gender={job.required_gender}
               />
             ))}
           </div>

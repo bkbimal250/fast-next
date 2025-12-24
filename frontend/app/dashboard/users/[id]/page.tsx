@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI, User } from '@/lib/user';
-import { locationAPI, Location } from '@/lib/location';
+import { locationAPI } from '@/lib/location';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 

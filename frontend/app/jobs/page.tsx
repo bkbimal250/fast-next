@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import JobCard from '@/components/JobCard';
 import JobFilters from '@/components/JobFilters';
@@ -26,7 +26,7 @@ interface FilterState {
   isFeatured?: boolean;
 }
 
-export default function JobsPage() {
+function JobsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -186,9 +186,6 @@ export default function JobsPage() {
               <JobFilters 
                 onFilterChange={handleFilterChange} 
                 initialFilters={filters}
-                userLocation={userLocation}
-                onNearMeToggle={setUseNearMe}
-                useNearMe={useNearMe}
               />
               <SubscribeForm />
             </div>
@@ -288,6 +285,8 @@ export default function JobsPage() {
                     name: job.created_by_user.name,
                     profile_photo: job.created_by_user.profile_photo,
                   } : undefined}
+                  hr_contact_phone={job.hr_contact_phone}
+                  required_gender={job.required_gender}
                 />
                 ))}
               </div>
@@ -296,5 +295,22 @@ export default function JobsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <JobsPageContent />
+    </Suspense>
   );
 }

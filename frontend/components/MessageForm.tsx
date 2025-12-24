@@ -88,7 +88,9 @@ export default function MessageForm({ jobId, jobTitle, onSuccess }: MessageFormP
     return (
       <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-green-700">
-          <FaEnvelope className="text-green-600" />
+          <div className="text-green-600">
+            <FaEnvelope />
+          </div>
           <p className="font-semibold">Message sent successfully!</p>
         </div>
         <p className="text-sm text-green-600 mt-1">
@@ -102,7 +104,7 @@ export default function MessageForm({ jobId, jobTitle, onSuccess }: MessageFormP
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <FaEnvelope className="text-brand-600" />
+          <FaEnvelope className="text-brand-600" size={20} />
           Send a Free Message
         </h3>
         <p className="text-sm text-gray-600 mt-1">

@@ -471,13 +471,13 @@ export default function PermissionsPage() {
               <h3 className="text-base font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-200">Role Permissions</h3>
               <div className="space-y-4">
                 {Object.entries(ROLE_PERMISSIONS).map(([role, permissions]) => {
-                  const RoleIcon = ROLE_ICONS[role] || FaUser;
+                  const RoleIcon = ROLE_ICONS[role as keyof typeof ROLE_ICONS] || FaUser;
                   const permissionCount = Object.values(permissions).filter(Boolean).length;
                   return (
                     <div key={role} className="border border-gray-200 rounded-lg p-3 hover:border-brand-300 transition-colors">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-lg ${ROLE_COLORS[role]?.split(' ')[0] || 'bg-gray-100'} ${ROLE_COLORS[role]?.split(' ')[1] || 'text-gray-600'}`}>
+                          <div className={`p-1.5 rounded-lg ${ROLE_COLORS[role as keyof typeof ROLE_COLORS]?.split(' ')[0] || 'bg-gray-100'} ${ROLE_COLORS[role as keyof typeof ROLE_COLORS]?.split(' ')[1] || 'text-gray-600'}`}>
                             <RoleIcon size={14} />
                           </div>
                           <span className="text-sm font-semibold text-gray-900 capitalize">{role}</span>
