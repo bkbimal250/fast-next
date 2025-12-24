@@ -103,7 +103,7 @@ export default function ViewSpaPage() {
     );
   }
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL https://spajob.api.spajob.spajobs.co.in;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">

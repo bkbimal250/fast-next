@@ -11,7 +11,7 @@ import QuerySuggestions from './QuerySuggestions';
 import { chatbotAPI, ChatbotJob, ChatbotSpa } from '@/lib/chatbot';
 import { useLocation } from '@/hooks/useLocation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL https://spajob.api.spajob.spajobs.co.in;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 interface Message {
   text: string;

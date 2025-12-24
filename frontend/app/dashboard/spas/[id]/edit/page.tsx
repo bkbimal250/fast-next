@@ -236,7 +236,7 @@ export default function EditSpaPage() {
     );
   }
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL https://spajob.api.spajob.spajobs.co.in;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
   return (
     <div className="min-h-screen bg-gray-50">
