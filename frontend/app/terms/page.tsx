@@ -327,7 +327,7 @@ export default function TermsOfServicePage() {
                 <strong>Email:</strong> <a href="mailto:legal@workspa.in" className="text-brand-600 hover:underline">legal@workspa.in</a>
               </p>
               <p className="text-gray-700">
-                <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91 123 456 7890</a>
+                <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91  84228 55035</a>
               </p>
               <p className="text-gray-700">
                 <strong>Address:</strong> India

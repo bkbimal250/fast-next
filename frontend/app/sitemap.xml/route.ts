@@ -4,27 +4,34 @@
 
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'
 
 export async function GET() {
-  try {
-    // Try to fetch sitemap from backend
-    const response = await fetch(`${apiUrl}/api/seo/sitemap`, {
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
-    
-    if (response.ok) {
-      const sitemap = await response.text();
-      return new NextResponse(sitemap, {
-        headers: {
-          'Content-Type': 'application/xml',
-          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-        },
+  // During build time, API might not be available, so use fallback
+  if (process.env.NODE_ENV === 'production' || !apiUrl.includes('localhost')) {
+    try {
+      // Try to fetch sitemap from backend
+      const response = await fetch(`${apiUrl}/api/seo/sitemap`, {
+        next: { revalidate: 3600 } // Revalidate every hour
       });
+      
+      if (response.ok) {
+        const sitemap = await response.text();
+        return new NextResponse(sitemap, {
+          headers: {
+            'Content-Type': 'application/xml',
+            'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching sitemap from backend:', error);
+      // Fall through to fallback
     }
-  } catch (error) {
-    console.error('Error fetching sitemap from backend:', error);
   }
 
   // Fallback: Generate basic sitemap
