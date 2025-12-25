@@ -2,7 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaDollarSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaRupeeSign, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { applicationAPI } from '@/lib/application';
+import axios from 'axios';
+import { FaRupeeSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
+import { showToast, showErrorToast } from '@/lib/toast';
 
 interface JobCardProps {
   id: number;
@@ -35,6 +41,7 @@ interface JobCardProps {
 }
 
 export default function JobCard({
+  id,
   title,
   spaName,
   spaAddress,
@@ -57,6 +64,9 @@ export default function JobCard({
   hr_contact_phone,
   required_gender,
 }: JobCardProps) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [applying, setApplying] = useState(false);
   const formatSalary = () => {
     if (!salaryMin && !salaryMax) return null;
     const formatAmount = (amount: number) => {
@@ -101,6 +111,14 @@ export default function JobCard({
 
   // Format location display - only show if we have a valid location (city or area)
   const displayLocation = location && location !== 'Location not specified' ? location : null;
+
+  // Truncate description to approximately 30 words
+  const truncateDescription = (text?: string, maxWords: number = 30) => {
+    if (!text) return null;
+    const words = text.trim().split(/\s+/);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + '...';
+  };
 
   // Construct logo image URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
@@ -160,6 +178,37 @@ export default function JobCard({
     ? `tel:${formatPhoneForCall(hr_contact_phone)}`
     : null;
 
+  // Handle apply button click - direct apply for logged-in users
+  const handleApplyClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Track apply click
+    axios.post(`${API_URL}/api/jobs/${id}/track-apply-click`).catch(() => {});
+
+    // If user is logged in, apply directly
+    if (user) {
+      setApplying(true);
+      try {
+        await applicationAPI.directApply(id);
+        showToast.success('Application submitted successfully!');
+        // Redirect to applications page after a short delay
+        setTimeout(() => {
+          router.push('/dashboard/applications');
+        }, 1500);
+      } catch (err: any) {
+        console.error('Failed to submit application:', err);
+        const errorMessage = err.response?.data?.detail || 'Failed to submit application. Please try again.';
+        showErrorToast(err, errorMessage);
+      } finally {
+        setApplying(false);
+      }
+    } else {
+      // If not logged in, redirect to apply page
+      router.push(`/apply/${slug}`);
+    }
+  };
+
   return (
     <Link href={`/jobs/${slug}`} className="block">
       <div className="bg-white border border-gray-300 rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden">
@@ -194,24 +243,24 @@ export default function JobCard({
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Header Section with Apply Button */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
               <div className="flex-1 min-w-0">
                 {/* Job Title */}
-                <h3 className="text-base sm:text-lg font-semibold text-brand-600 group-hover:text-brand-700 transition-colors mb-1 line-clamp-2 leading-tight">
+                <h3 className="text-base sm:text-lg font-semibold text-brand-600 group-hover:text-brand-700 transition-colors mb-1.5 line-clamp-2 leading-tight">
                   {title}
                 </h3>
                 
                 {/* SPA Name */}
-                <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2.5 sm:mb-3">
                   {spaName || 'SPA'}
                 </p>
 
                 {/* Key Info Row - Salary, Experience, Location */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                   {formatSalary() && (
                     <div className="flex items-center gap-1.5">
                       <div className="w-4 h-4 text-gold-600 flex-shrink-0">
-                        <FaDollarSign size={16} />
+                        <FaRupeeSign size={16} />
                       </div>
                       <span className="font-semibold text-gray-900">{formatSalary()}</span>
                     </div>
@@ -251,29 +300,11 @@ export default function JobCard({
                     </div>
                   )}
                 </div>
-
-                {/* Spa Address - Shown separately for better visibility */}
-                {spaAddress && (
-                  <div className="flex items-start gap-1.5 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0 mt-0.5">
-                      <FaMapMarkerAlt size={14} />
-                    </div>
-                    <span className="text-gray-700 line-clamp-2" title={spaAddress}>{spaAddress}</span>
-                  </div>
-                )}
               </div>
 
               {/* Apply Button - Right Side */}
               <div className="flex flex-row sm:flex-col items-stretch sm:items-end gap-2 flex-shrink-0 w-full sm:w-auto">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = `/jobs/${slug}`;
-                  }}
-                  className="bg-gold-500 hover:bg-gold-600 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none"
-                >
-                  Apply
-                </button>
+                
                 {hr_contact_phone && (
                   <>
                     {callUrl && (
@@ -302,18 +333,25 @@ export default function JobCard({
                     )}
                   </>
                 )}
+                <button
+                  onClick={handleApplyClick}
+                  disabled={applying}
+                  className="bg-gold-500 hover:bg-gold-600 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {applying ? 'Applying...' : user ? 'Apply Now' : 'Quick Apply'}
+                </button>
               </div>
             </div>
 
-            {/* Description Preview */}
-            {description && (
-              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2 leading-relaxed">
-                {description}
+            {/* Description Preview - Limited to ~30 words */}
+            {description && truncateDescription(description) && (
+              <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 leading-relaxed">
+                {truncateDescription(description)}
               </p>
             )}
 
             {/* Footer Section - Tags and Metadata */}
-            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2 sm:pt-3 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-200 mt-2">
               {/* Job Type & Category Tags */}
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 {jobType && (

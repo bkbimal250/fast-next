@@ -337,7 +337,8 @@ export default function ApplicationDetailsModal({
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer - Only show status update for admins/managers/recruiters */}
+          {onStatusUpdate ? (
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
               <label className="text-sm font-medium text-gray-700">Update Status:</label>
@@ -366,6 +367,16 @@ export default function ApplicationDetailsModal({
               Close
             </button>
           </div>
+          ) : (
+          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors text-sm"
+            >
+              Close
+            </button>
+          </div>
+          )}
         </div>
       </div>
     </div>

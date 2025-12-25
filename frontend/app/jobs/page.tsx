@@ -37,9 +37,22 @@ function JobsPageContent() {
 
   const searchQuery = searchParams.get('q') || '';
   const locationQuery = searchParams.get('location') || '';
+  const experienceMinParam = searchParams.get('experience_years_min');
+  const experienceMaxParam = searchParams.get('experience_years_max');
 
   const { location: userLocation, loading: locationLoading } = useLocation(false);
   const [useNearMe, setUseNearMe] = useState(false);
+
+  // Initialize filters from URL params
+  useEffect(() => {
+    if (experienceMinParam || experienceMaxParam) {
+      setFilters(prev => ({
+        ...prev,
+        experienceMin: experienceMinParam ? parseInt(experienceMinParam) : undefined,
+        experienceMax: experienceMaxParam ? parseInt(experienceMaxParam) : undefined,
+      }));
+    }
+  }, [experienceMinParam, experienceMaxParam]);
 
   useEffect(() => {
     fetchJobs();

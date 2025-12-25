@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { applicationAPI, Application } from '@/lib/application';
+import { authAPI } from '@/lib/auth';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { FaFileAlt, FaSearch, FaFilter, FaCheckCircle, FaClock, FaTimesCircle, FaEye } from 'react-icons/fa';
@@ -21,23 +22,31 @@ export default function ManageApplicationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
-      router.push('/dashboard');
-    } else {
-      fetchApplications();
+    if (!user) {
+      router.push('/login');
+      return;
     }
+    fetchApplications();
   }, [user, router]);
 
   const fetchApplications = async () => {
+    if (!user) return;
+    
     setLoading(true);
     setError(null);
     try {
+      // For regular users, use the user's own applications endpoint
+      if (user.role === 'user') {
+        const fetchedApplications = await authAPI.getMyApplications();
+        setApplications(fetchedApplications);
+      } 
       // For recruiters, use recruiter-specific endpoint
-      if (user?.role === 'recruiter') {
+      else if (user.role === 'recruiter') {
         const fetchedApplications = await applicationAPI.getMyApplications();
         setApplications(fetchedApplications);
-      } else {
-        // For admin/manager, get all applications
+      } 
+      // For admin/manager, get all applications
+      else {
         const fetchedApplications = await applicationAPI.getAllApplications({ skip: 0, limit: 1000 });
         setApplications(fetchedApplications);
       }
@@ -96,9 +105,12 @@ export default function ManageApplicationsPage() {
     );
   }
 
-  if (!user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
+  if (!user) {
     return null;
   }
+
+  const isRegularUser = user.role === 'user';
+  const canManageApplications = user.role === 'admin' || user.role === 'manager' || user.role === 'recruiter';
 
   const stats = {
     total: applications.length,
@@ -120,9 +132,11 @@ export default function ManageApplicationsPage() {
                 <div className="text-brand-600">
                   <FaFileAlt size={28} />
                 </div>
-                Manage Applications
+                {isRegularUser ? 'My Applications' : 'Manage Applications'}
               </h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">View and manage all job applications</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                {isRegularUser ? 'View your job application history' : 'View and manage all job applications'}
+              </p>
             </div>
             <Link
               href="/dashboard"
@@ -132,7 +146,8 @@ export default function ManageApplicationsPage() {
             </Link>
           </div>
 
-          {/* Statistics Cards */}
+          {/* Statistics Cards - Only show for admin/manager/recruiter */}
+          {canManageApplications && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-5">
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
@@ -190,6 +205,57 @@ export default function ManageApplicationsPage() {
               <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.rejected}</p>
             </div>
           </div>
+          )}
+          
+          {/* Statistics Cards - Show simplified version for regular users */}
+          {isRegularUser && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-5">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
+                <div className="bg-brand-100 rounded-lg p-2">
+                  <div className="text-brand-600">
+                    <FaFileAlt size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                <div className="bg-yellow-100 rounded-lg p-2">
+                  <div className="text-yellow-600">
+                    <FaClock size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Accepted</p>
+                <div className="bg-green-100 rounded-lg p-2">
+                  <div className="text-green-600">
+                    <FaCheckCircle size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.accepted}</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Rejected</p>
+                <div className="bg-red-100 rounded-lg p-2">
+                  <div className="text-red-600">
+                    <FaTimesCircle size={16} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.rejected}</p>
+            </div>
+          </div>
+          )}
         </div>
 
         {/* Error Message */}
@@ -204,7 +270,7 @@ export default function ManageApplicationsPage() {
           <ApplicationsList
             applications={applications}
             onViewDetails={handleViewDetails}
-            onStatusChange={handleStatusUpdate}
+            onStatusChange={canManageApplications ? handleStatusUpdate : undefined}
           />
         )}
 
@@ -213,7 +279,7 @@ export default function ManageApplicationsPage() {
           application={selectedApplication}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          onStatusUpdate={handleStatusUpdate}
+          onStatusUpdate={canManageApplications ? handleStatusUpdate : undefined}
         />
       </div>
     </div>

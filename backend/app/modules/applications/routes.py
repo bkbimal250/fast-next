@@ -2,7 +2,7 @@
 Application API routes
 """
 
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Header
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from typing import Optional, List
 from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
@@ -11,12 +11,14 @@ from app.modules.uploads.cv_storage import save_cv_file as save_cv_file_upload
 from app.modules.jobs.models import JobApplication, Job
 from app.modules.users.models import User, UserRole
 from app.modules.users.routes import get_current_user, get_current_user_optional
+from app.core.config import settings
 
 router = APIRouter(prefix="/api/applications", tags=["applications"])
 
 
 @router.post("/", response_model=schemas.ApplicationResponse)
 async def create_application(
+    request: Request,
     job_id: int = Form(...),
     name: Optional[str] = Form(None),
     phone: Optional[str] = Form(None),
@@ -24,20 +26,31 @@ async def create_application(
     experience: Optional[str] = Form(None),
     location: Optional[str] = Form(None),
     cv_file: Optional[UploadFile] = File(None),
-    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     """
     Create a new job application.
     If user is logged in (Authorization header), uses their profile data. Otherwise requires manual entry.
     """
+    # Try to get current user if authenticated (optional - allows anonymous applications)
     current_user = None
-    if authorization and authorization.startswith("Bearer "):
-        token = authorization.split(" ")[1]
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
         try:
-            current_user = get_current_user(token, db)
-        except:
-            pass  # Allow anonymous applications
+            from jose import jwt, JWTError
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            user_id_str = payload.get("sub")
+            if user_id_str:
+                try:
+                    user_id = int(user_id_str)
+                    current_user = db.query(User).filter(User.id == user_id).first()
+                except (ValueError, TypeError):
+                    pass  # Invalid user ID format
+        except JWTError:
+            pass  # Invalid token - allow anonymous application
+        except Exception:
+            pass  # Any other error - allow anonymous application
     
     cv_file_path = None
     if cv_file:
@@ -77,6 +90,11 @@ async def create_application(
     db.add(application)
     db.commit()
     db.refresh(application)
+    
+    # Load job relationship for response
+    application = db.query(JobApplication).options(
+        joinedload(JobApplication.job)
+    ).filter(JobApplication.id == application.id).first()
     
     return application
 

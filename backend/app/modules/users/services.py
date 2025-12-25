@@ -197,7 +197,10 @@ def can_create_spa(db: Session, user_id: int) -> bool:
 def get_user_applications(db: Session, user_id: int):
     """Get all job applications for a user"""
     from app.modules.jobs.models import JobApplication
-    return db.query(JobApplication).filter(JobApplication.user_id == user_id).order_by(
+    from sqlalchemy.orm import joinedload
+    return db.query(JobApplication).options(
+        joinedload(JobApplication.job)
+    ).filter(JobApplication.user_id == user_id).order_by(
         JobApplication.created_at.desc()
     ).all()
 

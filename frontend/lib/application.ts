@@ -74,5 +74,17 @@ export const applicationAPI = {
     });
     return response.data;
   },
+
+  // Direct apply for logged-in users (uses user profile data, no form needed)
+  directApply: async (jobId: number): Promise<Application> => {
+    const formData = new FormData();
+    formData.append('job_id', jobId.toString());
+    const response = await apiClient.post('/api/applications/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 

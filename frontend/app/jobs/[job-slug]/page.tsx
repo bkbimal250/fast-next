@@ -8,11 +8,13 @@ import MessageForm from '@/components/MessageForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { jobAPI, Job } from '@/lib/job';
 import { spaAPI, Spa } from '@/lib/spa';
+import { applicationAPI } from '@/lib/application';
 import axios from 'axios';
 import Link from 'next/link';
 import JobCard from '@/components/JobCard';
-import { FaBriefcase, FaDollarSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye, FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle, FaBuilding, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
+import { FaBriefcase, FaRupeeSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye, FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle, FaBuilding, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
 import SEOHead from '@/components/SEOHead';
+import { showToast, showErrorToast } from '@/lib/toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
 
@@ -44,6 +46,7 @@ export default function JobDetailPage() {
   const [popularJobs, setPopularJobs] = useState<Job[]>([]);
   const [applicationCount, setApplicationCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     if (params['job-slug']) {
@@ -238,6 +241,33 @@ export default function JobDetailPage() {
     // Remove leading 0 if present
     const withoutZero = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
     return `+91${withoutZero}`;
+  };
+
+  // Direct apply function for logged-in users
+  const handleDirectApply = async () => {
+    if (!job || !user) return;
+    
+    setApplying(true);
+    try {
+      // Track apply click
+      await axios.post(`${API_URL}/api/jobs/${job.id}/track-apply-click`).catch(() => {});
+      
+      // Submit application directly using user profile data
+      await applicationAPI.directApply(job.id);
+      
+      showToast.success('Application submitted successfully!');
+      
+      // Redirect to applications page after a short delay
+      setTimeout(() => {
+        router.push('/dashboard/applications');
+      }, 1500);
+    } catch (err: any) {
+      console.error('Failed to submit application:', err);
+      const errorMessage = err.response?.data?.detail || 'Failed to submit application. Please try again.';
+      showErrorToast(err, errorMessage);
+    } finally {
+      setApplying(false);
+    }
   };
 
   // Get logo URL
@@ -490,7 +520,7 @@ export default function JobDetailPage() {
                   )}
                   <div className="flex items-center gap-3 p-3 bg-gold-50 rounded-lg border border-gold-200">
                     <div className="w-10 h-10 bg-gold-100 rounded-lg flex items-center justify-center flex-shrink-0 text-gold-600">
-                      <FaDollarSign size={18} />
+                      <FaRupeeSign size={18} />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-0.5">Salary</p>
@@ -602,13 +632,13 @@ export default function JobDetailPage() {
                     </>
                   ) : (
                     <>
-                      <Link
-                        href={`/apply/${job.slug}`}
-                        onClick={() => axios.post(`${API_URL}/api/jobs/${job.id}/track-apply-click`).catch(() => {})}
-                        className="flex-1 px-8 py-3.5 bg-gold-500 text-white font-semibold rounded-lg hover:bg-gold-600 transition-colors shadow-md text-center min-h-[48px] flex items-center justify-center text-base"
+                      <button
+                        onClick={handleDirectApply}
+                        disabled={applying}
+                        className="flex-1 px-8 py-3.5 bg-gold-500 text-white font-semibold rounded-lg hover:bg-gold-600 transition-colors shadow-md text-center min-h-[48px] flex items-center justify-center text-base disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Apply Now
-                      </Link>
+                        {applying ? 'Applying...' : 'Apply Now'}
+                      </button>
                       {job.hr_contact_phone && (
                         <>
                           {callUrl && (

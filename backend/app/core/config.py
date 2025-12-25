@@ -80,6 +80,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra environment variables that aren't defined in the model
 
 
 settings = Settings()

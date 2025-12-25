@@ -329,7 +329,9 @@ def get_my_applications(
     db: Session = Depends(get_db)
 ):
     """Get current user's job application history"""
+    from app.modules.applications import schemas as app_schemas
     applications = services.get_user_applications(db, current_user.id)
+    # Return applications (FastAPI will serialize them automatically, matching ApplicationResponse schema)
     return applications
 
 

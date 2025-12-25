@@ -13,9 +13,20 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
   const location = locationParts.join(', ') || 'India'
 
   const title = `${job.title} at ${spa?.name || 'SPA'} - ${location} | SPA Jobs Portal`
+  
+  // Build description with location always included
+  const salaryText = job.salary_min && job.salary_max 
+    ? `Salary: ₹${(job.salary_min/1000).toFixed(0)}k - ₹${(job.salary_max/1000).toFixed(0)}k PA. ` 
+    : job.salary_min 
+    ? `Salary: ₹${(job.salary_min/1000).toFixed(0)}k+ PA. ` 
+    : ''
+  
+  const baseDescription = `Apply for ${job.title} position at ${spa?.name || 'SPA'} in ${location}. ${salaryText}View job details, requirements, and apply directly.`
+  
+  // If job description exists, use first 120 chars + location info, otherwise use base description
   const description = job.description 
-    ? `${job.description.substring(0, 155)}...` 
-    : `Apply for ${job.title} position at ${spa?.name || 'SPA'} in ${location}. ${job.salary_min && job.salary_max ? `Salary: ₹${job.salary_min/1000}k - ₹${job.salary_max/1000}k PA.` : ''}`
+    ? `${job.description.substring(0, 120).trim()}... Apply for ${job.title} in ${location}. ${salaryText}View full details and apply now.` 
+    : baseDescription
 
   const jobUrl = `${siteUrl}/jobs/${job.slug}`
   const ogImage = spa?.logo_image 
