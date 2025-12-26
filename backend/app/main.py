@@ -11,7 +11,7 @@ import os
 
 from app.core.database import init_db
 from app.core.config import settings
-from app.core.rate_limit import RateLimitMiddleware
+# from app.core.rate_limit import RateLimitMiddleware  # Rate limiting disabled
 from app.modules.users.routes import router as users_router
 from app.modules.locations.routes import router as locations_router
 from app.modules.spas.routes import router as spas_router
@@ -39,8 +39,9 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Rate limiting middleware (must be before CORS)
 # Rate limits are automatically relaxed in DEBUG mode
-if settings.RATE_LIMIT_ENABLED:
-    app.add_middleware(RateLimitMiddleware)
+# Rate limiting disabled - middleware removed
+# if settings.RATE_LIMIT_ENABLED:
+#     app.add_middleware(RateLimitMiddleware)
 
 # CORS middleware
 # Allow localhost for development, production domain for production

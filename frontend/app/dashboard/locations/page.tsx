@@ -231,16 +231,17 @@ export default function LocationsPage() {
           break;
       }
 
-      setSuccess(`${activeTab.slice(0, -1)} created successfully!`);
+      const successMsg = `${activeTab.slice(0, -1)} created successfully!`;
+      showToast.success(successMsg);
+      setSuccess(successMsg);
       
+      // Refresh all data
       await fetchData();
       await fetchStats();
       await fetchJobCounts();
       
-      const successMsg = `${activeTab.slice(0, -1)} created successfully!`;
-      showToast.success(successMsg);
-      setSuccess(successMsg);
-      setShowInlineForm(false);
+      // Keep form open for "Save & Add Another" but reset on regular save
+      // The form component handles this internally
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || `Failed to create ${activeTab.slice(0, -1)}`);
