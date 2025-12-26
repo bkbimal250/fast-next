@@ -512,7 +512,7 @@ export default function LocationsPage() {
                 jobCounts={jobCounts}
                 loadingCounts={loadingCounts}
                 userRole={user.role}
-                onDelete={(id, name) => handleDeleteClick(activeTab, id, name)}
+                onDelete={(id: number, name: string) => handleDeleteClick(activeTab, id, name)}
               />
             )}
           </div>

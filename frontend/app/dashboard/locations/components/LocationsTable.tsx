@@ -11,7 +11,7 @@ interface LocationsTableProps {
   jobCounts: { [key: number]: number };
   loadingCounts: boolean;
   userRole: string;
-  onDelete: (type: LocationType, id: number) => void;
+  onDelete: (id: number, name: string) => void;
 }
 
 export default function LocationsTable({
@@ -83,7 +83,7 @@ export default function LocationsTable({
                 jobCount={jobCounts[location.id]}
                 loadingCount={loadingCounts}
                 userRole={userRole}
-                onDelete={(id) => onDelete(activeTab, id)}
+                onDelete={onDelete}
               />
             ))}
           </tbody>
