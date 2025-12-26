@@ -211,6 +211,20 @@ export default function SpaDetailPage() {
             <SpaContactCard spa={spa} />
             <SpaOperatingHours spa={spa} />
             <SpaLocationMap spa={spa} />
+            
+            {/* Employer CTA */}
+            <div className="bg-gradient-to-br from-brand-50 to-gold-50 rounded-xl border-2 border-brand-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Own this SPA?</h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Claim your profile to manage jobs, update information, and get more visibility.
+              </p>
+              <Link
+                href="/login?redirect=/dashboard/spas"
+                className="block w-full text-center px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                Claim Profile
+              </Link>
+            </div>
           </div>
         </div>
       </div>

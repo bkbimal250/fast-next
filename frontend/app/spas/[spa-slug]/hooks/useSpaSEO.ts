@@ -105,10 +105,10 @@ export function generateSpaMetadata(
     ? `${apiUrl}/${spa.logo_image}`
     : `${baseUrl}/og-image-default.jpg`;
 
-  // Structured Data (JSON-LD) for SPA
+  // Structured Data (JSON-LD) for SPA - Using both LocalBusiness and HealthAndBeautyBusiness for better SEO
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'HealthAndBeautyBusiness',
+    '@type': ['LocalBusiness', 'HealthAndBeautyBusiness'],
     name: spa.name,
     description: spa.description || `${spa.name} - Professional SPA Services`,
     url: spa.website || canonical,
@@ -129,14 +129,14 @@ export function generateSpaMetadata(
         ? `Mo-Su ${spa.opening_hours}-${spa.closing_hours}`
         : undefined,
     priceRange: '$$',
-    aggregateRating:
-      spa.rating && spa.reviews
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: spa.rating,
-            reviewCount: spa.reviews,
-          }
-        : undefined,
+    // Only include ratings if verified (to avoid fake reviews in schema)
+    ...(spa.is_verified && spa.rating && spa.reviews && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: spa.rating,
+        reviewCount: spa.reviews,
+      }
+    }),
     ...(jobs.length > 0 && {
       jobPosting: jobs.map((job) => ({
         '@type': 'JobPosting',

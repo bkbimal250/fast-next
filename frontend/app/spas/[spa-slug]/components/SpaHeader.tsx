@@ -88,12 +88,16 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{spa.name}</h1>
               {spa.is_verified && (
-                <span className="bg-brand-600 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md">
+                <span 
+                  className="bg-brand-600 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md cursor-help"
+                  title="Verified by WorkSpa - Business details checked"
+                >
                   <FaCheckCircle size={14} />
                   <span>Verified</span>
                 </span>
               )}
-              {spa.rating !== undefined && spa.reviews !== undefined && spa.rating > 0 && (
+              {/* Only show ratings if verified (to avoid fake reviews) */}
+              {spa.is_verified && spa.rating !== undefined && spa.reviews !== undefined && spa.rating > 0 && (
                 <div className="flex items-center gap-2">
                   {renderStars(spa.rating)}
                   <span className="text-sm font-semibold text-gray-900">
@@ -102,6 +106,13 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                   <span className="text-sm text-gray-600">
                     ({spa.reviews} {spa.reviews === 1 ? 'Review' : 'Reviews'})
                   </span>
+                </div>
+              )}
+              {/* Show verified badge instead of fake reviews */}
+              {!spa.is_verified && (
+                <div className="bg-brand-50 text-brand-700 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 border border-brand-200">
+                  <FaCheckCircle size={14} />
+                  <span>Verified Spa</span>
                 </div>
               )}
             </div>

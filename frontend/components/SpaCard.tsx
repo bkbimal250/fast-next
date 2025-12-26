@@ -113,7 +113,10 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
 
         {/* Verified Badge - Top Right */}
         {spa.is_verified && (
-          <div className="absolute top-2 right-2 bg-brand-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
+          <div 
+            className="absolute top-2 right-2 bg-brand-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg cursor-help"
+            title="Verified by WorkSpa - Business details checked"
+          >
             <FaCheckCircle className="w-4 h-4" />
             <span>Verified</span>
           </div>
@@ -132,14 +135,23 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
         {/* Category */}
         <p className="text-sm text-gray-500 mb-3">Spa & Massage</p>
 
-        {/* Rating */}
-        {spa.rating !== undefined && spa.rating > 0 && (
+        {/* Rating - Only show if verified (to avoid fake reviews) */}
+        {spa.is_verified && spa.rating !== undefined && spa.rating > 0 && (
           <div className="flex items-center gap-2 mb-3">
             {renderStars(spa.rating)}
             <span className="text-sm font-semibold text-gray-900">{spa.rating.toFixed(1)}</span>
             {spa.reviews !== undefined && spa.reviews > 0 && (
               <span className="text-sm text-gray-600">({spa.reviews} reviews)</span>
             )}
+          </div>
+        )}
+        {/* Show verified badge instead of fake reviews */}
+        {!spa.is_verified && (
+          <div className="flex items-center gap-2 mb-3">
+            <div className="bg-brand-50 text-brand-700 px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 border border-brand-200">
+              <FaCheckCircle className="w-3.5 h-3.5" />
+              <span>Verified Spa</span>
+            </div>
           </div>
         )}
 

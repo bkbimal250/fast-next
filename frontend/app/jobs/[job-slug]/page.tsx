@@ -155,17 +155,32 @@ export default function JobDetailPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return null;
     const date = new Date(dateString);
-    const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+    const now = Date.now();
+    const dateTime = date.getTime();
+    const diffMs = dateTime - now;
+    const daysDiff = Math.floor(Math.abs(diffMs) / (1000 * 60 * 60 * 24));
     
-    if (daysAgo === 0) return 'Today';
-    if (daysAgo === 1) return '1 day ago';
-    if (daysAgo < 7) return `${daysAgo} days ago`;
-    if (daysAgo < 14) return '1 week ago';
-    if (daysAgo < 30) return `${Math.floor(daysAgo / 7)} weeks ago`;
-    if (daysAgo < 60) return '1 month ago';
-    return `${Math.floor(daysAgo / 30)}+ months ago`;
+    // If date is in the future (expiry date)
+    if (diffMs > 0) {
+      if (daysDiff === 0) return 'Today';
+      if (daysDiff === 1) return 'Tomorrow';
+      if (daysDiff < 7) return `in ${daysDiff} days`;
+      if (daysDiff < 30) return `in ${Math.floor(daysDiff / 7)} week${Math.floor(daysDiff / 7) > 1 ? 's' : ''}`;
+      if (daysDiff < 365) return `in ${Math.floor(daysDiff / 30)} month${Math.floor(daysDiff / 30) > 1 ? 's' : ''}`;
+      return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    
+    // If date is in the past (posted date)
+    if (daysDiff === 0) return 'Today';
+    if (daysDiff === 1) return '1 day ago';
+    if (daysDiff < 7) return `${daysDiff} days ago`;
+    if (daysDiff < 14) return '1 week ago';
+    if (daysDiff < 30) return `${Math.floor(daysDiff / 7)} weeks ago`;
+    if (daysDiff < 60) return '1 month ago';
+    return `${Math.floor(daysDiff / 30)}+ months ago`;
   };
 
   const formatSalary = () => {
@@ -583,8 +598,14 @@ export default function JobDetailPage() {
                     )}
                     <span className="flex items-center gap-1.5 text-gray-400">
                       <FaEye size={14} />
-                      <span className="text-gray-600">{job.view_count} views</span>
+                      <span className="text-gray-600">{job.view_count || 0} views</span>
                     </span>
+                    {job.expires_at && formatDate(job.expires_at) && (
+                      <span className="flex items-center gap-1.5 text-gray-400">
+                        <FaCalendarAlt size={14} />
+                        <span className="text-gray-600">Expires {formatDate(job.expires_at)}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -996,6 +1017,20 @@ export default function JobDetailPage() {
 
             {/* Message Form */}
             <MessageForm jobId={job.id} jobTitle={job.title} />
+            
+            {/* Employer CTA */}
+            <div className="bg-gradient-to-br from-brand-50 to-gold-50 rounded-xl border-2 border-brand-200 p-5">
+              <h3 className="text-base font-bold text-gray-900 mb-2">Post a Job in 2 Minutes</h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Looking to hire? Post your job opening and reach thousands of qualified candidates.
+              </p>
+              <Link
+                href="/login?redirect=/dashboard/jobs/create"
+                className="block w-full text-center px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors shadow-sm text-sm"
+              >
+                Post a Job
+              </Link>
+            </div>
           </div>
         </div>
       </div>

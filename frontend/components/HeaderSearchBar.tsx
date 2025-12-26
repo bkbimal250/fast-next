@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSearch, FaMapMarkerAlt, FaChevronDown, FaCrosshairs } from 'react-icons/fa';
-import { getUserLocation, LocationData } from '@/lib/location';
+import { getUserLocation, LocationData, locationAPI, City, Area } from '@/lib/location';
+import { jobAPI } from '@/lib/job';
 
 interface ExperienceOption {
   label: string;
@@ -20,6 +21,13 @@ const experienceOptions: ExperienceOption[] = [
   { label: '10+ years', min: 10, max: undefined },
 ];
 
+interface LocationSuggestion {
+  id: number;
+  name: string;
+  type: 'area' | 'city' | 'state';
+  fullName: string;
+}
+
 export default function HeaderSearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('');
@@ -28,9 +36,22 @@ export default function HeaderSearchBar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string>('');
+  
+  // Autocomplete states
+  const [jobSuggestions, setJobSuggestions] = useState<string[]>([]);
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [showJobSuggestions, setShowJobSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [jobSuggestionsLoading, setJobSuggestionsLoading] = useState(false);
+  const [locationSuggestionsLoading, setLocationSuggestionsLoading] = useState(false);
+  
   const router = useRouter();
   const searchBarRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const locationSuggestionsRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -41,6 +62,12 @@ export default function HeaderSearchBar() {
         if (!formRef.current?.contains(event.target as Node)) {
           setIsExpanded(false);
         }
+      }
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowJobSuggestions(false);
+      }
+      if (locationSuggestionsRef.current && !locationSuggestionsRef.current.contains(event.target as Node)) {
+        setShowLocationSuggestions(false);
       }
     };
 
@@ -54,6 +81,102 @@ export default function HeaderSearchBar() {
       handleAutoDetectLocation();
     }
   }, [isExpanded]);
+
+  // Fetch job suggestions
+  useEffect(() => {
+    if (isExpanded && searchQuery.length >= 2) {
+      const timeoutId = setTimeout(() => {
+        fetchJobSuggestions(searchQuery);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setJobSuggestions([]);
+      setShowJobSuggestions(false);
+    }
+  }, [searchQuery, isExpanded]);
+
+  // Fetch location suggestions
+  useEffect(() => {
+    if (isExpanded && location.length >= 2) {
+      const timeoutId = setTimeout(() => {
+        fetchLocationSuggestions(location);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+    }
+  }, [location, isExpanded]);
+
+  const fetchJobSuggestions = async (query: string) => {
+    setJobSuggestionsLoading(true);
+    try {
+      const jobs = await jobAPI.getAllJobs({ limit: 50 });
+      const uniqueTitles = Array.from(
+        new Set(
+          jobs
+            .map(job => job.title)
+            .filter(title => title.toLowerCase().includes(query.toLowerCase()))
+            .slice(0, 8)
+        )
+      );
+      setJobSuggestions(uniqueTitles);
+      setShowJobSuggestions(uniqueTitles.length > 0);
+    } catch (error) {
+      console.error('Error fetching job suggestions:', error);
+      setJobSuggestions([]);
+      setShowJobSuggestions(false);
+    } finally {
+      setJobSuggestionsLoading(false);
+    }
+  };
+
+  const fetchLocationSuggestions = async (query: string) => {
+    setLocationSuggestionsLoading(true);
+    try {
+      const [cities, areas] = await Promise.all([
+        locationAPI.getCities(undefined, undefined, 0, 100),
+        locationAPI.getAreas(undefined, 0, 100),
+      ]);
+
+      const suggestions: LocationSuggestion[] = [];
+
+      // Add matching cities
+      cities
+        .filter(city => city.name.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 5)
+        .forEach(city => {
+          suggestions.push({
+            id: city.id,
+            name: city.name,
+            type: 'city',
+            fullName: `${city.name}${city.state?.name ? `, ${city.state.name}` : ''}`,
+          });
+        });
+
+      // Add matching areas
+      areas
+        .filter(area => area.name.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 5)
+        .forEach(area => {
+          suggestions.push({
+            id: area.id,
+            name: area.name,
+            type: 'area',
+            fullName: `${area.name}${area.city?.name ? `, ${area.city.name}` : ''}`,
+          });
+        });
+
+      setLocationSuggestions(suggestions);
+      setShowLocationSuggestions(suggestions.length > 0);
+    } catch (error) {
+      console.error('Error fetching location suggestions:', error);
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+    } finally {
+      setLocationSuggestionsLoading(false);
+    }
+  };
 
   const handleAutoDetectLocation = async () => {
     setIsDetectingLocation(true);
@@ -96,10 +219,24 @@ export default function HeaderSearchBar() {
     
     router.push(`/jobs?${params.toString()}`);
     setIsExpanded(false);
+    setShowJobSuggestions(false);
+    setShowLocationSuggestions(false);
   };
 
   const handleFocus = () => {
     setIsExpanded(true);
+  };
+
+  const handleJobSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowJobSuggestions(false);
+    searchInputRef.current?.focus();
+  };
+
+  const handleLocationSuggestionClick = (suggestion: LocationSuggestion) => {
+    setLocation(suggestion.fullName);
+    setShowLocationSuggestions(false);
+    locationInputRef.current?.focus();
   };
 
   return (
@@ -134,17 +271,43 @@ export default function HeaderSearchBar() {
         ) : (
           // Expanded state - full search bar
           <div className="flex flex-col sm:flex-row gap-0 bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Job Title/Keywords Input */}
-            <div className="flex-1 flex items-center border-r border-gray-200 px-4 py-3 sm:py-3.5">
+            {/* Job Title/Keywords Input with Autocomplete */}
+            <div className="flex-1 flex items-center border-r border-gray-200 px-4 py-3 sm:py-3.5 relative">
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Job title, keywords"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={handleFocus}
+                onFocus={() => {
+                  handleFocus();
+                  if (jobSuggestions.length > 0) setShowJobSuggestions(true);
+                }}
                 className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-sm sm:text-base"
                 autoFocus
               />
+              
+              {/* Job Suggestions Dropdown */}
+              {showJobSuggestions && jobSuggestions.length > 0 && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto"
+                >
+                  {jobSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleJobSuggestionClick(suggestion)}
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaSearch className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-gray-700">{suggestion}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Experience Dropdown */}
@@ -190,14 +353,18 @@ export default function HeaderSearchBar() {
               )}
             </div>
 
-            {/* Location Input with Auto-detect */}
+            {/* Location Input with Auto-detect and Autocomplete */}
             <div className="flex-1 flex items-center border-r border-gray-200 px-4 py-3 sm:py-3.5 relative">
               <input
+                ref={locationInputRef}
                 type="text"
                 placeholder="Location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                onFocus={handleFocus}
+                onFocus={() => {
+                  handleFocus();
+                  if (locationSuggestions.length > 0) setShowLocationSuggestions(true);
+                }}
                 className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-sm sm:text-base pr-8"
               />
               <button
@@ -213,6 +380,33 @@ export default function HeaderSearchBar() {
                   <FaCrosshairs className="w-4 h-4" />
                 )}
               </button>
+
+              {/* Location Suggestions Dropdown */}
+              {showLocationSuggestions && locationSuggestions.length > 0 && (
+                <div
+                  ref={locationSuggestionsRef}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto"
+                >
+                  {locationSuggestions.map((suggestion) => (
+                    <button
+                      key={`${suggestion.type}-${suggestion.id}`}
+                      type="button"
+                      onClick={() => handleLocationSuggestionClick(suggestion)}
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaMapMarkerAlt className="w-3.5 h-3.5 text-gray-400" />
+                        <div>
+                          <span className="text-gray-700 font-medium">{suggestion.name}</span>
+                          {suggestion.fullName !== suggestion.name && (
+                            <span className="text-gray-500 text-xs ml-1">({suggestion.fullName})</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Search Button */}

@@ -321,16 +321,26 @@ export default function SpaNearMePage() {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No SPAs Found</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              {userLocation ? 'No SPAs Found Nearby' : 'Location Access Required'}
+            </h3>
             <p className="text-sm sm:text-base text-gray-600 mb-6">
               {userLocation
-                ? `No spas found within ${radius}km of your location. Try increasing the search radius.`
-                : 'Please enable location access to find nearby spas.'}
+                ? `No spas found within ${radius}km of your location. ${locationError ? 'Showing popular spas in your city instead.' : 'Try increasing the search radius or browse all spas.'}`
+                : 'Please enable location access to find nearby spas, or browse all spas.'}
             </p>
             {!userLocation && (
-              <button onClick={getCurrentLocation} className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3">
-                Enable Location
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onClick={getCurrentLocation} className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3">
+                  Enable Location
+                </button>
+                <Link
+                  href="/spas"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg transition-colors text-sm sm:text-base text-center"
+                >
+                  Browse All SPAs
+                </Link>
+              </div>
             )}
             {userLocation && (
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
@@ -346,6 +356,12 @@ export default function SpaNearMePage() {
                 >
                   Try 50 km
                 </button>
+                <Link
+                  href="/spas"
+                  className="bg-brand-600 hover:bg-brand-700 text-white font-medium px-4 sm:px-6 py-2 rounded-lg transition-colors text-sm sm:text-base text-center"
+                >
+                  Browse All SPAs
+                </Link>
               </div>
             )}
           </div>
