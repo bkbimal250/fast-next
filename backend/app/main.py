@@ -11,7 +11,8 @@ import os
 
 from app.core.database import init_db
 from app.core.config import settings
-# from app.core.rate_limit import RateLimitMiddleware  # Rate limiting disabled
+# Rate limiting commented out - can be uncommented later when needed
+# from app.core.rate_limit import RateLimitMiddleware
 from app.modules.users.routes import router as users_router
 from app.modules.locations.routes import router as locations_router
 from app.modules.spas.routes import router as spas_router
@@ -38,8 +39,8 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Rate limiting middleware (must be before CORS)
+# COMMENTED OUT - Can be uncommented later when needed
 # Rate limits are automatically relaxed in DEBUG mode
-# Rate limiting disabled - middleware removed
 # if settings.RATE_LIMIT_ENABLED:
 #     app.add_middleware(RateLimitMiddleware)
 

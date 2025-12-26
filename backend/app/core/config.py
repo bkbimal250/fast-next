@@ -48,7 +48,8 @@ class Settings(BaseSettings):
     # Geocoding (OpenStreetMap Nominatim)
     NOMINATIM_BASE_URL: str = "https://nominatim.openstreetmap.org"
     NOMINATIM_USER_AGENT: str = "SPA-Job-Portal/1.0"  # Required by Nominatim
-    NOMINATIM_RATE_LIMIT_SECONDS: int = 1  # Minimum seconds between requests
+    # Rate limiting commented out - can be uncommented later when needed
+    # NOMINATIM_RATE_LIMIT_SECONDS: int = 1  # Minimum seconds between requests
     GEOCODE_CACHE_HOURS: int = 24  # Cache resolved locations for 24 hours
     
     # Performance & Scalability Settings
@@ -57,10 +58,11 @@ class Settings(BaseSettings):
     CACHE_TTL_SECONDS: int = 300  # Default cache TTL (5 minutes)
     
     # Rate Limiting
+    # COMMENTED OUT - Can be uncommented later when needed
     # Rate limits are automatically relaxed in DEBUG mode (1000/min, 10000/hour)
-    RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_PER_MINUTE: int = 200  # Requests per minute per IP (increased for development)
-    RATE_LIMIT_PER_HOUR: int = 5000  # Requests per hour per IP (increased for development)
+    # RATE_LIMIT_ENABLED: bool = True
+    # RATE_LIMIT_PER_MINUTE: int = 200  # Requests per minute per IP (increased for development)
+    # RATE_LIMIT_PER_HOUR: int = 5000  # Requests per hour per IP (increased for development)
     
     # Background Tasks
     CELERY_BROKER_URL: Optional[str] = None  # Redis or RabbitMQ URL for Celery

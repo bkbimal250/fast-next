@@ -13,7 +13,7 @@ from app.modules.locations.models import ResolvedLocation
 
 
 # Rate limiting: track last request time
-# Rate limiting disabled
+# COMMENTED OUT - Can be uncommented later when needed
 # _last_request_time: float = 0
 
 
@@ -35,7 +35,7 @@ async def reverse_geocode_nominatim(latitude: float, longitude: float) -> Option
     Reverse geocode using Nominatim API
     Returns address components or None if failed
     """
-    # Rate limiting disabled
+    # Rate limiting commented out - can be uncommented later when needed
     # _rate_limit()
     
     url = f"{settings.NOMINATIM_BASE_URL}/reverse"
