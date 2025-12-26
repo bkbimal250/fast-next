@@ -7,6 +7,7 @@ import { spaAPI, Spa } from '@/lib/spa';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 export default function ManageSpasPage() {
   const { user } = useAuth();
@@ -16,7 +17,16 @@ export default function ManageSpasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [filterVerified, setFilterVerified] = useState<'all' | 'verified' | 'unverified'>('all');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    spaId: number | null;
+    spaName: string;
+  }>({
+    isOpen: false,
+    spaId: null,
+    spaName: '',
+  });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user && user.role !== 'admin' && user.role !== 'manager') {
@@ -40,14 +50,27 @@ export default function ManageSpasPage() {
     }
   };
 
-  const handleDelete = async (spaId: number) => {
+  const handleDeleteClick = (spaId: number, spaName: string) => {
+    setDeleteModal({
+      isOpen: true,
+      spaId,
+      spaName,
+    });
+  };
+
+  const handleDeleteConfirm = async (permanent: boolean) => {
+    if (!deleteModal.spaId) return;
+
+    setDeleting(true);
     try {
-      await spaAPI.deleteSpa(spaId);
-      setShowDeleteConfirm(null);
+      await spaAPI.deleteSpa(deleteModal.spaId, permanent);
+      setDeleteModal({ isOpen: false, spaId: null, spaName: '' });
       loadSpas();
-      showToast.success('SPA deleted successfully');
+      showToast.success(permanent ? 'SPA permanently deleted' : 'SPA deleted successfully');
     } catch (error: any) {
       showErrorToast(error, 'Failed to delete SPA');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -415,40 +438,15 @@ export default function ManageSpasPage() {
                             </svg>
                           </Link>
                           {user?.role === 'admin' && (
-                            <>
-                              {showDeleteConfirm === spa.id ? (
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => handleDelete(spa.id)}
-                                    className="p-1.5 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all"
-                                    title="Confirm Delete"
-                                  >
-                                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    onClick={() => setShowDeleteConfirm(null)}
-                                    className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
-                                    title="Cancel"
-                                  >
-                                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => setShowDeleteConfirm(spa.id)}
-                                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                  title="Delete"
-                                >
-                                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              )}
-                            </>
+                            <button
+                              onClick={() => handleDeleteClick(spa.id, spa.name)}
+                              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                              title="Delete"
+                            >
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           )}
                         </div>
                       </td>
@@ -459,6 +457,18 @@ export default function ManageSpasPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, spaId: null, spaName: '' })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete SPA"
+          message="Are you sure you want to delete this SPA?"
+          itemName={deleteModal.spaName}
+          isAdmin={user?.role === 'admin'}
+          loading={deleting}
+        />
       </div>
     </div>
   );

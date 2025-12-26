@@ -107,8 +107,8 @@ export const jobAPI = {
     return response.data;
   },
 
-  deleteJob: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/jobs/${id}`);
+  deleteJob: async (id: number, permanent: boolean = false): Promise<void> => {
+    await apiClient.delete(`/api/jobs/${id}`, { params: { permanent } });
   },
 
   getPopularJobs: async (limit: number = 10): Promise<Job[]> => {

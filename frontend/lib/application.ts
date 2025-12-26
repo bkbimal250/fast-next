@@ -55,8 +55,8 @@ export const applicationAPI = {
     return response.data;
   },
 
-  deleteApplication: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/applications/${id}`);
+  deleteApplication: async (id: number, permanent: boolean = false): Promise<void> => {
+    await apiClient.delete(`/api/applications/${id}`, { params: { permanent } });
   },
 
   // Recruiter-specific endpoints

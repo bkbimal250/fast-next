@@ -12,7 +12,7 @@ interface LocationRowProps {
   jobCount?: number;
   loadingCount?: boolean;
   userRole: string;
-  onDelete: (id: number) => void;
+  onDelete: (id: number, name: string) => void;
 }
 
 const getLocationIcon = (type: LocationType) => {
@@ -140,7 +140,7 @@ export default function LocationRow({
           </Link>
           {userRole === 'admin' && (
             <button
-              onClick={() => onDelete(location.id)}
+              onClick={() => onDelete(location.id, location.name)}
               className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete"
             >

@@ -68,8 +68,8 @@ export const spaAPI = {
     return response.data;
   },
 
-  deleteSpa: async (spaId: number) => {
-    const response = await apiClient.delete(`/api/spas/${spaId}`);
+  deleteSpa: async (spaId: number, permanent: boolean = false) => {
+    const response = await apiClient.delete(`/api/spas/${spaId}`, { params: { permanent } });
     return response.data;
   },
 

@@ -7,6 +7,7 @@ import { userAPI, User } from '@/lib/user';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { FaUsers, FaUser, FaUserShield, FaUserTie, FaSearch, FaEdit, FaTrash, FaEye, FaPlus, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 const ROLE_ICONS = {
   admin: FaUserShield,
@@ -32,6 +33,16 @@ export default function ManageUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    userId: number | null;
+    userName: string;
+  }>({
+    isOpen: false,
+    userId: null,
+    userName: '',
+  });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -55,19 +66,29 @@ export default function ManageUsersPage() {
     }
   };
 
-  const handleDelete = async (userId: number) => {
-    if (!window.confirm('Are you sure you want to delete this user? This will deactivate their account.')) {
-      return;
-    }
+  const handleDeleteClick = (userId: number, userName: string) => {
+    setDeleteModal({
+      isOpen: true,
+      userId,
+      userName,
+    });
+  };
 
+  const handleDeleteConfirm = async (permanent: boolean) => {
+    if (!deleteModal.userId) return;
+
+    setDeleting(true);
     try {
-      await userAPI.deleteUser(userId);
-      setUsers(users.filter((u) => u.id !== userId));
-      setSuccess('User deleted successfully');
+      await userAPI.deleteUser(deleteModal.userId, permanent);
+      setUsers(users.filter((u) => u.id !== deleteModal.userId));
+      setDeleteModal({ isOpen: false, userId: null, userName: '' });
+      setSuccess(permanent ? 'User permanently deleted' : 'User deleted successfully');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to delete user');
       console.error('Failed to delete user:', err);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -442,7 +463,7 @@ export default function ManageUsersPage() {
                               <FaEdit size={14} />
                             </Link>
                             <button
-                              onClick={() => handleDelete(u.id)}
+                              onClick={() => handleDeleteClick(u.id, u.name)}
                               className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete User"
                             >
@@ -458,6 +479,18 @@ export default function ManageUsersPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, userId: null, userName: '' })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete User"
+          message="Are you sure you want to delete this user?"
+          itemName={deleteModal.userName}
+          isAdmin={user?.role === 'admin'}
+          loading={deleting}
+        />
       </div>
     </div>
   );

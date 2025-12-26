@@ -86,8 +86,8 @@ export const userAPI = {
     return response.data;
   },
 
-  deleteUser: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/users/${id}`);
+  deleteUser: async (id: number, permanent: boolean = false): Promise<void> => {
+    await apiClient.delete(`/api/users/${id}`, { params: { permanent } });
   },
 
   getMyPermissions: async (): Promise<Permission> => {

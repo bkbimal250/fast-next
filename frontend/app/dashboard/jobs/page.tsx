@@ -7,6 +7,7 @@ import { jobAPI, Job, JobType, JobCategory } from '@/lib/job';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 type TabType = 'jobs' | 'types' | 'categories';
 
@@ -31,6 +32,20 @@ export default function ManageJobsPage() {
     name: '',
     description: '',
   });
+
+  // Delete modal states
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    itemId: number | null;
+    itemType: 'job' | 'type' | 'category' | null;
+    itemName: string;
+  }>({
+    isOpen: false,
+    itemId: null,
+    itemType: null,
+    itemName: '',
+  });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
@@ -149,27 +164,55 @@ export default function ManageJobsPage() {
     setSuccess(null);
   };
 
-  const handleDelete = async (type: 'types' | 'categories', id: number) => {
-    if (!window.confirm(`Are you sure you want to delete this ${type === 'types' ? 'job type' : 'job category'}? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteClick = (type: 'job' | 'type' | 'category', id: number, name: string) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: id,
+      itemType: type,
+      itemName: name,
+    });
+  };
 
+  const handleDeleteConfirm = async (permanent: boolean) => {
+    if (!deleteModal.itemId || !deleteModal.itemType) return;
+
+    setDeleting(true);
     try {
-      if (type === 'types') {
-        await jobAPI.deleteJobType(id);
-        setJobTypes(jobTypes.filter((t) => t.id !== id));
+      if (deleteModal.itemType === 'job') {
+        await jobAPI.deleteJob(deleteModal.itemId, permanent);
+        showToast.success(permanent ? 'Job permanently deleted' : 'Job deleted successfully');
+        await fetchData();
+      } else if (deleteModal.itemType === 'type') {
+        // Job types are always permanent delete (admin only)
+        await jobAPI.deleteJobType(deleteModal.itemId);
+        setJobTypes(jobTypes.filter((t) => t.id !== deleteModal.itemId));
         showToast.success('Job type deleted successfully');
-      } else {
-        await jobAPI.deleteJobCategory(id);
-        setJobCategories(jobCategories.filter((c) => c.id !== id));
+        await fetchData();
+      } else if (deleteModal.itemType === 'category') {
+        // Job categories are always permanent delete (admin only)
+        await jobAPI.deleteJobCategory(deleteModal.itemId);
+        setJobCategories(jobCategories.filter((c) => c.id !== deleteModal.itemId));
         showToast.success('Job category deleted successfully');
+        await fetchData();
       }
-      await fetchData();
+      setDeleteModal({ isOpen: false, itemId: null, itemType: null, itemName: '' });
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || `Failed to delete ${type.slice(0, -1)}`;
+      const errorMsg = err.response?.data?.detail || `Failed to delete ${deleteModal.itemType}`;
       setError(errorMsg);
-      showErrorToast(err, `Failed to delete ${type.slice(0, -1)}`);
-      console.error(`Failed to delete ${type}:`, err);
+      showErrorToast(err, `Failed to delete ${deleteModal.itemType}`);
+      console.error(`Failed to delete ${deleteModal.itemType}:`, err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDelete = async (type: 'types' | 'categories', id: number) => {
+    // This is for backward compatibility, but we'll use the modal instead
+    const item = type === 'types' 
+      ? jobTypes.find(t => t.id === id)
+      : jobCategories.find(c => c.id === id);
+    if (item) {
+      handleDeleteClick(type === 'types' ? 'type' : 'category', id, item.name);
     }
   };
 
@@ -469,21 +512,9 @@ export default function ManageJobsPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                       </svg>
                                     </Link>
-                                    {user?.role === 'admin' && (
+                                    {(user?.role === 'admin' || job.created_by_user?.id === user?.id) && (
                                       <button
-                                        onClick={async () => {
-                                          if (confirm('Are you sure you want to delete this job?')) {
-                                            try {
-                                              await jobAPI.deleteJob(job.id);
-                                              showToast.success('Job deleted successfully');
-                                              await fetchData();
-                                            } catch (err: any) {
-                                              const errorMsg = err.response?.data?.detail || 'Failed to delete job';
-                                              setError(errorMsg);
-                                              showErrorToast(err, 'Failed to delete job');
-                                            }
-                                          }
-                                        }}
+                                        onClick={() => handleDeleteClick('job', job.id, job.title)}
                                         className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Delete"
                                       >
@@ -565,15 +596,17 @@ export default function ManageJobsPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                       </svg>
                                     </button>
-                                    <button
-                                      onClick={() => handleDelete('types', jobType.id)}
-                                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                                      title="Delete"
-                                    >
-                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
-                                    </button>
+                                    {user?.role === 'admin' && (
+                                      <button
+                                        onClick={() => handleDeleteClick('type', jobType.id, jobType.name)}
+                                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Delete"
+                                      >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -647,15 +680,17 @@ export default function ManageJobsPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                       </svg>
                                     </button>
-                                    <button
-                                      onClick={() => handleDelete('categories', category.id)}
-                                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                                      title="Delete"
-                                    >
-                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
-                                    </button>
+                                    {user?.role === 'admin' && (
+                                      <button
+                                        onClick={() => handleDeleteClick('category', category.id, category.name)}
+                                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Delete"
+                                      >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -671,6 +706,29 @@ export default function ManageJobsPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, itemId: null, itemType: null, itemName: '' })}
+        onConfirm={handleDeleteConfirm}
+        title={
+          deleteModal.itemType === 'job'
+            ? 'Delete Job'
+            : deleteModal.itemType === 'type'
+            ? 'Delete Job Type'
+            : 'Delete Job Category'
+        }
+        message={
+          deleteModal.itemType === 'job'
+            ? 'Are you sure you want to delete this job?'
+            : `Are you sure you want to delete this ${deleteModal.itemType === 'type' ? 'job type' : 'job category'}? This action cannot be undone.`
+        }
+        itemName={deleteModal.itemName}
+        isAdmin={user?.role === 'admin'}
+        isPermanentDelete={deleteModal.itemType === 'type' || deleteModal.itemType === 'category'}
+        loading={deleting}
+      />
     </div>
   );
 }

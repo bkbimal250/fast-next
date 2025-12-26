@@ -14,6 +14,7 @@ import LocationTabs from './components/LocationTabs';
 import LocationFilters from './components/LocationFilters';
 import LocationCreateForm from './components/LocationCreateForm';
 import LocationsTable from './components/LocationsTable';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 type LocationType = 'countries' | 'states' | 'cities' | 'areas';
 
@@ -47,6 +48,20 @@ export default function LocationsPage() {
 
   // Inline form state
   const [showInlineForm, setShowInlineForm] = useState(false);
+
+  // Delete modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: LocationType | null;
+    id: number | null;
+    name: string;
+  }>({
+    isOpen: false,
+    type: null,
+    id: null,
+    name: '',
+  });
+  const [deleting, setDeleting] = useState(false);
 
   // Statistics
   const [stats, setStats] = useState({
@@ -248,38 +263,71 @@ export default function LocationsPage() {
     }
   };
 
-  const handleDelete = async (type: LocationType, id: number) => {
-    if (!window.confirm(`Are you sure you want to delete this ${type.slice(0, -1)}? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteClick = (type: LocationType, id: number, name: string) => {
+    setDeleteModal({
+      isOpen: true,
+      type,
+      id,
+      name,
+    });
+  };
 
+  const handleDeleteConfirm = async (permanent: boolean) => {
+    if (!deleteModal.type || !deleteModal.id) return;
+
+    setDeleting(true);
     try {
-      switch (type) {
+      switch (deleteModal.type) {
         case 'countries':
-          await locationAPI.deleteCountry(id);
-          setCountries(countries.filter((c) => c.id !== id));
+          await locationAPI.deleteCountry(deleteModal.id);
+          setCountries(countries.filter((c) => c.id !== deleteModal.id));
           break;
         case 'states':
-          await locationAPI.deleteState(id);
-          setStates(states.filter((s) => s.id !== id));
+          await locationAPI.deleteState(deleteModal.id);
+          setStates(states.filter((s) => s.id !== deleteModal.id));
           break;
         case 'cities':
-          await locationAPI.deleteCity(id);
-          setCities(cities.filter((c) => c.id !== id));
+          await locationAPI.deleteCity(deleteModal.id);
+          setCities(cities.filter((c) => c.id !== deleteModal.id));
           break;
         case 'areas':
-          await locationAPI.deleteArea(id);
-          setAreas(areas.filter((a) => a.id !== id));
+          await locationAPI.deleteArea(deleteModal.id);
+          setAreas(areas.filter((a) => a.id !== deleteModal.id));
           break;
       }
       await fetchStats();
       await fetchJobCounts();
-      showToast.success(`${type.slice(0, -1)} deleted successfully`);
+      setDeleteModal({ isOpen: false, type: null, id: null, name: '' });
+      showToast.success(`${deleteModal.type.slice(0, -1)} permanently deleted`);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || `Failed to delete ${type.slice(0, -1)}`;
+      const errorMsg = err.response?.data?.detail || `Failed to delete ${deleteModal.type.slice(0, -1)}`;
       setError(errorMsg);
-      showErrorToast(err, `Failed to delete ${type.slice(0, -1)}`);
-      console.error(`Failed to delete ${type}:`, err);
+      showErrorToast(err, `Failed to delete ${deleteModal.type.slice(0, -1)}`);
+      console.error(`Failed to delete ${deleteModal.type}:`, err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDelete = async (type: LocationType, id: number) => {
+    // Find the location name for the modal
+    let name = '';
+    switch (type) {
+      case 'countries':
+        name = countries.find((c) => c.id === id)?.name || '';
+        break;
+      case 'states':
+        name = states.find((s) => s.id === id)?.name || '';
+        break;
+      case 'cities':
+        name = cities.find((c) => c.id === id)?.name || '';
+        break;
+      case 'areas':
+        name = areas.find((a) => a.id === id)?.name || '';
+        break;
+    }
+    if (name) {
+      handleDeleteClick(type, id, name);
     }
   };
 
@@ -464,12 +512,25 @@ export default function LocationsPage() {
                 jobCounts={jobCounts}
                 loadingCounts={loadingCounts}
                 userRole={user.role}
-                onDelete={handleDelete}
+                onDelete={(id, name) => handleDeleteClick(activeTab, id, name)}
               />
             )}
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, type: null, id: null, name: '' })}
+        onConfirm={handleDeleteConfirm}
+        title={`Delete ${deleteModal.type ? deleteModal.type.slice(0, -1).charAt(0).toUpperCase() + deleteModal.type.slice(0, -1).slice(1) : ''}`}
+        message={`Are you sure you want to permanently delete this ${deleteModal.type ? deleteModal.type.slice(0, -1) : ''}? This action cannot be undone.`}
+        itemName={deleteModal.name}
+        isAdmin={user?.role === 'admin'}
+        isPermanentDelete={true}
+        loading={deleting}
+      />
     </div>
   );
 }
