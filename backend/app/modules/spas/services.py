@@ -102,6 +102,10 @@ def delete_spa(db: Session, spa_id: int, permanent: bool = False):
     """
     Delete a SPA.
     - If permanent=True: Permanently delete from database (admin only)
+      This will also delete related records:
+      - Analytics events related to this SPA
+      - Jobs related to this SPA
+      - Clear managed_spa_id for users who manage this SPA
     - If permanent=False: Soft delete by setting is_active=False
     """
     spa = get_spa_by_id(db, spa_id)
@@ -110,6 +114,21 @@ def delete_spa(db: Session, spa_id: int, permanent: bool = False):
     
     if permanent:
         # Permanent delete - only for admin
+        # First, handle related records to avoid foreign key constraint violations
+        
+        # 1. Delete analytics events related to this SPA
+        from app.modules.analytics.models import AnalyticsEvent
+        db.query(AnalyticsEvent).filter(AnalyticsEvent.spa_id == spa_id).delete()
+        
+        # 2. Delete jobs related to this SPA
+        from app.modules.jobs.models import Job
+        db.query(Job).filter(Job.spa_id == spa_id).delete()
+        
+        # 3. Clear managed_spa_id for users who manage this SPA
+        from app.modules.users.models import User
+        db.query(User).filter(User.managed_spa_id == spa_id).update({User.managed_spa_id: None})
+        
+        # Now safe to delete the SPA
         db.delete(spa)
     else:
         # Soft delete
