@@ -442,15 +442,23 @@ async def update_spa(
 @router.delete("/{spa_id}")
 def delete_spa(
     spa_id: int,
+    permanent: bool = False,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete a SPA (admin only)"""
+    """
+    Delete a SPA (admin only).
+    
+    - permanent=True: Permanently delete from database
+    - permanent=False: Soft delete (set is_active=False)
+    """
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admins can delete SPAs")
     
-    success = services.delete_spa(db, spa_id)
+    success = services.delete_spa(db, spa_id, permanent=permanent)
     if not success:
         raise HTTPException(status_code=404, detail="SPA not found")
-    return {"message": "SPA deleted successfully"}
+    
+    message = "SPA permanently deleted" if permanent else "SPA deleted successfully"
+    return {"message": message}
 

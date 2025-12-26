@@ -266,13 +266,23 @@ def update_job(db: Session, job_id: int, job_update: schemas.JobUpdate, user_id:
     return job
 
 
-def delete_job(db: Session, job_id: int):
-    """Delete a job (soft delete by setting is_active=False)"""
+def delete_job(db: Session, job_id: int, permanent: bool = False):
+    """
+    Delete a job.
+    - If permanent=True: Permanently delete from database (admin only)
+    - If permanent=False: Soft delete by setting is_active=False (for non-admin users)
+    """
     job = get_job_by_id(db, job_id)
     if not job:
         return False
     
-    job.is_active = False
+    if permanent:
+        # Permanent delete - only for admin
+        db.delete(job)
+    else:
+        # Soft delete - for non-admin users
+        job.is_active = False
+    
     db.commit()
     return True
 

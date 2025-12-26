@@ -98,13 +98,23 @@ def update_spa(db: Session, spa_id: int, spa_data: schemas.SpaUpdate, user_id: i
     return spa
 
 
-def delete_spa(db: Session, spa_id: int):
-    """Delete a SPA (soft delete by setting is_active=False)"""
+def delete_spa(db: Session, spa_id: int, permanent: bool = False):
+    """
+    Delete a SPA.
+    - If permanent=True: Permanently delete from database (admin only)
+    - If permanent=False: Soft delete by setting is_active=False
+    """
     spa = get_spa_by_id(db, spa_id)
     if not spa:
         return False
     
-    spa.is_active = False
+    if permanent:
+        # Permanent delete - only for admin
+        db.delete(spa)
+    else:
+        # Soft delete
+        spa.is_active = False
+    
     db.commit()
     return True
 

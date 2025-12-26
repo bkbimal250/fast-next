@@ -415,11 +415,17 @@ def update_user(
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     user_id: int,
+    permanent: bool = False,
     current_user: models.User = Depends(require_role([UserRole.ADMIN])),
     db: Session = Depends(get_db)
 ):
-    """Delete a user (admin only - soft delete)"""
-    success = services.delete_user(db, user_id)
+    """
+    Delete a user (admin only).
+    
+    - permanent=True: Permanently delete from database
+    - permanent=False: Soft delete (set is_active=False)
+    """
+    success = services.delete_user(db, user_id, permanent=permanent)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     return None

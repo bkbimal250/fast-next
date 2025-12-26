@@ -174,15 +174,13 @@ def delete_job_type(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Delete a job type.
-    
-    Only admin and manager can delete job types.
+    Delete a job type (admin only - permanent delete).
     """
-    # Check permissions
-    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+    # Check permissions - only admin can delete
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admin and manager can delete job types"
+            detail="Only admin can permanently delete job types"
         )
     
     # Check if job type exists
@@ -262,15 +260,13 @@ def delete_job_category(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Delete a job category.
-    
-    Only admin and manager can delete job categories.
+    Delete a job category (admin only - permanent delete).
     """
-    # Check permissions
-    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+    # Check permissions - only admin can delete
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admin and manager can delete job categories"
+            detail="Only admin can permanently delete job categories"
         )
     
     # Check if job category exists
@@ -565,24 +561,38 @@ def update_job(
 @router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_job(
     job_id: int,
+    permanent: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Delete a job posting.
     
-    Only the job creator or admin can delete.
+    - Admin: Can permanently delete (permanent=True) or soft delete
+    - Job creator: Can only soft delete (permanent is ignored, always False)
+    - Others: Cannot delete
     """
     job = services.get_job_by_id(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
     # Check permissions
-    if job.created_by != current_user.id and current_user.role != UserRole.ADMIN:
+    is_creator = job.created_by == current_user.id
+    is_admin = current_user.role == UserRole.ADMIN
+    
+    if not is_creator and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this job"
         )
     
-    services.delete_job(db, job_id)
+    # Only admin can permanently delete
+    if permanent and not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can permanently delete jobs"
+        )
+    
+    # Delete: permanent for admin (if requested), soft delete otherwise
+    services.delete_job(db, job_id, permanent=permanent and is_admin)
     return None

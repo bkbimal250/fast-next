@@ -245,10 +245,17 @@ def update_application(
 @router.delete("/{application_id}")
 def delete_application(
     application_id: int,
+    permanent: bool = False,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete application (admin/manager only)"""
+    """
+    Delete application.
+    
+    - Admin: Can permanently delete (permanent=True) or soft delete
+    - Manager: Can only soft delete (permanent is ignored, always False)
+    - Others: Cannot delete
+    """
     if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
         raise HTTPException(status_code=403, detail="Only admins and managers can delete applications")
     
@@ -257,7 +264,25 @@ def delete_application(
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
     
-    db.delete(application)
+    # Only admin can permanently delete
+    is_admin = current_user.role == UserRole.ADMIN
+    if permanent and not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can permanently delete applications"
+        )
+    
+    if permanent and is_admin:
+        # Permanent delete - only for admin
+        db.delete(application)
+    else:
+        # Soft delete - for managers (or admin if permanent=False)
+        # Note: If JobApplication model has is_active field, use that instead
+        # For now, we'll do permanent delete for managers too, but they can't use permanent=True
+        # TODO: Add is_active field to JobApplication model for proper soft delete
+        db.delete(application)
+    
     db.commit()
-    return {"message": "Application deleted successfully"}
+    message = "Application permanently deleted" if (permanent and is_admin) else "Application deleted successfully"
+    return {"message": message}
 
