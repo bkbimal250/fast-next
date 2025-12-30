@@ -11,6 +11,7 @@ import { jobAPI, Job } from '@/lib/job';
 import Link from 'next/link';
 import { useLocation } from '@/hooks/useLocation';
 import { FaMapMarkerAlt, FaCrosshairs } from 'react-icons/fa';
+import SEOHead from '@/components/SEOHead';
 
 interface FilterState {
   jobTypeId?: number;
@@ -40,8 +41,28 @@ function JobsPageContent() {
   const experienceMinParam = searchParams.get('experience_years_min');
   const experienceMaxParam = searchParams.get('experience_years_max');
 
-  const { location: userLocation, loading: locationLoading } = useLocation(false);
+  const { location: userLocation, loading: locationLoading } = useLocation(true); // Auto-detect location
   const [useNearMe, setUseNearMe] = useState(false);
+  const [detectedLocationName, setDetectedLocationName] = useState<string>('');
+  
+  // Get the effective location (URL param > detected location)
+  const effectiveLocation = useMemo(() => {
+    if (locationQuery) return locationQuery;
+    if (detectedLocationName) return detectedLocationName;
+    if (userLocation?.city) {
+      const loc = [userLocation.city, userLocation.state].filter(Boolean).join(', ');
+      return loc;
+    }
+    return '';
+  }, [locationQuery, detectedLocationName, userLocation]);
+
+  // Update detected location name when user location is available
+  useEffect(() => {
+    if (userLocation?.city && !locationQuery) {
+      const loc = [userLocation.city, userLocation.state].filter(Boolean).join(', ');
+      setDetectedLocationName(loc);
+    }
+  }, [userLocation, locationQuery]);
 
   // Initialize filters from URL params
   useEffect(() => {
@@ -93,7 +114,34 @@ function JobsPageContent() {
       if (filters.experienceMax) params.experience_years_max = filters.experienceMax;
       if (filters.isFeatured !== undefined) params.is_featured = filters.isFeatured;
 
-      const data = await jobAPI.getAllJobs(params);
+      let data = await jobAPI.getAllJobs(params);
+      
+      // Client-side location filtering if location parameter is provided as string
+      if (locationQuery && !params.city_id && !params.state_id && !params.area_id) {
+        const locationLower = locationQuery.toLowerCase();
+        data = data.filter(job => {
+          const cityName = job.city?.name?.toLowerCase() || '';
+          const areaName = job.area?.name?.toLowerCase() || '';
+          const stateName = job.state?.name?.toLowerCase() || '';
+          const locationStr = [areaName, cityName, stateName].filter(Boolean).join(' ');
+          return locationStr.includes(locationLower) || 
+                 cityName.includes(locationLower) || 
+                 areaName.includes(locationLower);
+        });
+      }
+      
+      // Client-side text search filtering if q parameter is provided
+      if (searchQuery) {
+        const queryLower = searchQuery.toLowerCase();
+        data = data.filter(job => 
+          job.title.toLowerCase().includes(queryLower) ||
+          job.description?.toLowerCase().includes(queryLower) ||
+          job.spa?.name.toLowerCase().includes(queryLower) ||
+          job.job_category?.name.toLowerCase().includes(queryLower) ||
+          job.job_type?.name.toLowerCase().includes(queryLower)
+        );
+      }
+      
       setJobs(data);
       setTotalJobs(data.length);
     } catch (error) {
@@ -113,13 +161,86 @@ function JobsPageContent() {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
+  // Generate dynamic metadata based on search query, location, and job count
+  const metadataTitle = useMemo(() => {
+    const parts: string[] = [];
+    
+    if (searchQuery) {
+      // Capitalize first letter of each word
+      const queryFormatted = searchQuery.split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' ');
+      parts.push(`${queryFormatted} Jobs`);
+    } else {
+      parts.push('SPA Jobs');
+    }
+    
+    if (effectiveLocation) {
+      parts.push(`in ${effectiveLocation}`);
+    }
+    
+    if (totalJobs > 0 && !loading) {
+      parts.push(`- ${totalJobs} Jobs Available`);
+    }
+    
+    return parts.join(' ');
+  }, [searchQuery, effectiveLocation, totalJobs, loading]);
+
+  const metadataDescription = useMemo(() => {
+    const parts: string[] = [];
+    
+    if (searchQuery && effectiveLocation) {
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} ${searchQuery.toLowerCase()} jobs in ${effectiveLocation}.`);
+    } else if (searchQuery) {
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} ${searchQuery.toLowerCase()} jobs across India.`);
+    } else if (effectiveLocation) {
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs in ${effectiveLocation}.`);
+    } else {
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs across India.`);
+    }
+    
+    parts.push('Browse therapist, masseuse, and spa manager positions. Apply directly without login.');
+    
+    return parts.join(' ');
+  }, [searchQuery, effectiveLocation, totalJobs]);
+
+  const metadataKeywords = useMemo(() => {
+    const keywords: string[] = [];
+    
+    if (searchQuery) {
+      keywords.push(searchQuery.toLowerCase());
+      keywords.push(`${searchQuery.toLowerCase()} jobs`);
+    }
+    
+    if (effectiveLocation) {
+      keywords.push(`spa jobs ${effectiveLocation}`);
+      keywords.push(`spa jobs in ${effectiveLocation}`);
+      if (searchQuery) {
+        keywords.push(`${searchQuery.toLowerCase()} jobs in ${effectiveLocation}`);
+      }
+    }
+    
+    keywords.push('spa jobs', 'spa therapist jobs', 'massage therapist jobs');
+    
+    return keywords;
+  }, [searchQuery, effectiveLocation]);
+
+  // Build canonical URL with current params
+  const canonicalUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('q', searchQuery);
+    if (locationQuery) params.append('location', locationQuery);
+    const queryString = params.toString();
+    return `${siteUrl}/jobs${queryString ? `?${queryString}` : ''}`;
+  }, [searchQuery, locationQuery, siteUrl]);
+
   // Generate structured data for job listings page
-  const jobsListSchema = {
+  const jobsListSchema = useMemo(() => ({
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'SPA Jobs',
-    description: `Browse ${totalJobs}+ spa jobs across India. Find therapist, masseuse, and spa manager positions.`,
-    url: `${siteUrl}/jobs`,
+    name: metadataTitle,
+    description: metadataDescription,
+    url: canonicalUrl,
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: totalJobs,
@@ -145,9 +266,9 @@ function JobsPageContent() {
         },
       })),
     },
-  };
+  }), [metadataTitle, metadataDescription, canonicalUrl, totalJobs, jobs]);
 
-  const breadcrumbSchema = {
+  const breadcrumbSchema = useMemo(() => ({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
@@ -164,10 +285,18 @@ function JobsPageContent() {
         item: `${siteUrl}/jobs`,
       },
     ],
-  };
+  }), [siteUrl]);
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Dynamic SEO Metadata */}
+      <SEOHead
+        title={metadataTitle}
+        description={metadataDescription}
+        keywords={metadataKeywords}
+        url={canonicalUrl}
+      />
+      
       {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
@@ -183,10 +312,23 @@ function JobsPageContent() {
       <div className="bg-brand-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
-            {searchQuery ? `Jobs for "${searchQuery}"` : 'Find Your Dream SPA Job'}
+            {searchQuery ? (
+              effectiveLocation ? (
+                `${searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Jobs in ${effectiveLocation}`
+              ) : (
+                `${searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Jobs`
+              )
+            ) : effectiveLocation ? (
+              `SPA Jobs in ${effectiveLocation}`
+            ) : (
+              'Find Your Dream SPA Job'
+            )}
           </h1>
           <p className="text-white/90 text-base sm:text-lg">
-            {totalJobs > 0 ? `${totalJobs}+ jobs available` : 'Discover thousands of opportunities'}
+            {totalJobs > 0 ? `${totalJobs} jobs available` : 'Discover thousands of opportunities'}
+            {effectiveLocation && !locationQuery && (
+              <span className="ml-2 text-white/70 text-sm">📍 {effectiveLocation}</span>
+            )}
           </p>
         </div>
       </div>

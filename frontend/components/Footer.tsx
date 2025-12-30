@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe, FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 export default function Footer() {
   const { user } = useAuth();
@@ -17,11 +18,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-xl">S</span>
-              </div>
-              <span className="text-2xl font-bold">SPA Jobs</span>
+            <div className="flex items-center mb-4">
+              <Link href="/" className="flex items-center">
+                <div className="h-12 w-auto flex items-center">
+                  <Image 
+                    src="/uploads/navbar.png" 
+                    alt="Workspa Logo" 
+                    width={160} 
+                    height={48} 
+                    className="h-full w-auto object-contain" 
+                  />
+                </div>
+              </Link>
             </div>
             <p className="text-white/80 text-sm leading-relaxed">
               India's leading platform for spa job opportunities. Connect with verified spas and find your dream career in wellness.
