@@ -6,6 +6,7 @@ export const metadata: Metadata = generatePageMetadata(
   'Apply for spa jobs directly. Submit your application with resume and cover letter.',
   {
     keywords: ['apply for job', 'job application', 'spa job application'],
+    noindex: true, // Application forms should not be indexed
   }
 );
 

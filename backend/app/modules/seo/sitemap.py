@@ -33,6 +33,7 @@ def generate_sitemap(db: Session) -> str:
         ('/jobs', 'daily', '0.9'),
         ('/spa-near-me', 'weekly', '0.8'),
         ('/about', 'monthly', '0.6'),
+        ('/contact', 'monthly', '0.6'),
         ('/terms', 'yearly', '0.5'),
         ('/privacy', 'yearly', '0.5'),
     ]

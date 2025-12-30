@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { contactAPI, ContactSubject } from '@/lib/contact';
 import Navbar from '@/components/Navbar';
+import type { Metadata } from 'next';
+
+// Note: Metadata is defined in layout.tsx (Next.js requires metadata in layout for client components)
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -48,9 +51,33 @@ export default function ContactPage() {
     }
   };
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
+  const contactPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Contact Us - SPA Jobs Portal',
+    description: 'Contact SPA Jobs Portal for inquiries, support, or feedback',
+    url: `${siteUrl}/contact`,
+    mainEntity: {
+      '@type': 'Organization',
+      name: 'Workspa - SPA Jobs Portal',
+      email: 'info@workspa.in',
+      telephone: '+91 84228 55035',
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'IN',
+      },
+    },
+  };
+
   return (
 
     <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
+      />
       <Navbar />
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

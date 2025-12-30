@@ -148,6 +148,7 @@ export default function SpaDetailPage() {
 
   // These variables are safe to use here since we've checked spa is not null above
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const allImages = spa.logo_image
     ? [spa.logo_image, ...(spa.spa_images || [])]
     : spa.spa_images || [];
@@ -164,8 +165,152 @@ export default function SpaDetailPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Generate structured data (JSON-LD) for SEO - LocalBusiness schema
+  const spaSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: spa.name,
+    description: spa.description || `${spa.name} - Professional SPA Services`,
+    url: spa.website || `${SITE_URL}/spas/${spa.slug}`,
+    ...(spa.logo_image && {
+      image: `${API_URL}${spa.logo_image.startsWith('/') ? spa.logo_image : `/${spa.logo_image}`}`,
+    }),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: spa.address || '',
+      addressLocality: locationNames.city || '',
+      addressRegion: locationNames.state || '',
+      addressCountry: locationNames.country || 'IN',
+    },
+    ...(spa.latitude && spa.longitude && {
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: spa.latitude,
+        longitude: spa.longitude,
+      },
+    }),
+    ...(spa.phone && { telephone: spa.phone }),
+    ...(spa.email && { email: spa.email }),
+    ...(spa.opening_hours && spa.closing_hours && {
+      openingHoursSpecification: {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        opens: spa.opening_hours,
+        closes: spa.closing_hours,
+      },
+    }),
+    priceRange: '$$',
+    ...((spa as any).is_verified && (spa as any).rating && (spa as any).reviews && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: (spa as any).rating,
+        reviewCount: (spa as any).reviews,
+      },
+    }),
+  };
+
+  // Generate separate JobPosting schemas for each job (Google prefers separate schemas)
+  const jobSchemas = jobs.map((job) => {
+    const logoUrl = spa.logo_image
+      ? `${API_URL}${spa.logo_image.startsWith('/') ? spa.logo_image : `/${spa.logo_image}`}`
+      : undefined;
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'JobPosting',
+      title: job.title,
+      description: job.description || '',
+      datePosted: job.created_at,
+      validThrough: job.expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      employmentType: (job as any).Employee_type || 'FULL_TIME',
+      hiringOrganization: {
+        '@type': 'Organization',
+        name: spa.name,
+        ...(logoUrl && { logo: logoUrl }),
+      },
+      jobLocation: {
+        '@type': 'Place',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: spa.address || '',
+          addressLocality: (job as any).city?.name || locationNames.city || '',
+          addressRegion: (job as any).state?.name || locationNames.state || '',
+          addressCountry: (job as any).country?.name || locationNames.country || 'IN',
+        },
+      },
+      ...(job.salary_min && job.salary_max && {
+        baseSalary: {
+          '@type': 'MonetaryAmount',
+          currency: job.salary_currency || 'INR',
+          value: {
+            '@type': 'QuantitativeValue',
+            minValue: job.salary_min,
+            maxValue: job.salary_max,
+            unitText: 'MONTH',
+          },
+        },
+      }),
+      ...(job.experience_years_min && {
+        experienceRequirements: {
+          '@type': 'OccupationalExperienceRequirements',
+          monthsOfExperience: job.experience_years_min * 12,
+        },
+      }),
+      ...(job.key_skills && {
+        skills: job.key_skills.split(',').map((s: string) => s.trim()).filter(Boolean),
+      }),
+    };
+  });
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'SPAs Near Me',
+        item: `${SITE_URL}/spa-near-me`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: spa.name,
+        item: `${SITE_URL}/spas/${spa.slug}`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-surface-light">
+      {/* Structured Data for SEO */}
+      {/* LocalBusiness Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(spaSchema) }}
+      />
+      
+      {/* Breadcrumb Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      
+      {/* Job Posting Schemas - Separate schema for each job (Google best practice) */}
+      {jobSchemas.map((jobSchema, index) => (
+        <script
+          key={`job-schema-${index}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobSchema) }}
+        />
+      ))}
+      
       <Navbar />
 
       <SpaHeroBanner
