@@ -337,7 +337,7 @@ function JobsPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-4 space-y-4">
+            <div className="sticky top-20 space-y-4 z-30">
               <JobFilters 
                 onFilterChange={handleFilterChange} 
                 initialFilters={filters}
@@ -349,7 +349,7 @@ function JobsPageContent() {
           {/* Job Listings */}
           <div className="lg:col-span-3">
             {/* Sort and View Options - Naukri Style */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sticky top-20 z-40">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs sm:text-sm text-gray-600 font-medium">
