@@ -32,6 +32,9 @@ def generate_sitemap(db: Session) -> str:
     main_pages = [
         ('/jobs', 'daily', '0.9'),
         ('/spa-near-me', 'weekly', '0.8'),
+        ('/about', 'monthly', '0.6'),
+        ('/terms', 'yearly', '0.5'),
+        ('/privacy', 'yearly', '0.5'),
     ]
     for path, changefreq, priority in main_pages:
         sitemap.append(f'  <url>')
@@ -43,6 +46,8 @@ def generate_sitemap(db: Session) -> str:
     
     # Cities
     from slugify import slugify
+    from app.modules.locations.models import Area
+    
     cities = db.query(City).all()
     for city in cities:
         city_slug = slugify(city.name)  # Generate slug from city name
@@ -52,6 +57,28 @@ def generate_sitemap(db: Session) -> str:
         sitemap.append(f'    <changefreq>weekly</changefreq>')
         sitemap.append(f'    <priority>0.8</priority>')
         sitemap.append(f'  </url>')
+        
+        # Areas within each city (only include areas with jobs or spas)
+        areas = db.query(Area).filter(Area.city_id == city.id).all()
+        for area in areas:
+            # Only include areas that have active jobs or active spas
+            has_jobs = db.query(Job).filter(
+                Job.area_id == area.id,
+                Job.is_active == True
+            ).count() > 0
+            has_spas = db.query(Spa).filter(
+                Spa.area_id == area.id,
+                Spa.is_active == True
+            ).count() > 0
+            
+            if has_jobs or has_spas:
+                area_slug = slugify(area.name)
+                sitemap.append(f'  <url>')
+                sitemap.append(f'    <loc>{base_url}/cities/{city_slug}/{area_slug}</loc>')
+                sitemap.append(f'    <lastmod>{today}</lastmod>')
+                sitemap.append(f'    <changefreq>weekly</changefreq>')
+                sitemap.append(f'    <priority>0.75</priority>')
+                sitemap.append(f'  </url>')
     
     # SPAs
     spas = db.query(Spa).filter(Spa.is_active == True).all()

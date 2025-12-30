@@ -192,8 +192,9 @@ export async function getUserLocation(): Promise<LocationData> {
         
         // Try to reverse geocode using backend API if available
         try {
-          const response = await apiClient.get('/api/locations/reverse-geocode', {
-            params: { latitude, longitude },
+          const response = await apiClient.post('/api/locations/reverse-geocode', {
+            latitude,
+            longitude,
           });
           
           resolve({
@@ -205,6 +206,7 @@ export async function getUserLocation(): Promise<LocationData> {
           });
         } catch (error) {
           // If reverse geocoding fails, just return coordinates
+          console.error('Reverse geocoding failed:', error);
           resolve({
             latitude,
             longitude,
