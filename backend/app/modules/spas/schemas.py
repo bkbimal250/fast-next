@@ -50,6 +50,7 @@ class SpaUpdate(BaseModel):
     state_id: Optional[int] = None
     city_id: Optional[int] = None
     area_id: Optional[int] = None
+    postalCode: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     spa_images: Optional[List[str]] = None
@@ -77,6 +78,7 @@ class SpaResponse(BaseModel):
     state_id: int
     city_id: int
     area_id: Optional[int] = None
+    postalCode: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     spa_images: Optional[List[str]] = None

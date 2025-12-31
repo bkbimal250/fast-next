@@ -99,7 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 #### Using Uvicorn with Multiple Workers
 ```bash
 # Production command (4 workers for 4 CPU cores)
-uvicorn app.main:app --host 0.0.0.0 --port 8010 --workers 4 --log-level info
+uvicorn app.main:app --host 0.0.0.0 --port 8009 --workers 4 --log-level info
 ```
 
 #### Using Gunicorn with Uvicorn Workers (Recommended)

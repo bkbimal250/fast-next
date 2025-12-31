@@ -34,6 +34,7 @@ class JobBase(BaseModel):
     state_id: int
     city_id: int
     area_id: Optional[int] = None
+    postalCode: Optional[str] = None
 
     # HR contact info (for direct communication)
     hr_contact_name: Optional[str] = None
@@ -125,6 +126,7 @@ class JobUpdate(BaseModel):
     state_id: Optional[int] = None
     city_id: Optional[int] = None
     area_id: Optional[int] = None
+    postalCode: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     hr_contact_name: Optional[str] = None

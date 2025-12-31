@@ -71,6 +71,8 @@ class Job(Base):
     state_id = Column(Integer, ForeignKey("states.id"), index=True)
     city_id = Column(Integer, ForeignKey("cities.id"), index=True)
     area_id = Column(Integer, ForeignKey("areas.id"), index=True, nullable=True)
+
+    postalCode = Column(String(10), nullable=True)
     
     # Coordinates (auto-filled from Spa if not provided)
     latitude = Column(Float, nullable=True)
