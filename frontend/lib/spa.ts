@@ -22,6 +22,7 @@ export interface Spa {
   state_id: number;
   city_id: number;
   area_id?: number;
+  postalCode?: string;
   latitude?: number;
   longitude?: number;
   spa_images?: string[];

@@ -124,6 +124,7 @@ export default function CategoryLocationJobsPage() {
             address: {
               '@type': 'PostalAddress',
               addressLocality: job.city?.name || locationName,
+              ...(job.postalCode && { postalCode: job.postalCode }),
             },
           },
         },

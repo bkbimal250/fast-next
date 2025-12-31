@@ -181,6 +181,7 @@ export default function SpaDetailPage() {
       addressLocality: locationNames.city || '',
       addressRegion: locationNames.state || '',
       addressCountry: locationNames.country || 'IN',
+      ...(spa.postalCode && { postalCode: spa.postalCode }),
     },
     ...(spa.latitude && spa.longitude && {
       geo: {
@@ -236,6 +237,8 @@ export default function SpaDetailPage() {
           addressLocality: (job as any).city?.name || locationNames.city || '',
           addressRegion: (job as any).state?.name || locationNames.state || '',
           addressCountry: (job as any).country?.name || locationNames.country || 'IN',
+          ...((job as any).postalCode && { postalCode: (job as any).postalCode }),
+          ...(!(job as any).postalCode && spa.postalCode && { postalCode: spa.postalCode }),
         },
       },
       ...(job.salary_min && job.salary_max && {

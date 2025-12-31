@@ -24,6 +24,7 @@ export interface Job {
   state_id?: number;
   city_id?: number;
   area_id?: number;
+  postalCode?: string;
   latitude?: number;
   longitude?: number;
   hr_contact_name?: string;

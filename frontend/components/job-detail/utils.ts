@@ -23,6 +23,7 @@ export interface JobWithRelations {
   created_at: string;
   expires_at?: string;
   city_id?: number;
+  postalCode?: string;
   Industry_type?: string;
   Employee_type?: string;
   required_gender?: string;

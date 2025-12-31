@@ -8,7 +8,7 @@ The backend server is configured to run on **port 8010**.
 
 ```bash
 # Using uvicorn directly
-uvicorn app.main:app --reload --port 8010
+uvicorn app.main:app --reload --port 8009
 
 # Or using environment variable
 PORT=8010 uvicorn app.main:app --reload

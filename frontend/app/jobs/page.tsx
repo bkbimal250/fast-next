@@ -261,6 +261,7 @@ function JobsPageContent() {
             address: {
               '@type': 'PostalAddress',
               addressLocality: job.city?.name || '',
+              ...(job.postalCode && { postalCode: job.postalCode }),
             },
           },
         },

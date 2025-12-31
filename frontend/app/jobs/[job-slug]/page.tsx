@@ -252,6 +252,7 @@ export default function JobDetailPage() {
         addressRegion: job.state?.name || '',
         addressCountry: job.country?.name || 'IN',
         ...(job.spa?.address && { streetAddress: job.spa.address }),
+        ...(job.postalCode && { postalCode: job.postalCode }),
       },
     },
     ...(job.salary_min && job.salary_max && {

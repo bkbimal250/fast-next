@@ -131,6 +131,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
             address: {
               '@type': 'PostalAddress',
               addressLocality: cityName,
+              ...(job.postalCode && { postalCode: job.postalCode }),
             },
           },
         },
