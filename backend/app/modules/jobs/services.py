@@ -138,7 +138,7 @@ def create_job(db: Session, job: schemas.JobCreate, user_id: int, user_role: str
     
     Permissions:
     - Recruiters can only post jobs on their own managed SPA
-    - Managers/Admins can only post jobs on SPAs they created (created_by == their user_id)
+    - Managers and Admins can post jobs on any SPA (full access)
     """
     from app.modules.users.models import User, UserRole
     
@@ -172,10 +172,9 @@ def create_job(db: Session, job: schemas.JobCreate, user_id: int, user_role: str
             raise ValueError("Recruiters must have a managed SPA to post jobs")
         if job_data["spa_id"] != user.managed_spa_id:
             raise ValueError("Recruiters can only post jobs on their own SPA")
-    elif user_role in [UserRole.MANAGER, UserRole.ADMIN]:
-        # Managers/Admins can only post jobs on SPAs they created
-        if spa.created_by != user_id:
-            raise ValueError(f"You can only post jobs on SPAs you created. This SPA was created by another user.")
+    elif user_role in [UserRole.ADMIN, UserRole.MANAGER]:
+        # Admins and Managers can post jobs on any SPA - no restrictions
+        pass
 
     # Auto-fill latitude/longitude from Spa if missing
     if job_data.get("latitude") is None or job_data.get("longitude") is None:
@@ -206,7 +205,9 @@ def create_job(db: Session, job: schemas.JobCreate, user_id: int, user_role: str
 def update_job(db: Session, job_id: int, job_update: schemas.JobUpdate, user_id: int, user_role: str = None):
     """Update an existing job
     
-    For recruiters, ensures they can only update jobs on their own SPA.
+    Permissions:
+    - Recruiters can only update jobs on their own managed SPA
+    - Managers and Admins can update any job (full access)
     """
     from app.modules.users.models import User, UserRole
     
@@ -233,18 +234,9 @@ def update_job(db: Session, job_id: int, job_update: schemas.JobUpdate, user_id:
         # Also check if spa_id is being changed
         if "spa_id" in update_data and update_data["spa_id"] != user.managed_spa_id:
             raise ValueError("Recruiters can only assign jobs to their own SPA")
-    elif user_role in [UserRole.MANAGER, UserRole.ADMIN]:
-        # Managers/Admins can only update jobs on SPAs they created
-        if current_spa.created_by != user_id:
-            raise ValueError("You can only update jobs on SPAs you created")
-        
-        # If spa_id is being changed, check the new SPA too
-        if "spa_id" in update_data:
-            new_spa = db.query(Spa).filter(Spa.id == update_data["spa_id"]).first()
-            if not new_spa:
-                raise ValueError("New SPA not found")
-            if new_spa.created_by != user_id:
-                raise ValueError("You can only assign jobs to SPAs you created")
+    elif user_role in [UserRole.ADMIN, UserRole.MANAGER]:
+        # Admins and Managers can update any job - no restrictions
+        pass
     
     # Auto-fill latitude/longitude from Spa if missing and spa_id changed
     if "spa_id" in update_data and (update_data.get("latitude") is None or update_data.get("longitude") is None):
