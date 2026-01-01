@@ -19,7 +19,7 @@ def get_spa_by_id(db: Session, spa_id: int):
     return db.query(models.Spa).filter(models.Spa.id == spa_id).first()
 
 
-def get_spas(db: Session, skip: int = 0, limit: int = 100, is_active: Optional[bool] = None, created_by: Optional[int] = None):
+def get_spas(db: Session, skip: int = 0, limit: int = 1000, is_active: Optional[bool] = None, created_by: Optional[int] = None):
     """Get all SPAs with optional filtering
     
     Args:

@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/spas", tags=["spas"])
 @router.get("/", response_model=List[schemas.SpaResponse])
 def get_spas(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 1000,
     is_active: Optional[bool] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -150,6 +150,7 @@ async def create_spa(
     state_id: int = Form(...),
     city_id: int = Form(...),
     area_id: Optional[int] = Form(None),
+    postalCode: Optional[str] = Form(None),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
     rating: Optional[float] = Form(None),
@@ -245,6 +246,7 @@ async def create_spa(
         state_id=state_id,
         city_id=city_id,
         area_id=area_id_int,
+        postalCode=clean_optional(postalCode),
         latitude=latitude_val,
         longitude=longitude_val,
         spa_images=spa_images if spa_images else None,
@@ -277,6 +279,7 @@ async def update_spa(
     state_id: Optional[int] = Form(None),
     city_id: Optional[int] = Form(None),
     area_id: Optional[int] = Form(None),
+    postalCode: Optional[str] = Form(None),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
     rating: Optional[float] = Form(None),
@@ -413,6 +416,8 @@ async def update_spa(
         update_dict['city_id'] = city_id
     if area_id is not None:
         update_dict['area_id'] = area_id_int
+    if postalCode is not None:
+        update_dict['postalCode'] = clean_optional(postalCode)
     if latitude is not None:
         update_dict['latitude'] = latitude_val
     if longitude is not None:
