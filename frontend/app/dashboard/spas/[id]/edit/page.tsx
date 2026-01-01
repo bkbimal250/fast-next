@@ -41,6 +41,7 @@ export default function EditSpaPage() {
     state_id: '',
     city_id: '',
     area_id: '',
+    postalCode: '',
     latitude: '',
     longitude: '',
     rating: '',
@@ -103,6 +104,7 @@ export default function EditSpaPage() {
         state_id: data.state_id?.toString() || '',
         city_id: data.city_id?.toString() || '',
         area_id: data.area_id?.toString() || '',
+        postalCode: data.postalCode || '',
         latitude: data.latitude?.toString() || '',
         longitude: data.longitude?.toString() || '',
         rating: (data as any).rating?.toString() || '',
@@ -436,6 +438,21 @@ export default function EditSpaPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+                  <div>
+                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      id="postalCode"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      className="input-field"
+                      placeholder="e.g., 12345"
+                      maxLength={10}
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">

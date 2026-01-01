@@ -44,6 +44,7 @@ export default function EditJobPage() {
     state_id: '',
     city_id: '',
     area_id: '',
+    postalCode: '',
     hr_contact_name: '',
     hr_contact_email: '',
     hr_contact_phone: '',
@@ -149,6 +150,7 @@ export default function EditJobPage() {
         state_id: data.state_id?.toString() || '',
         city_id: data.city_id?.toString() || '',
         area_id: data.area_id?.toString() || '',
+        postalCode: data.postalCode || '',
         hr_contact_name: data.hr_contact_name || '',
         hr_contact_email: data.hr_contact_email || '',
         hr_contact_phone: data.hr_contact_phone || '',
@@ -199,6 +201,7 @@ export default function EditJobPage() {
         state_id: formData.state_id ? parseInt(formData.state_id) : undefined,
         city_id: formData.city_id ? parseInt(formData.city_id) : undefined,
         area_id: formData.area_id ? parseInt(formData.area_id) : undefined,
+        postalCode: formData.postalCode || undefined,
         hr_contact_name: formData.hr_contact_name || undefined,
         hr_contact_email: formData.hr_contact_email || undefined,
         hr_contact_phone: formData.hr_contact_phone || undefined,
@@ -577,6 +580,21 @@ export default function EditJobPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  id="postalCode"
+                  name="postalCode"
+                  value={formData.postalCode}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="e.g., 12345"
+                  maxLength={10}
+                />
               </div>
             </div>
           </div>
