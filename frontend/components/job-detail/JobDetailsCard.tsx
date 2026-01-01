@@ -17,6 +17,7 @@ export default function JobDetailsCard({ job, applicationCount = 0, onTrackApply
     job.area?.name,
     job.city?.name,
     job.state?.name,
+    job.postalCode,
   ].filter(Boolean);
 
   const formatApplicationCount = () => {

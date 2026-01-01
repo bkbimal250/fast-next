@@ -38,6 +38,7 @@ export default function CreateSpaPage() {
     state_id: '',
     city_id: '',
     area_id: '',
+    postalCode: '',
     latitude: '',
     longitude: '',
     rating: '',
@@ -158,6 +159,7 @@ export default function CreateSpaPage() {
       if (formData.closing_hours) data.append('closing_hours', formData.closing_hours);
       if (formData.booking_url_website) data.append('booking_url_website', formData.booking_url_website);
       if (formData.area_id) data.append('area_id', formData.area_id);
+      if (formData.postalCode) data.append('postalCode', formData.postalCode);
       if (formData.latitude) data.append('latitude', formData.latitude);
       if (formData.longitude) data.append('longitude', formData.longitude);
       if (formData.rating) data.append('rating', formData.rating);
@@ -382,6 +384,21 @@ export default function CreateSpaPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+                  <div>
+                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      id="postalCode"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      className="input-field"
+                      placeholder="e.g., 12345"
+                      maxLength={10}
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700">

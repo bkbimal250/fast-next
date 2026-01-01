@@ -68,8 +68,13 @@ export default function CompanyInfo({ job }: CompanyInfoProps) {
             )}
           </div>
         </div>
-        {job.spa.address && (
-          <p className="text-sm text-gray-600 leading-relaxed">{job.spa.address}</p>
+        {(job.spa.address || (job.spa as any).postalCode) && (
+          <div className="text-sm text-gray-600 leading-relaxed">
+            {job.spa.address && <p>{job.spa.address}</p>}
+            {(job.spa as any).postalCode && (
+              <p className="mt-1 font-medium">Postal Code: {(job.spa as any).postalCode}</p>
+            )}
+          </div>
         )}
         <Link
           href={`/spas/${job.spa.slug}`}

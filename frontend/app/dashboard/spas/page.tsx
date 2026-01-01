@@ -1,22 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { spaAPI, Spa } from '@/lib/spa';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import Pagination from '@/components/Pagination';
 
-export default function ManageSpasPage() {
+function ManageSpasContent() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [spas, setSpas] = useState<Spa[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
-  const [filterVerified, setFilterVerified] = useState<'all' | 'verified' | 'unverified'>('all');
+  
+  // Initialize state from URL params or defaults
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>(
+    (searchParams.get('status') as 'all' | 'active' | 'inactive') || 'all'
+  );
+  const [filterVerified, setFilterVerified] = useState<'all' | 'verified' | 'unverified'>(
+    (searchParams.get('verified') as 'all' | 'verified' | 'unverified') || 'all'
+  );
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get('page') || '1', 10)
+  );
+  const itemsPerPage = 20;
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     spaId: number | null;
@@ -38,11 +50,72 @@ export default function ManageSpasPage() {
     loadSpas();
   }, []);
 
+  // Track if we're syncing from URL to prevent loops
+  const isSyncingFromUrlRef = useRef(false);
+  
+  // Sync state from URL params when they change (e.g., browser back/forward)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || '';
+    const urlStatus = (searchParams.get('status') as 'all' | 'active' | 'inactive') || 'all';
+    const urlVerified = (searchParams.get('verified') as 'all' | 'verified' | 'unverified') || 'all';
+    const urlPage = parseInt(searchParams.get('page') || '1', 10);
+    
+    // Mark that we're syncing from URL
+    isSyncingFromUrlRef.current = true;
+    
+    // Only update if different (to avoid unnecessary re-renders)
+    setSearchTerm(urlSearch);
+    setFilterStatus(urlStatus);
+    setFilterVerified(urlVerified);
+    setCurrentPage(urlPage);
+    
+    // Reset the flag after a brief delay
+    requestAnimationFrame(() => {
+      isSyncingFromUrlRef.current = false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Update URL params when state changes (but skip when syncing from URL)
+  const [isInitialSync, setIsInitialSync] = useState(true);
+  
+  useEffect(() => {
+    // Skip the first sync since we already initialized from URL
+    if (isInitialSync) {
+      setIsInitialSync(false);
+      return;
+    }
+    
+    // Skip if we're currently syncing from URL
+    if (isSyncingFromUrlRef.current) {
+      return;
+    }
+    
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (filterStatus !== 'all') params.set('status', filterStatus);
+    if (filterVerified !== 'all') params.set('verified', filterVerified);
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    
+    const queryString = params.toString();
+    const newUrl = queryString ? `/dashboard/spas?${queryString}` : '/dashboard/spas';
+    
+    // Get current URL to compare
+    const currentUrl = window.location.pathname + (window.location.search || '');
+    if (newUrl !== currentUrl) {
+      // Use replace to avoid adding history entries, but preserve back button functionality
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [searchTerm, filterStatus, filterVerified, currentPage, router, isInitialSync]);
+
   const loadSpas = async () => {
     setLoading(true);
     try {
-      const data = await spaAPI.getSpas();
+      // Fetch all SPAs by using a very high limit (or we could fetch in batches)
+      // Since backend has limit=100 default, we'll fetch with a high limit to get all
+      const data = await spaAPI.getSpas({ limit: 1000 });
       setSpas(data);
+      // Don't reset page - it's already initialized from URL params
     } catch (error) {
       console.error('Failed to load SPAs:', error);
     } finally {
@@ -75,33 +148,63 @@ export default function ManageSpasPage() {
   };
 
   // Filter and search SPAs
-  const filteredSpas = spas.filter((spa) => {
-    const matchesSearch = 
-      spa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      spa.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      spa.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      spa.address?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredSpas = useMemo(() => {
+    return spas.filter((spa) => {
+      const matchesSearch = 
+        spa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        spa.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        spa.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        spa.address?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = 
-      filterStatus === 'all' || 
-      (filterStatus === 'active' && spa.is_active) ||
-      (filterStatus === 'inactive' && !spa.is_active);
+      const matchesStatus = 
+        filterStatus === 'all' || 
+        (filterStatus === 'active' && spa.is_active) ||
+        (filterStatus === 'inactive' && !spa.is_active);
 
-    const matchesVerified =
-      filterVerified === 'all' ||
-      (filterVerified === 'verified' && spa.is_verified) ||
-      (filterVerified === 'unverified' && !spa.is_verified);
+      const matchesVerified =
+        filterVerified === 'all' ||
+        (filterVerified === 'verified' && spa.is_verified) ||
+        (filterVerified === 'unverified' && !spa.is_verified);
 
-    return matchesSearch && matchesStatus && matchesVerified;
-  });
+      return matchesSearch && matchesStatus && matchesVerified;
+    });
+  }, [spas, searchTerm, filterStatus, filterVerified]);
 
-  // Calculate statistics
-  const stats = {
+  // Calculate statistics based on all SPAs (not filtered)
+  const stats = useMemo(() => ({
     total: spas.length,
     active: spas.filter((s) => s.is_active).length,
     inactive: spas.filter((s) => !s.is_active).length,
     verified: spas.filter((s) => s.is_verified).length,
-  };
+  }), [spas]);
+
+  // Paginate filtered SPAs
+  const paginatedSpas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSpas.slice(startIndex, endIndex);
+  }, [filteredSpas, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters change (user interaction, not URL restoration)
+  const prevFiltersRef = useRef({ searchTerm, filterStatus, filterVerified });
+  
+  useEffect(() => {
+    if (isInitialSync) {
+      prevFiltersRef.current = { searchTerm, filterStatus, filterVerified };
+      return;
+    }
+    
+    const filtersChanged = 
+      prevFiltersRef.current.searchTerm !== searchTerm ||
+      prevFiltersRef.current.filterStatus !== filterStatus ||
+      prevFiltersRef.current.filterVerified !== filterVerified;
+    
+    if (filtersChanged && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    
+    prevFiltersRef.current = { searchTerm, filterStatus, filterVerified };
+  }, [searchTerm, filterStatus, filterVerified, currentPage, isInitialSync]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
 
@@ -252,7 +355,12 @@ export default function ManageSpasPage() {
           {/* Results Count */}
           <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
             Showing <span className="font-semibold text-gray-900">{filteredSpas.length}</span> of{' '}
-            <span className="font-semibold text-gray-900">{spas.length}</span> SPAs
+            <span className="font-semibold text-gray-900">{stats.total}</span> SPAs
+            {filteredSpas.length !== stats.total && (
+              <span className="ml-2">
+                ({paginatedSpas.length} on this page)
+              </span>
+            )}
           </div>
         </div>
 
@@ -313,7 +421,7 @@ export default function ManageSpasPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredSpas.map((spa) => (
+                  {paginatedSpas.map((spa) => (
                     <tr key={spa.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center gap-4">
@@ -455,6 +563,18 @@ export default function ManageSpasPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination */}
+            {filteredSpas.length > itemsPerPage && (
+              <div className="px-4 sm:px-6 py-4 border-t border-gray-200">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filteredSpas.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -471,5 +591,23 @@ export default function ManageSpasPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function ManageSpasPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ManageSpasContent />
+    </Suspense>
   );
 }

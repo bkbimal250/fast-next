@@ -5,20 +5,29 @@ import ApplicationCard from './ApplicationCard';
 import ApplicationFilters from './ApplicationFilters';
 import { useState, useMemo } from 'react';
 import { FaFileAlt, FaSearch } from 'react-icons/fa';
+import Pagination from '@/components/Pagination';
 
 interface ApplicationsListProps {
   applications: Application[];
   onViewDetails: (application: Application) => void;
   onStatusChange?: (id: number, status: string) => void;
+  filters: { status: string; search: string };
+  onFiltersChange: (filters: { status: string; search: string }) => void;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
 }
 
 export default function ApplicationsList({
   applications,
   onViewDetails,
   onStatusChange,
+  filters,
+  onFiltersChange,
+  currentPage,
+  onPageChange,
+  itemsPerPage,
 }: ApplicationsListProps) {
-  const [filters, setFilters] = useState({ status: '', search: '' });
-
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
       // Status filter
@@ -44,6 +53,13 @@ export default function ApplicationsList({
     });
   }, [applications, filters]);
 
+  // Paginate filtered applications
+  const paginatedApplications = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredApplications.slice(startIndex, endIndex);
+  }, [filteredApplications, currentPage, itemsPerPage]);
+
   return (
     <div>
       {/* Filters */}
@@ -59,7 +75,7 @@ export default function ApplicationsList({
             <input
               type="text"
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
               className="block w-full pl-9 sm:pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm"
               placeholder="Search by name, email, phone, or job title..."
             />
@@ -70,7 +86,7 @@ export default function ApplicationsList({
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Filter by Status</label>
             <select
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white text-sm"
             >
               <option value="">All Statuses</option>
@@ -82,8 +98,13 @@ export default function ApplicationsList({
           </div>
         </div>
         <div className="mt-3 text-xs sm:text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{filteredApplications.length}</span> of{' '}
-          <span className="font-semibold text-gray-900">{applications.length}</span> applications
+          Showing <span className="font-semibold text-gray-900">{paginatedApplications.length}</span> of{' '}
+          <span className="font-semibold text-gray-900">{filteredApplications.length}</span> applications
+          {paginatedApplications.length !== filteredApplications.length && (
+            <span className="ml-2">
+              (Page {currentPage} of {Math.ceil(filteredApplications.length / itemsPerPage)})
+            </span>
+          )}
         </div>
       </div>
 
@@ -101,16 +122,30 @@ export default function ApplicationsList({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
-          {filteredApplications.map((application) => (
-            <ApplicationCard
-              key={application.id}
-              application={application}
-              onViewDetails={onViewDetails}
-              onStatusChange={onStatusChange}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+            {paginatedApplications.map((application) => (
+              <ApplicationCard
+                key={application.id}
+                application={application}
+                onViewDetails={onViewDetails}
+                onStatusChange={onStatusChange}
+              />
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          {filteredApplications.length > itemsPerPage && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredApplications.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

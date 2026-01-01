@@ -17,14 +17,17 @@ export default function SpaContactCard({ spa }: SpaContactCardProps) {
         Contact Information
       </h3>
       <div className="space-y-4">
-        {spa.address && (
+        {(spa.address || spa.postalCode) && (
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-600 mt-0.5">
               <FaMapMarkerAlt size={14} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-500 mb-1 font-medium">Address</p>
-              <p className="text-sm text-gray-900 leading-relaxed">{spa.address}</p>
+              {spa.address && <p className="text-sm text-gray-900 leading-relaxed">{spa.address}</p>}
+              {spa.postalCode && (
+                <p className="text-sm text-gray-900 font-medium mt-1">Postal Code: {spa.postalCode}</p>
+              )}
             </div>
           </div>
         )}

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { messageAPI, Message } from '@/lib/message';
 import { contactAPI, ContactResponse } from '@/lib/contact';
+import Pagination from '@/components/Pagination';
 import { 
   FaEnvelope, 
   FaEnvelopeOpen, 
@@ -30,9 +31,10 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
   closed: { label: 'Closed', color: 'bg-gray-100 text-gray-700 border-gray-200', icon: FaCheckCircle },
 };
 
-export default function MessagesPage() {
+function MessagesContent() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [contactMessages, setContactMessages] = useState<ContactResponse[]>([]);
   const [activeTab, setActiveTab] = useState<'job-messages' | 'contact-messages'>('job-messages');
@@ -54,6 +56,68 @@ export default function MessagesPage() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get('page') || '1', 10)
+  );
+  const itemsPerPage = 20;
+
+  // Track if we're syncing from URL to prevent loops
+  const isSyncingFromUrlRef = useRef(false);
+
+  // Sync state from URL params when they change (e.g., browser back/forward)
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get('page') || '1', 10);
+    
+    // Mark that we're syncing from URL
+    isSyncingFromUrlRef.current = true;
+    
+    // Only update if different
+    setCurrentPage(urlPage);
+    
+    // Reset the flag after a brief delay
+    requestAnimationFrame(() => {
+      isSyncingFromUrlRef.current = false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Update URL params when state changes (but skip when syncing from URL)
+  const [isInitialSync, setIsInitialSync] = useState(true);
+  
+  useEffect(() => {
+    // Skip the first sync since we already initialized from URL
+    if (isInitialSync) {
+      setIsInitialSync(false);
+      return;
+    }
+    
+    // Skip if we're currently syncing from URL
+    if (isSyncingFromUrlRef.current) {
+      return;
+    }
+    
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    
+    const queryString = params.toString();
+    const newUrl = queryString ? `/dashboard/messages?${queryString}` : '/dashboard/messages';
+    
+    // Get current URL to compare
+    const currentUrl = window.location.pathname + (window.location.search || '');
+    if (newUrl !== currentUrl) {
+      // Use replace to avoid adding history entries, but preserve back button functionality
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [currentPage, router, isInitialSync]);
+
+  // Reset to page 1 when filters or tab changes
+  useEffect(() => {
+    if (!isInitialSync && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [selectedStatus, selectedJobId, searchTerm, activeTab, isInitialSync, currentPage]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -183,21 +247,30 @@ export default function MessagesPage() {
     });
   };
 
-  const filteredMessages = (activeTab === 'job-messages' ? messages : contactMessages).filter((msg: any) => {
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const name = activeTab === 'job-messages' ? msg.sender_name : msg.name;
-      return (
-        name.toLowerCase().includes(searchLower) ||
-        msg.phone.includes(searchTerm) ||
-        (msg.email?.toLowerCase().includes(searchLower)) ||
-        msg.message?.toLowerCase().includes(searchLower) ||
-        (activeTab === 'job-messages' && msg.job?.title.toLowerCase().includes(searchLower)) ||
-        (activeTab === 'contact-messages' && msg.subject?.toLowerCase().includes(searchLower))
-      );
-    }
-    return true;
-  });
+  const filteredMessages = useMemo(() => {
+    return (activeTab === 'job-messages' ? messages : contactMessages).filter((msg: any) => {
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const name = activeTab === 'job-messages' ? msg.sender_name : msg.name;
+        return (
+          name.toLowerCase().includes(searchLower) ||
+          msg.phone.includes(searchTerm) ||
+          (msg.email?.toLowerCase().includes(searchLower)) ||
+          msg.message?.toLowerCase().includes(searchLower) ||
+          (activeTab === 'job-messages' && msg.job?.title.toLowerCase().includes(searchLower)) ||
+          (activeTab === 'contact-messages' && msg.subject?.toLowerCase().includes(searchLower))
+        );
+      }
+      return true;
+    });
+  }, [messages, contactMessages, activeTab, searchTerm]);
+
+  // Paginate filtered messages
+  const paginatedMessages = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredMessages.slice(startIndex, endIndex);
+  }, [filteredMessages, currentPage, itemsPerPage]);
 
   const currentStats = activeTab === 'job-messages' ? messageStats : contactStats;
 
@@ -380,8 +453,20 @@ export default function MessagesPage() {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {filteredMessages.map((message: any) => {
+            <>
+              {/* Results Count */}
+              <div className="px-5 pt-5 pb-3 text-sm text-gray-600 border-b border-gray-200">
+                Showing <span className="font-semibold text-gray-900">{paginatedMessages.length}</span> of{' '}
+                <span className="font-semibold text-gray-900">{filteredMessages.length}</span> messages
+                {paginatedMessages.length !== filteredMessages.length && (
+                  <span className="ml-2">
+                    (Page {currentPage} of {Math.ceil(filteredMessages.length / itemsPerPage)})
+                  </span>
+                )}
+              </div>
+
+              <div className="divide-y divide-gray-200">
+                {paginatedMessages.map((message: any) => {
                 const statusInfo = statusConfig[message.status] || statusConfig.new;
                 const StatusIcon = statusInfo.icon;
                 const isJobMessage = activeTab === 'job-messages';
@@ -511,7 +596,20 @@ export default function MessagesPage() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+              
+              {/* Pagination */}
+              {filteredMessages.length > itemsPerPage && (
+                <div className="px-5 py-4 border-t border-gray-200">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredMessages.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -519,3 +617,20 @@ export default function MessagesPage() {
   );
 }
 
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface-light">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <MessagesContent />
+    </Suspense>
+  );
+}

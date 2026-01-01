@@ -52,6 +52,7 @@ export default function CreateJobPage() {
     state_id: '',
     city_id: '',
     area_id: '',
+    postalCode: '',
     hr_contact_name: '',
     hr_contact_email: '',
     hr_contact_phone: '',

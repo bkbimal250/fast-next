@@ -1,19 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { jobAPI, Job, JobType, JobCategory } from '@/lib/job';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import Pagination from '@/components/Pagination';
 
 type TabType = 'jobs' | 'types' | 'categories';
 
-export default function ManageJobsPage() {
+function ManageJobsContent() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>('jobs');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,12 @@ export default function ManageJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
+
+  // Pagination state (only for jobs tab)
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get('page') || '1', 10)
+  );
+  const itemsPerPage = 20;
 
   // Inline form states
   const [showInlineForm, setShowInlineForm] = useState(false);
@@ -55,6 +63,76 @@ export default function ManageJobsPage() {
     }
   }, [user, router, activeTab]);
 
+  // Track if we're syncing from URL to prevent loops
+  const isSyncingFromUrlRef = useRef(false);
+
+  // Sync state from URL params when they change (e.g., browser back/forward)
+  useEffect(() => {
+    // Only sync page for jobs tab
+    if (activeTab !== 'jobs') return;
+
+    const urlPage = parseInt(searchParams.get('page') || '1', 10);
+    
+    // Mark that we're syncing from URL
+    isSyncingFromUrlRef.current = true;
+    
+    // Only update if different
+    setCurrentPage(urlPage);
+    
+    // Reset the flag after a brief delay
+    requestAnimationFrame(() => {
+      isSyncingFromUrlRef.current = false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, activeTab]);
+
+  // Update URL params when state changes (but skip when syncing from URL)
+  const [isInitialSync, setIsInitialSync] = useState(true);
+  
+  useEffect(() => {
+    // Only update URL for jobs tab
+    if (activeTab !== 'jobs') return;
+
+    // Skip the first sync since we already initialized from URL
+    if (isInitialSync) {
+      setIsInitialSync(false);
+      return;
+    }
+    
+    // Skip if we're currently syncing from URL
+    if (isSyncingFromUrlRef.current) {
+      return;
+    }
+    
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    
+    const queryString = params.toString();
+    const newUrl = queryString ? `/dashboard/jobs?${queryString}` : '/dashboard/jobs';
+    
+    // Get current URL to compare
+    const currentUrl = window.location.pathname + (window.location.search || '');
+    if (newUrl !== currentUrl) {
+      // Use replace to avoid adding history entries, but preserve back button functionality
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [currentPage, router, isInitialSync, activeTab]);
+
+  // Paginate jobs (only for jobs tab)
+  const paginatedJobs = useMemo(() => {
+    if (activeTab !== 'jobs') return [];
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return jobs.slice(startIndex, endIndex);
+  }, [jobs, currentPage, itemsPerPage, activeTab]);
+
+  // Reset to page 1 when switching away from jobs tab
+  useEffect(() => {
+    if (activeTab !== 'jobs' && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [activeTab, currentPage]);
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -65,8 +143,10 @@ export default function ManageJobsPage() {
           if (user?.role === 'recruiter') {
             setJobs(await jobAPI.getMyJobs());
           } else {
-            setJobs(await jobAPI.getAllJobs());
+            // Fetch all jobs (with high limit for client-side pagination)
+            setJobs(await jobAPI.getAllJobs({ limit: 1000 }));
           }
+          // Don't reset page - it's already initialized from URL params
           break;
         case 'types':
           setJobTypes(await jobAPI.getJobTypes());
@@ -419,36 +499,47 @@ export default function ManageJobsPage() {
                         </Link>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto rounded-lg border border-gray-200">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gradient-to-r from-brand-50 to-brand-100">
-                            <tr>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                ID
-                              </th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Title
-                              </th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                SPA
-                              </th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Salary
-                              </th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Views
-                              </th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Status
-                              </th>
-                              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {jobs.map((job) => (
-                              <tr key={job.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                      <>
+                        {/* Results Count */}
+                        <div className="mb-4 text-sm text-gray-600">
+                          Showing <span className="font-semibold text-gray-900">{paginatedJobs.length}</span> of{' '}
+                          <span className="font-semibold text-gray-900">{jobs.length}</span> jobs
+                          {paginatedJobs.length !== jobs.length && (
+                            <span className="ml-2">
+                              (Page {currentPage} of {Math.ceil(jobs.length / itemsPerPage)})
+                            </span>
+                          )}
+                        </div>
+                        <div className="overflow-x-auto rounded-lg border border-gray-200">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gradient-to-r from-brand-50 to-brand-100">
+                              <tr>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  ID
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  Title
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  SPA
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  Salary
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  Views
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  Status
+                                </th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {paginatedJobs.map((job) => (
+                                <tr key={job.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <span className="text-sm font-medium text-gray-900">#{job.id}</span>
                                 </td>
@@ -529,7 +620,20 @@ export default function ManageJobsPage() {
                             ))}
                           </tbody>
                         </table>
-                      </div>
+                        </div>
+                        
+                        {/* Pagination */}
+                        {jobs.length > itemsPerPage && (
+                          <div className="mt-4">
+                            <Pagination
+                              currentPage={currentPage}
+                              totalItems={jobs.length}
+                              itemsPerPage={itemsPerPage}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </>
                 )}
@@ -733,3 +837,20 @@ export default function ManageJobsPage() {
   );
 }
 
+export default function ManageJobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ManageJobsContent />
+    </Suspense>
+  );
+}
