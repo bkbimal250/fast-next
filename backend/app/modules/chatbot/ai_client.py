@@ -36,9 +36,32 @@ async def extract_filters(message: str) -> Dict:
         filters["intent"] = "greeting"
         return filters
     
-    # Check for job search intent
-    job_keywords = ["job", "jobs", "position", "vacancy", "opening", "hiring", "career", "work", "employment"]
-    if any(keyword in message_lower for keyword in job_keywords) or len(message_lower) > 5:
+    # Check for spa search intent FIRST (more specific keywords)
+    spa_keywords = [
+        "spa", "spas", "wellness center", "wellness centre", "salon", "beauty parlor", "beauty parlour",
+        "massage center", "massage centre", "massage parlour", "massage parlor",
+        "find spa", "show spa", "best spa", "top spa", "spa near", "spa in", "spa at",
+        "nearby spa", "local spa", "spa location", "spa address", "visit spa", "go to spa"
+    ]
+    is_spa_search = any(keyword in message_lower for keyword in spa_keywords)
+    
+    # Check for job search intent (keywords that clearly indicate jobs)
+    job_keywords = [
+        "job", "jobs", "position", "vacancy", "vacancies", "opening", "openings", 
+        "hiring", "career", "work", "employment", "recruitment", "apply", "application",
+        "therapist", "manager", "receptionist", "beautician", "technician", "housekeeping",
+        "attendant", "supervisor", "employee", "staff", "worker"
+    ]
+    is_job_search = any(keyword in message_lower for keyword in job_keywords)
+    
+    # Determine intent - job_search takes priority if both are present (e.g., "spa therapist jobs")
+    # Otherwise use the clear one
+    if is_job_search:
+        filters["intent"] = "job_search"
+    elif is_spa_search:
+        filters["intent"] = "spa_search"
+    elif len(message_lower) > 5:
+        # If message is long enough but unclear, default to job_search
         filters["intent"] = "job_search"
     
     # Extract job role

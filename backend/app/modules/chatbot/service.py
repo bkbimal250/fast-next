@@ -80,30 +80,52 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
             "Show me part-time jobs near me",
             "Find spas near me",
             "Massage therapist jobs in Delhi",
-            "Spa manager jobs",
         ]
     elif filters["intent"] == "job_search":
         if filters["city"]:
             city = filters["city"]
             suggestions = [
                 f"Find all spa jobs in {city}",
-                f"Show me spas in {city}",
                 f"Part-time jobs in {city}",
                 f"Full-time therapist jobs in {city}",
+                f"Spa manager jobs in {city}",
             ]
         elif filters["near_me"]:
             suggestions = [
                 "Find all jobs near me",
-                "Show spas near me",
                 "Part-time jobs nearby",
                 "Therapist jobs near me",
+                "Spa jobs nearby",
             ]
         else:
             suggestions = [
                 "Find jobs in Mumbai",
                 "Find jobs in Delhi",
-                "Find spas near me",
                 "Show part-time jobs",
+                "Therapist jobs",
+            ]
+    elif filters["intent"] == "spa_search":
+        if filters["city"]:
+            city = filters["city"]
+            suggestions = [
+                f"Find spas in {city}",
+                f"Best spas in {city}",
+                f"Spas near me in {city}",
+                f"Top spas in {city}",
+            ]
+        elif filters["near_me"]:
+            suggestions = [
+                "Find spas near me",
+                "Best spas nearby",
+                "Top spas near me",
+                "Spas close to me",
+            ]
+        else:
+            suggestions = [
+                "Find spas in Mumbai",
+                "Find spas in Delhi",
+                "Best spas near me",
+                "Top spas",
             ]
     else:
         suggestions = [
@@ -124,16 +146,14 @@ async def chatbot_search(
 ) -> dict:
     """
     Main chatbot search function.
-    Extracts filters from message and searches jobs and SPAs using existing services.
+    Extracts filters from message and searches jobs OR SPAs (not both) using existing services.
+    
+    IMPORTANT: Returns ONLY jobs if intent is "job_search", ONLY spas if intent is "spa_search".
     """
     # Extract filters from user message
     filters = await extract_filters(message)
     
-    # Check if user is asking for SPAs
-    message_lower = message.lower()
-    is_spa_search = any(keyword in message_lower for keyword in ["spa", "spas", "wellness center", "salon"])
-    
-    # Handle non-job-search intents
+    # Handle greeting
     if filters["intent"] == "greeting":
         suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
         return {
@@ -143,7 +163,8 @@ async def chatbot_search(
             "suggestions": suggestions,
         }
     
-    if filters["intent"] != "job_search" and not is_spa_search:
+    # Handle unknown intent
+    if filters["intent"] == "unknown":
         suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
         return {
             "message": "I can help you find spa jobs and spas. Try asking like 'I need therapist jobs in Mumbai' or 'Show me spas near me'.",
@@ -155,8 +176,8 @@ async def chatbot_search(
     formatted_jobs = []
     formatted_spas = []
     
-    # Search for jobs if not explicitly asking for SPAs only
-    if not is_spa_search or filters["intent"] == "job_search":
+    # STRICT SEPARATION: Search for jobs ONLY if intent is job_search
+    if filters["intent"] == "job_search":
         # Get all active jobs (we'll filter them)
         all_jobs = job_services.get_jobs(
             db=db,
@@ -198,9 +219,24 @@ async def chatbot_search(
         
         # Format jobs for response
         formatted_jobs = [format_job_for_chatbot(job) for job in filtered_jobs]
+        
+        # Generate response message for jobs
+        if formatted_jobs:
+            message_text = f"I found {len(formatted_jobs)} job{'s' if len(formatted_jobs) > 1 else ''} matching your search."
+        else:
+            message_text = "I couldn't find any jobs matching your criteria. Try adjusting your search terms."
+        
+        suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
+        
+        return {
+            "message": message_text,
+            "jobs": formatted_jobs,
+            "spas": [],  # Always empty for job_search
+            "suggestions": suggestions,
+        }
     
-    # Search for SPAs if asking for SPAs or "near me"
-    if is_spa_search or filters["near_me"]:
+    # STRICT SEPARATION: Search for SPAs ONLY if intent is spa_search
+    elif filters["intent"] == "spa_search":
         if filters["near_me"] and latitude and longitude:
             # Get SPAs near location
             nearby_spas = spa_services.get_spas_near_location(db, latitude, longitude, radius_km=10)
@@ -219,26 +255,28 @@ async def chatbot_search(
             # Get all active SPAs
             all_spas = spa_services.get_spas(db, skip=0, limit=5, is_active=True)
             formatted_spas = [format_spa_for_chatbot(spa) for spa in all_spas]
+        
+        # Generate response message for spas
+        if formatted_spas:
+            message_text = f"I found {len(formatted_spas)} spa{'s' if len(formatted_spas) > 1 else ''} matching your search."
+        else:
+            message_text = "I couldn't find any spas matching your criteria. Try adjusting your search terms."
+        
+        suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
+        
+        return {
+            "message": message_text,
+            "jobs": [],  # Always empty for spa_search
+            "spas": formatted_spas,
+            "suggestions": suggestions,
+        }
     
-    # Generate response message
-    parts = []
-    if formatted_jobs:
-        parts.append(f"{len(formatted_jobs)} job{'s' if len(formatted_jobs) > 1 else ''}")
-    if formatted_spas:
-        parts.append(f"{len(formatted_spas)} spa{'s' if len(formatted_spas) > 1 else ''}")
-    
-    if parts:
-        message_text = f"I found {', and '.join(parts)} matching your search."
-    else:
-        message_text = "I couldn't find any jobs or spas matching your criteria. Try adjusting your search terms."
-    
-    # Get suggested queries
+    # Fallback (should not reach here, but just in case)
     suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
-    
     return {
-        "message": message_text,
-        "jobs": formatted_jobs,
-        "spas": formatted_spas,
+        "message": "I can help you find spa jobs and spas. Please specify what you're looking for.",
+        "jobs": [],
+        "spas": [],
         "suggestions": suggestions,
     }
 
