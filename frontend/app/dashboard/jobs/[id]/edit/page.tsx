@@ -161,6 +161,7 @@ export default function EditJobPage() {
         Employee_type: data.Employee_type || 'Full Time',
         required_gender: data.required_gender || 'Female',
       });
+      
     } catch (err: any) {
       setError(extractErrorMessage(err));
       console.error('Failed to fetch job:', err);

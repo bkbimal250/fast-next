@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     ANALYTICS_ENABLED: bool = True
     
     # SEO
-    SITE_URL: str = "https://yourdomain.com"
+    SITE_URL: str = "https://workspa.in"
     
     # Email (for password reset - optional)
     SMTP_HOST: Optional[str] = None

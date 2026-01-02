@@ -278,25 +278,44 @@ def change_password(
 
 # Password Reset (Forgot Password)
 @router.post("/forgot-password")
-def forgot_password(
+async def forgot_password(
     forgot_data: schemas.ForgotPassword,
     db: Session = Depends(get_db)
 ):
     """
     Request password reset.
-    Generates a reset token and returns it (in production, send via email).
-    For now, returns token directly for testing.
+    Generates a reset token and sends it via email.
     """
+    from app.modules.subscribe.email_service import send_email
+    
+    # Generate reset token
     token = services.generate_password_reset_token(db, forgot_data.email)
     
-    # In production, send email with reset link
-    # For now, return token (remove in production!)
     if token:
-        # TODO: Send email with reset link: {SITE_URL}/reset-password?token={token}
-        return {
-            "message": "Password reset token generated. Check your email.",
-            "token": token  # Remove this in production - only for testing!
-        }
+        # Get user info for email personalization
+        user = services.get_user_by_email(db, forgot_data.email)
+        user_name = user.name if user else None
+        
+        # Generate email content
+        html_content, text_content = services.generate_password_reset_email_html(token, user_name)
+        
+        # Send email
+        email_sent = await send_email(
+            to_email=forgot_data.email,
+            subject="Password Reset Request - SPA Jobs Portal",
+            html_content=html_content,
+            text_content=text_content
+        )
+        
+        if email_sent:
+            return {
+                "message": "If the email exists, a password reset link has been sent to your email."
+            }
+        else:
+            # If SMTP not configured, still return success (email logged to console)
+            return {
+                "message": "If the email exists, a password reset link has been sent to your email."
+            }
     else:
         # Don't reveal if email exists (security best practice)
         return {

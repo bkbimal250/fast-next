@@ -23,12 +23,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 # Site Configuration
 SITE_URL=http://localhost:3000
 
-# Email Configuration (Optional - for job notifications)
-SMTP_HOST=
+# Email Configuration (Optional - for job notifications and password reset)
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM_EMAIL=
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM_EMAIL=noreply@yourdomain.com
 
 # Redis Configuration (Optional - for caching)
 REDIS_URL=

@@ -19,10 +19,6 @@ export default function ForgotPasswordPage() {
     try {
       const response = await authAPI.forgotPassword(email);
       setMessage(response.message || 'Password reset link sent to your email');
-      // In production, remove token from response
-      if (response.token) {
-        setMessage(`Reset token: ${response.token} (For testing only - remove in production)`);
-      }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to send reset email. Please try again.');
     } finally {

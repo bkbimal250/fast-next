@@ -205,6 +205,64 @@ def get_user_applications(db: Session, user_id: int):
     ).all()
 
 
+def generate_password_reset_email_html(token: str, user_name: str = None) -> tuple[str, str]:
+    """
+    Generate HTML and text email content for password reset
+    Returns (html_content, text_content)
+    """
+    site_url = settings.SITE_URL or "https://workspa.in"
+    reset_url = f"{site_url}/reset-password?token={token}"
+    greeting = f"Hello {user_name}," if user_name else "Hello,"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset Request</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+        <div style="background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h1 style="color: #2563eb; margin-top: 0;">Password Reset Request</h1>
+            <p>{greeting}</p>
+            <p>We received a request to reset your password. Click the button below to reset it:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{reset_url}" style="display: inline-block; padding: 12px 30px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Reset Password</a>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px;">Or copy and paste this link into your browser:</p>
+            <p style="color: #2563eb; font-size: 14px; word-break: break-all;"><a href="{reset_url}" style="color: #2563eb;">{reset_url}</a></p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 5px 0;">
+                    <strong>Important:</strong> This link will expire in 1 hour for security reasons.
+                </p>
+                <p style="color: #9ca3af; font-size: 12px; margin: 5px 0;">
+                    If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    text_content = f"""
+{greeting}
+
+We received a request to reset your password. Please click the link below to reset it:
+
+{reset_url}
+
+Important: This link will expire in 1 hour for security reasons.
+
+If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+    """
+    
+    return html_content, text_content
+
+
 def generate_password_reset_token(db: Session, email: str) -> str | None:
     """Generate password reset token for user"""
     user = get_user_by_email(db, email)
