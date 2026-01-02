@@ -77,3 +77,31 @@ def get_event_counts_by_day(db: Session, days: int = 30):
         {"date": str(row.event_date), "event_count": row.event_count} for row in rows
     ]
 
+
+def get_event_counts_by_type(db: Session, days: int | None = None):
+    """
+    Get total event counts by event type.
+    If `days` is provided, only count events within that time window.
+    Returns a dict: {"page_view": int, "apply_click": int, ...}
+    """
+    query = db.query(
+        AnalyticsEvent.event_type,
+        func.count(AnalyticsEvent.id).label("event_count"),
+    )
+    
+    if days is not None and days > 0:
+        since = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(AnalyticsEvent.created_at >= since)
+    
+    results = query.group_by(AnalyticsEvent.event_type).all()
+    
+    # Convert to dictionary
+    counts = {row.event_type: row.event_count for row in results}
+    
+    # Return with default values for common event types
+    return {
+        "page_view": counts.get("page_view", 0),
+        "apply_click": counts.get("apply_click", 0),
+        "cv_upload": counts.get("cv_upload", 0),
+        "chat_opened": counts.get("chat_opened", 0),
+    }

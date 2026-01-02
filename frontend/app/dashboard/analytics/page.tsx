@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { analyticsAPI, ChatbotUsageStats, TimeSeriesPoint } from '@/lib/analytics';
+import { analyticsAPI, ChatbotUsageStats, TimeSeriesPoint, EventCounts } from '@/lib/analytics';
 import { jobAPI } from '@/lib/job';
 import { userAPI } from '@/lib/user';
 import { spaAPI } from '@/lib/spa';
@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
     setError(null);
     try {
       // Fetch all statistics in parallel - only fetch users for admins
-      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData, chatbotUsageData, timeSeriesData] = await Promise.all([
+      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData, chatbotUsageData, timeSeriesData, eventCountsData] = await Promise.all([
         jobAPI.getJobCount().catch(() => ({ count: 0 })),
         user && user.role === 'admin' 
           ? userAPI.getAllUsers(0, 1000).catch(() => [])
@@ -81,6 +81,12 @@ export default function AnalyticsPage() {
         analyticsAPI
           .getTimeSeries(timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365)
           .catch(() => []),
+        analyticsAPI.getEventCounts().catch(() => ({
+          page_view: 0,
+          apply_click: 0,
+          cv_upload: 0,
+          chat_opened: 0,
+        })),
       ]);
 
       // Calculate statistics
@@ -89,13 +95,20 @@ export default function AnalyticsPage() {
       const totalSPAs = Array.isArray(spasData) ? spasData.length : 0;
       const totalApplications = Array.isArray(applicationsData) ? applicationsData.length : 0;
 
+      const eventCounts: EventCounts = eventCountsData || {
+        page_view: 0,
+        apply_click: 0,
+        cv_upload: 0,
+        chat_opened: 0,
+      };
+
       setStats({
         totalJobs,
         totalApplications,
         totalUsers,
         totalSPAs,
-        totalViews: 0, // Would need analytics events endpoint
-        totalClicks: 0, // Would need analytics events endpoint
+        totalViews: eventCounts.page_view || 0,
+        totalClicks: eventCounts.apply_click || 0,
       });
 
       setPopularLocations(

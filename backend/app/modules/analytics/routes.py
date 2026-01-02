@@ -91,6 +91,19 @@ def get_time_series(
     return reports.get_event_counts_by_day(db, days=days)
 
 
+@router.get("/event-counts")
+def get_event_counts(
+    days: int | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get total event counts by event type (page_view, apply_click, etc.).
+    If `days` is provided, only count events within that time window.
+    Returns: {"page_view": int, "apply_click": int, "cv_upload": int, "chat_opened": int}
+    """
+    return reports.get_event_counts_by_type(db, days=days)
+
+
 @router.get("/location-from-ip")
 async def get_location_from_ip_endpoint(request: Request):
     """Get location information from client IP address"""

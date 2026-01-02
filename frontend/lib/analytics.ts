@@ -21,6 +21,13 @@ export interface TimeSeriesPoint {
   event_count: number;
 }
 
+export interface EventCounts {
+  page_view: number;
+  apply_click: number;
+  cv_upload: number;
+  chat_opened: number;
+}
+
 export const analyticsAPI = {
   getPopularLocations: async (limit: number = 10): Promise<PopularLocation[]> => {
     const response = await apiClient.get(`/api/analytics/popular-locations`, { params: { limit } });
@@ -34,6 +41,11 @@ export const analyticsAPI = {
 
   getTimeSeries: async (days: number = 30): Promise<TimeSeriesPoint[]> => {
     const response = await apiClient.get(`/api/analytics/time-series`, { params: { days } });
+    return response.data;
+  },
+
+  getEventCounts: async (days?: number): Promise<EventCounts> => {
+    const response = await apiClient.get(`/api/analytics/event-counts`, { params: days ? { days } : {} });
     return response.data;
   },
 };
