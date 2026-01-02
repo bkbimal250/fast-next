@@ -4,28 +4,49 @@ import Navbar from '@/components/Navbar';
 import SearchBar from '@/components/SearchBar';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import JobCard from '@/components/JobCard';
 import Features from './Features/page';
 import ProcessPage from './Process/Page';
 import SEOHead from '@/components/SEOHead';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+import { jobAPI } from '@/lib/job';
 
 export default function HomePage() {
   const [featuredJobs, setFeaturedJobs] = useState<any[]>([]);
   const [popularJobs, setPopularJobs] = useState<any[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [loadingPopular, setLoadingPopular] = useState(true);
 
   useEffect(() => {
     // Fetch featured jobs
-    axios.get(`${API_URL}/api/jobs?is_featured=true&limit=6`)
-      .then(res => setFeaturedJobs(res.data))
-      .catch(console.error);
+    const fetchFeaturedJobs = async () => {
+      try {
+        setLoadingFeatured(true);
+        const data = await jobAPI.getAllJobs({ is_featured: true, limit: 6 });
+        setFeaturedJobs(data || []);
+      } catch (error) {
+        console.error('Error fetching featured jobs:', error);
+        setFeaturedJobs([]);
+      } finally {
+        setLoadingFeatured(false);
+      }
+    };
 
     // Fetch popular jobs
-    axios.get(`${API_URL}/api/jobs/popular?limit=6`)
-      .then(res => setPopularJobs(res.data))
-      .catch(console.error);
+    const fetchPopularJobs = async () => {
+      try {
+        setLoadingPopular(true);
+        const data = await jobAPI.getPopularJobs(6);
+        setPopularJobs(data || []);
+      } catch (error) {
+        console.error('Error fetching popular jobs:', error);
+        setPopularJobs([]);
+      } finally {
+        setLoadingPopular(false);
+      }
+    };
+
+    fetchFeaturedJobs();
+    fetchPopularJobs();
   }, []);
 
   // Generate structured data for homepage
@@ -124,6 +145,7 @@ export default function HomePage() {
               Featured Jobs
             </Link>
           </div>
+          
         </div>
       </div>
 
@@ -141,7 +163,17 @@ export default function HomePage() {
               </Link>
             )}
           </div>
-          {featuredJobs.length > 0 ? (
+          {loadingFeatured ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              ))}
+            </div>
+          ) : featuredJobs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredJobs.slice(0, 6).map((job) => (
                 <JobCard
@@ -208,7 +240,17 @@ export default function HomePage() {
               </Link>
             )}
           </div>
-          {popularJobs.length > 0 ? (
+          {loadingPopular ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              ))}
+            </div>
+          ) : popularJobs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {popularJobs.slice(0, 6).map((job) => (
                 <JobCard
