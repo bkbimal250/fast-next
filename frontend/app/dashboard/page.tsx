@@ -174,7 +174,7 @@ export default function DashboardPage() {
         },
         {
           title: 'Manage SPAs',
-          description: 'View and edit your SPAs',
+          description: 'View and edit all SPAs',
           link: '/dashboard/spas',
           icon: FaBuilding,
           color: 'bg-blue-100 text-blue-600',
@@ -277,34 +277,32 @@ export default function DashboardPage() {
               </div>
 
               {user.role === 'admin' && (
-                <>
-                  <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
-                      <div className="bg-blue-100 rounded-lg p-2">
-                        <div className="text-blue-600">
-                          <FaUser size={16} />
-                        </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                    <div className="bg-blue-100 rounded-lg p-2">
+                      <div className="text-blue-600">
+                        <FaUser size={16} />
                       </div>
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
-                    <p className="text-xs text-gray-500 mt-1">Registered users</p>
                   </div>
-
-                  <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Total SPAs</p>
-                      <div className="bg-purple-100 rounded-lg p-2">
-                        <div className="text-purple-600">
-                          <FaBuilding size={16} />
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalSPAs.toLocaleString()}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total businesses</p>
-                  </div>
-                </>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 mt-1">Registered users</p>
+                </div>
               )}
+
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total SPAs</p>
+                  <div className="bg-purple-100 rounded-lg p-2">
+                    <div className="text-purple-600">
+                      <FaBuilding size={16} />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalSPAs.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-1">Total businesses</p>
+              </div>
 
               <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
                 <div className="flex items-center justify-between mb-2">

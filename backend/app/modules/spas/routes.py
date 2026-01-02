@@ -28,19 +28,15 @@ def get_spas(
     """Get SPAs (requires authentication)
     
     - Recruiters: Returns empty list (use /recruiter/my-spa instead)
-    - Managers: Returns only SPAs they created
+    - Managers: Returns all SPAs (same access as admins)
     - Admins: Returns all SPAs
     """
     # Recruiters should use the /recruiter/my-spa endpoint instead
     if current_user.role == UserRole.RECRUITER:
         return []
     
-    # Managers can only see SPAs they created
-    if current_user.role == UserRole.MANAGER:
-        return services.get_spas(db, skip=skip, limit=limit, is_active=is_active, created_by=current_user.id)
-    
-    # Admins see all SPAs
-    if current_user.role == UserRole.ADMIN:
+    # Managers and Admins see all SPAs (equal access)
+    if current_user.role in [UserRole.MANAGER, UserRole.ADMIN]:
         return services.get_spas(db, skip=skip, limit=limit, is_active=is_active, created_by=None)
     
     # Default: return all SPAs (for other roles if any)
