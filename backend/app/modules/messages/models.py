@@ -14,7 +14,7 @@ class Message(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Job relation
-    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), nullable=True)
+    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="SET NULL"), nullable=True)
     job = relationship("Job", back_populates="messages")
 
     # Sender info (guest user)

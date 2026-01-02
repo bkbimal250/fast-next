@@ -34,7 +34,7 @@ class MessageUpdate(BaseModel):
 
 class MessageResponse(BaseModel):
     id: int
-    job_id: int
+    job_id: Optional[int] = None
     sender_name: str
     phone: str
     email: Optional[str] = None
