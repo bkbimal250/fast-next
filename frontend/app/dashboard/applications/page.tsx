@@ -96,16 +96,24 @@ function ManageApplicationsContent() {
     setLoading(true);
     setError(null);
     try {
+      let fetchedApplications: Application[] = [];
+      
       if (user.role === 'user') {
-        const fetchedApplications = await authAPI.getMyApplications();
-        setApplications(fetchedApplications);
+        fetchedApplications = await authAPI.getMyApplications();
       } else if (user.role === 'recruiter') {
-        const fetchedApplications = await applicationAPI.getMyApplications({ limit: 1000 });
-        setApplications(fetchedApplications);
+        fetchedApplications = await applicationAPI.getMyApplications({ limit: 1000 });
       } else {
-        const fetchedApplications = await applicationAPI.getAllApplications({ skip: 0, limit: 1000 });
-        setApplications(fetchedApplications);
+        fetchedApplications = await applicationAPI.getAllApplications({ skip: 0, limit: 1000 });
       }
+      
+      // Sort by created_at descending (newest first) to ensure newest applications appear first
+      fetchedApplications.sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA; // Descending order (newest first)
+      });
+      
+      setApplications(fetchedApplications);
     } catch (err: any) {
       console.error('Failed to fetch applications:', err);
       setError(err.response?.data?.detail || 'Failed to fetch applications');
@@ -136,6 +144,20 @@ function ManageApplicationsContent() {
     } catch (err: any) {
       console.error('Failed to update application status:', err);
       showErrorToast(err, 'Failed to update application status');
+    }
+  };
+
+  const handleDeleteApplication = async (id: number) => {
+    try {
+      await applicationAPI.deleteApplication(id, true); // Permanent delete for admin
+      showToast.success('Application deleted successfully');
+      fetchApplications();
+      if (selectedApplication?.id === id) {
+        handleCloseModal();
+      }
+    } catch (err: any) {
+      console.error('Failed to delete application:', err);
+      showErrorToast(err, 'Failed to delete application');
     }
   };
 
@@ -173,6 +195,7 @@ function ManageApplicationsContent() {
           applications={applications}
           onViewDetails={handleViewDetails}
           onStatusChange={canManageApplications ? handleStatusUpdate : undefined}
+          onDelete={user?.role === 'admin' ? handleDeleteApplication : undefined}
           filters={filters}
           onFiltersChange={setFilters}
           currentPage={currentPage}
@@ -185,6 +208,7 @@ function ManageApplicationsContent() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onStatusUpdate={canManageApplications ? handleStatusUpdate : undefined}
+          onDelete={user?.role === 'admin' ? handleDeleteApplication : undefined}
         />
       </div>
     </div>

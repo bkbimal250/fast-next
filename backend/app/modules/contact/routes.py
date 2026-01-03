@@ -134,3 +134,27 @@ def get_contact_stats(
         "closed": closed_count
     }
 
+
+@router.delete("/{contact_id}", status_code=204)
+def delete_contact(
+    contact_id: int,
+    permanent: bool = False,
+    current_user = Depends(require_role([UserRole.ADMIN])),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a contact message (admin only).
+    
+    - permanent=True: Permanently delete from database
+    - permanent=False: Soft delete (currently same as permanent, but can be extended)
+    """
+    contact = db.query(models.ContactMessage).filter(models.ContactMessage.id == contact_id).first()
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact message not found")
+    
+    # Delete the contact message
+    db.delete(contact)
+    db.commit()
+    
+    return None

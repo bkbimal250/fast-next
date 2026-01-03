@@ -287,3 +287,27 @@ def get_message_stats(
         "closed": closed_count
     }
 
+
+@router.delete("/{message_id}", status_code=204)
+def delete_message(
+    message_id: int,
+    permanent: bool = False,
+    current_user = Depends(require_role([UserRole.ADMIN])),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a message (admin only).
+    
+    - permanent=True: Permanently delete from database
+    - permanent=False: Soft delete (currently same as permanent, but can be extended)
+    """
+    message = db.query(models.Message).filter(models.Message.id == message_id).first()
+    
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Delete the message
+    db.delete(message)
+    db.commit()
+    
+    return None

@@ -137,5 +137,21 @@ export const contactAPI = {
     );
     return response.data;
   },
+
+  /**
+   * Delete a contact message (admin only)
+   */
+  async deleteContact(contactId: number, permanent: boolean = false): Promise<void> {
+    const { tokenManager } = await import('./auth');
+    const token = tokenManager.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    await axios.delete(`${API_URL}/api/contact/${contactId}`, {
+      params: { permanent },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
 };
 

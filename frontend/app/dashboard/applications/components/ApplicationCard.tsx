@@ -3,15 +3,19 @@
 import { Application } from '@/lib/application';
 import ApplicationStatusBadge from './ApplicationStatusBadge';
 import Link from 'next/link';
-import { FaBriefcase, FaPhone, FaMapMarkerAlt, FaCalendarAlt, FaFileAlt, FaEye } from 'react-icons/fa';
+import { FaBriefcase, FaPhone, FaMapMarkerAlt, FaCalendarAlt, FaFileAlt, FaEye, FaTrash } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ApplicationCardProps {
   application: Application;
   onViewDetails?: (application: Application) => void;
   onStatusChange?: (id: number, status: string) => void;
+  onDelete?: (id: number) => void;
 }
 
-export default function ApplicationCard({ application, onViewDetails, onStatusChange }: ApplicationCardProps) {
+export default function ApplicationCard({ application, onViewDetails, onStatusChange, onDelete }: ApplicationCardProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -111,13 +115,28 @@ export default function ApplicationCard({ application, onViewDetails, onStatusCh
             </span>
           )}
         </div>
-        <button
-          onClick={() => onViewDetails && onViewDetails(application)}
-          className="px-4 py-2 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors flex items-center gap-2"
-        >
-          <FaEye size={14} />
-          View Details
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewDetails && onViewDetails(application)}
+            className="px-4 py-2 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <FaEye size={14} />
+            View Details
+          </button>
+          {isAdmin && onDelete && (
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+                  onDelete(application.id);
+                }
+              }}
+              className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-2"
+              title="Delete Application"
+            >
+              <FaTrash size={14} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -114,6 +114,13 @@ export default function DashboardPage() {
     if (user.role === 'admin') {
       return [
         {
+          title: 'Applications',
+          description: 'View and manage all job applications',
+          link: '/dashboard/applications',
+          icon: FaFileAlt,
+          color: 'bg-green-100 text-green-600',
+        },
+        {
           title: 'Messages',
           description: 'View job inquiry messages',
           link: '/dashboard/messages',
@@ -380,6 +387,12 @@ export default function DashboardPage() {
                 className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold rounded-lg transition-colors text-sm"
               >
                 View Analytics
+              </Link>
+              <Link
+                href="/dashboard/applications"
+                className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold rounded-lg transition-colors text-sm"
+              >
+                View Applications
               </Link>
             </div>
           </div>

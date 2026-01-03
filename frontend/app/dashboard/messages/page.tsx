@@ -20,7 +20,8 @@ import {
   FaFilter,
   FaSearch,
   FaComment,
-  FaAddressCard
+  FaAddressCard,
+  FaTrash
 } from 'react-icons/fa';
 import Link from 'next/link';
 
@@ -233,6 +234,23 @@ function MessagesContent() {
     } catch (error) {
       console.error('Failed to update status:', error);
       alert('Failed to update message status');
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      if (activeTab === 'job-messages') {
+        await messageAPI.deleteMessage(messageId, true);
+        fetchMessages();
+        fetchMessageStats();
+      } else {
+        await contactAPI.deleteContact(messageId, true);
+        fetchContactMessages();
+        fetchContactStats();
+      }
+    } catch (error: any) {
+      console.error('Failed to delete message:', error);
+      alert('Failed to delete message: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -589,6 +607,20 @@ function MessagesContent() {
                             className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center justify-center gap-2"
                           >
                             Reopen
+                          </button>
+                        )}
+                        {user?.role === 'admin' && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to delete this ${activeTab === 'job-messages' ? 'job message' : 'contact message'}? This action cannot be undone.`)) {
+                                handleDeleteMessage(message.id);
+                              }
+                            }}
+                            className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                            title="Delete Message"
+                          >
+                            <FaTrash size={14} />
+                            Delete
                           </button>
                         )}
                       </div>

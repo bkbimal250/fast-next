@@ -140,5 +140,20 @@ export const messageAPI = {
     });
     return response.data;
   },
+
+  /**
+   * Delete a message (admin only)
+   */
+  async deleteMessage(messageId: number, permanent: boolean = false): Promise<void> {
+    const token = tokenManager.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    await axios.delete(`${API_URL}/api/messages/${messageId}`, {
+      params: { permanent },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
 };
 

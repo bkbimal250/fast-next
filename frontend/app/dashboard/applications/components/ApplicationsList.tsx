@@ -11,6 +11,7 @@ interface ApplicationsListProps {
   applications: Application[];
   onViewDetails: (application: Application) => void;
   onStatusChange?: (id: number, status: string) => void;
+  onDelete?: (id: number) => void;
   filters: { status: string; search: string };
   onFiltersChange: (filters: { status: string; search: string }) => void;
   currentPage: number;
@@ -22,6 +23,7 @@ export default function ApplicationsList({
   applications,
   onViewDetails,
   onStatusChange,
+  onDelete,
   filters,
   onFiltersChange,
   currentPage,
@@ -29,7 +31,7 @@ export default function ApplicationsList({
   itemsPerPage,
 }: ApplicationsListProps) {
   const filteredApplications = useMemo(() => {
-    return applications.filter((app) => {
+    const filtered = applications.filter((app) => {
       // Status filter
       if (filters.status && app.status.toLowerCase() !== filters.status.toLowerCase()) {
         return false;
@@ -50,6 +52,13 @@ export default function ApplicationsList({
       }
 
       return true;
+    });
+
+    // Sort by created_at descending (newest first)
+    return filtered.sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA; // Descending order (newest first)
     });
   }, [applications, filters]);
 
@@ -130,6 +139,7 @@ export default function ApplicationsList({
                 application={application}
                 onViewDetails={onViewDetails}
                 onStatusChange={onStatusChange}
+                onDelete={onDelete}
               />
             ))}
           </div>

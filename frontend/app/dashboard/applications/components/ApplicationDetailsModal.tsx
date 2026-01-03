@@ -5,13 +5,15 @@ import { Application } from '@/lib/application';
 import { jobAPI } from '@/lib/job';
 import Link from 'next/link';
 import ApplicationStatusBadge from './ApplicationStatusBadge';
-import { FaUser, FaBriefcase, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBriefcase as FaExp, FaCalendarAlt, FaFileAlt, FaDownload, FaExternalLinkAlt, FaTimes } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
+import { FaUser, FaBriefcase, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBriefcase as FaExp, FaCalendarAlt, FaFileAlt, FaDownload, FaExternalLinkAlt, FaTimes, FaTrash } from 'react-icons/fa';
 
 interface ApplicationDetailsModalProps {
   application: Application | null;
   isOpen: boolean;
   onClose: () => void;
   onStatusUpdate?: (id: number, status: string) => void;
+  onDelete?: (id: number) => void;
 }
 
 export default function ApplicationDetailsModal({
@@ -19,7 +21,10 @@ export default function ApplicationDetailsModal({
   isOpen,
   onClose,
   onStatusUpdate,
+  onDelete,
 }: ApplicationDetailsModalProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [jobDetails, setJobDetails] = useState<any>(null);
   const [loadingJob, setLoadingJob] = useState(false);
@@ -360,15 +365,47 @@ export default function ApplicationDetailsModal({
                 Update
               </button>
             </div>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors text-sm"
-            >
-              Close
-            </button>
+            <div className="flex items-center gap-2">
+              {isAdmin && onDelete && (
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+                      onDelete(application.id);
+                      onClose();
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors text-sm flex items-center gap-2"
+                  title="Delete Application"
+                >
+                  <FaTrash size={14} />
+                  Delete
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors text-sm"
+              >
+                Close
+              </button>
+            </div>
           </div>
           ) : (
-          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end">
+          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            {isAdmin && onDelete && application && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+                    onDelete(application.id);
+                    onClose();
+                  }
+                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors text-sm flex items-center gap-2"
+                title="Delete Application"
+              >
+                <FaTrash size={14} />
+                Delete
+              </button>
+            )}
             <button
               onClick={onClose}
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors text-sm"
