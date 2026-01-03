@@ -159,7 +159,7 @@ export default function CreateSpaPage() {
       if (formData.closing_hours) data.append('closing_hours', formData.closing_hours);
       if (formData.booking_url_website) data.append('booking_url_website', formData.booking_url_website);
       if (formData.area_id) data.append('area_id', formData.area_id);
-      if (formData.postalCode) data.append('postalCode', formData.postalCode);
+      if (formData.postalCode !== undefined && formData.postalCode !== null) data.append('postalCode', formData.postalCode);
       if (formData.latitude) data.append('latitude', formData.latitude);
       if (formData.longitude) data.append('longitude', formData.longitude);
       if (formData.rating) data.append('rating', formData.rating);

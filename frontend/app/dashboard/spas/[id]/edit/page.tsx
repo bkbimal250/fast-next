@@ -196,7 +196,10 @@ export default function EditSpaPage() {
       const data = new FormData();
       for (const key in formData) {
         const value = formData[key as keyof typeof formData];
-        if (value !== '' && value !== null && value !== undefined) {
+        // Always send postalCode even if empty (to allow clearing it)
+        if (key === 'postalCode') {
+          data.append(key, value?.toString() || '');
+        } else if (value !== '' && value !== null && value !== undefined) {
           if (typeof value === 'boolean') {
             data.append(key, value.toString());
           } else {
