@@ -77,10 +77,10 @@ export default function JobCard({
     };
 
     if (salaryMin && salaryMax) {
-      return `${formatAmount(salaryMin)} - ${formatAmount(salaryMax)} PA`;
+      return `${formatAmount(salaryMin)} - ${formatAmount(salaryMax)} Per Month`;
     }
-    if (salaryMin) return `${formatAmount(salaryMin)}+ PA`;
-    if (salaryMax) return `Up to ${formatAmount(salaryMax)} PA`;
+    if (salaryMin) return `${formatAmount(salaryMin)}+ Per Month`;
+    if (salaryMax) return `Up to ${formatAmount(salaryMax)} Per Month`;
     return null;
   };
 

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaBuilding, FaStar, FaRegStar } from 'react-icons/fa';
+import { FaBuilding, FaStar, FaRegStar, FaCheckCircle } from 'react-icons/fa';
 import { JobWithRelations, getLogoUrl, getInitials } from './utils';
 
 interface CompanyInfoProps {
@@ -43,9 +43,20 @@ export default function CompanyInfo({ job }: CompanyInfoProps) {
             </div>
           )}
           <div>
-            <Link href={`/spas/${job.spa.slug}`} className="text-lg font-semibold text-brand-600 hover:underline block">
-              {job.spa.name}
-            </Link>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link href={`/spas/${job.spa.slug}`} className="text-lg font-semibold text-brand-600 hover:underline">
+                {job.spa.name}
+              </Link>
+              {(job.spa as any)?.is_verified && (
+                <span 
+                  className="bg-brand-600 text-white px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                  title="Verified Organization - Business details checked"
+                >
+                  <FaCheckCircle size={12} />
+                  <span>Verified</span>
+                </span>
+              )}
+            </div>
             {spaRating !== undefined && spaReviews !== undefined && (
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="text-sm font-medium text-gray-700">{spaRating.toFixed(1)}</span>

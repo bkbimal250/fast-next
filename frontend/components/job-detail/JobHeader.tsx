@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { FaStar, FaRegStar, FaStarHalfAlt } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaStarHalfAlt, FaCheckCircle } from 'react-icons/fa';
 import { JobWithRelations, getLogoUrl, getInitials } from './utils';
 
 interface JobHeaderProps {
@@ -41,7 +41,18 @@ export default function JobHeader({ job }: JobHeaderProps) {
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 leading-tight">{job.title}</h1>
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-base font-semibold text-white/90">{job.spa?.name || 'SPA'}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-white/90">{job.spa?.name || 'SPA'}</h2>
+                {(job.spa as any)?.is_verified && (
+                  <span 
+                    className="bg-white/20 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 border border-white/30"
+                    title="Verified Organization - Business details checked"
+                  >
+                    <FaCheckCircle size={12} />
+                    <span>Verified</span>
+                  </span>
+                )}
+              </div>
               {spaRating !== undefined && spaReviews !== undefined && (
                 <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-lg">
                   <span className="text-sm font-semibold text-white">{spaRating.toFixed(1)}</span>

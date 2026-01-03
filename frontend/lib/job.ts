@@ -39,7 +39,7 @@ export interface Job {
   updated_at: string;
   expires_at?: string;
   // Relationships
-  spa?: { id: number; name: string; slug: string; address?: string; logo_image?: string };
+  spa?: { id: number; name: string; slug: string; address?: string; logo_image?: string; is_verified?: boolean };
   job_type?: { id: number; name: string; slug: string };
   job_category?: { id: number; name: string; slug: string };
   country?: { id: number; name: string };

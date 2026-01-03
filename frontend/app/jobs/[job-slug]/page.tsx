@@ -230,40 +230,74 @@ export default function JobDetailPage() {
     ],
   };
 
-  // Generate structured data (JSON-LD) for SEO
+  // Helper function to normalize employment type to Google's expected values
+  const normalizeEmploymentType = (type: string): string => {
+    const normalized = type?.toUpperCase().trim() || 'FULL_TIME';
+    const validTypes = [
+      'FULL_TIME',
+      'PART_TIME',
+      'CONTRACTOR',
+      'TEMPORARY',
+      'INTERN',
+      'VOLUNTEER',
+      'PER_DIEM',
+      'OTHER',
+    ];
+    
+    // Map common variations
+    const typeMap: Record<string, string> = {
+      'FULL TIME': 'FULL_TIME',
+      'PART TIME': 'PART_TIME',
+      'FULLTIME': 'FULL_TIME',
+      'PARTTIME': 'PART_TIME',
+      'FULL-TIME': 'FULL_TIME',
+      'PART-TIME': 'PART_TIME',
+    };
+    
+    const mapped = typeMap[normalized] || normalized;
+    return validTypes.includes(mapped) ? mapped : 'FULL_TIME';
+  };
+
+  // Generate structured data (JSON-LD) for SEO - Updated to match Google standards
   const jobSchema = {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
     title: job.title,
     description: job.description,
+    identifier: {
+      '@type': 'PropertyValue',
+      name: job.spa?.name || 'SPA',
+      value: job.id.toString(),
+    },
     datePosted: job.created_at,
     validThrough: job.expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-    employmentType: job.Employee_type || 'FULL_TIME',
+    employmentType: normalizeEmploymentType(job.Employee_type || 'FULL_TIME'),
     hiringOrganization: {
       '@type': 'Organization',
       name: job.spa?.name || 'SPA',
       ...(logoUrl && { logo: logoUrl }),
+      ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
     },
     jobLocation: {
       '@type': 'Place',
       address: {
         '@type': 'PostalAddress',
+        ...(job.spa?.address && { streetAddress: job.spa.address }),
         addressLocality: job.city?.name || '',
         addressRegion: job.state?.name || '',
+        postalCode: job.postalCode || '',
         addressCountry: job.country?.name || 'IN',
-        ...(job.spa?.address && { streetAddress: job.spa.address }),
-        ...(job.postalCode && { postalCode: job.postalCode }),
       },
     },
-    ...(job.salary_min && job.salary_max && {
+    // Use minimum salary only for baseSalary (in PA - Per Annum)
+    ...(job.salary_min && {
       baseSalary: {
         '@type': 'MonetaryAmount',
         currency: job.salary_currency || 'INR',
         value: {
           '@type': 'QuantitativeValue',
-          minValue: job.salary_min,
-          maxValue: job.salary_max,
-          unitText: 'MONTH',
+          value: job.salary_min,
+          unitText: 'YEAR',
         },
       },
     }),

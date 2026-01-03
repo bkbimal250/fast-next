@@ -58,7 +58,7 @@ export default function PopularJobsList({ jobs, currentJobId }: PopularJobsListP
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       {job.salary_min && (
                         <span className="font-medium text-green-600">
-                          ₹{(job.salary_min / 1000).toFixed(0)}k+
+                          ₹{(job.salary_min / 1000).toFixed(0)}k+ PA
                         </span>
                       )}
                       <span>•</span>

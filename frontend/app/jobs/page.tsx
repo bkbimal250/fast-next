@@ -260,7 +260,34 @@ function JobsPageContent() {
     return `${siteUrl}/jobs${queryString ? `?${queryString}` : ''}`;
   }, [searchQuery, locationQuery, siteUrl]);
 
-  // Generate structured data for job listings page
+  // Helper function to normalize employment type to Google's expected values
+  const normalizeEmploymentType = (type: string): string => {
+    const normalized = type?.toUpperCase().trim() || 'FULL_TIME';
+    const validTypes = [
+      'FULL_TIME',
+      'PART_TIME',
+      'CONTRACTOR',
+      'TEMPORARY',
+      'INTERN',
+      'VOLUNTEER',
+      'PER_DIEM',
+      'OTHER',
+    ];
+    
+    const typeMap: Record<string, string> = {
+      'FULL TIME': 'FULL_TIME',
+      'PART TIME': 'PART_TIME',
+      'FULLTIME': 'FULL_TIME',
+      'PARTTIME': 'PART_TIME',
+      'FULL-TIME': 'FULL_TIME',
+      'PART-TIME': 'PART_TIME',
+    };
+    
+    const mapped = typeMap[normalized] || normalized;
+    return validTypes.includes(mapped) ? mapped : 'FULL_TIME';
+  };
+
+  // Generate structured data for job listings page - Updated to match Google standards
   const jobsListSchema = useMemo(() => ({
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -276,8 +303,15 @@ function JobsPageContent() {
         item: {
           '@type': 'JobPosting',
           title: job.title,
-          description: job.description?.substring(0, 200),
+          description: job.description?.substring(0, 200) || '',
+          identifier: {
+            '@type': 'PropertyValue',
+            name: job.spa?.name || 'SPA',
+            value: job.id.toString(),
+          },
           datePosted: job.created_at,
+          validThrough: job.expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+          employmentType: normalizeEmploymentType((job as any).Employee_type || 'FULL_TIME'),
           hiringOrganization: {
             '@type': 'Organization',
             name: job.spa?.name || 'SPA',
@@ -286,10 +320,24 @@ function JobsPageContent() {
             '@type': 'Place',
             address: {
               '@type': 'PostalAddress',
+              ...(job.spa?.address && { streetAddress: job.spa.address }),
               addressLocality: job.city?.name || '',
-              ...(job.postalCode && { postalCode: job.postalCode }),
+              addressRegion: job.state?.name || '',
+              postalCode: job.postalCode || '',
+              addressCountry: job.country?.name || 'IN',
             },
           },
+          ...(job.salary_min && {
+            baseSalary: {
+              '@type': 'MonetaryAmount',
+              currency: job.salary_currency || 'INR',
+              value: {
+                '@type': 'QuantitativeValue',
+                value: job.salary_min,
+                unitText: 'YEAR',
+              },
+            },
+          }),
         },
       })),
     },

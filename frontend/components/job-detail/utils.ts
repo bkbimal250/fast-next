@@ -35,6 +35,7 @@ export interface JobWithRelations {
     logo_image?: string;
     rating?: number;
     reviews?: number;
+    is_verified?: boolean;
   };
   job_type?: { id: number; name: string; slug: string };
   job_category?: { id: number; name: string; slug: string };
@@ -62,10 +63,10 @@ export function formatSalary(job: JobWithRelations): string {
     return `₹${(amount / 1000).toFixed(0)}k`;
   };
   if (job.salary_min && job.salary_max) {
-    return `${formatAmount(job.salary_min)} - ${formatAmount(job.salary_max)} PA`;
+    return `${formatAmount(job.salary_min)} - ${formatAmount(job.salary_max)} Per Month`;
   }
   if (job.salary_min) return `${formatAmount(job.salary_min)}+ PA`;
-  if (job.salary_max) return `Up to ${formatAmount(job.salary_max)} PA`;
+  if (job.salary_max) return `Up to ${formatAmount(job.salary_max)} Per Month`;
   return 'Not Disclosed';
 }
 
