@@ -3,7 +3,7 @@
 import Navbar from '@/components/Navbar';
 import SearchBar from '@/components/SearchBar';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import JobCard from '@/components/JobCard';
 import Features from './Features/page';
 import ProcessPage from './Process/Page';
@@ -78,12 +78,45 @@ export default function HomePage() {
     ],
   };
 
+  // Generate enhanced meta description with job examples
+  const enhancedDescription = useMemo(() => {
+    const baseDescription = "Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience.";
+    
+    // Get jobs for examples (combine featured and popular, take first 3-4 unique ones)
+    const allJobs = [...featuredJobs, ...popularJobs];
+    const uniqueJobs = Array.from(
+      new Map(allJobs.map(job => [job.id, job])).values()
+    ).slice(0, 4);
+    
+    if (uniqueJobs.length > 0 && !loadingFeatured && !loadingPopular) {
+      const jobExamples = uniqueJobs.map(job => {
+        const jobTitle = job.title || 'Spa Job';
+        let salaryText = '';
+        
+        if (job.salary_min && job.salary_max) {
+          const minK = Math.round(job.salary_min / 1000);
+          const maxK = Math.round(job.salary_max / 1000);
+          salaryText = ` · ₹${minK}k - ₹${maxK}k`;
+        } else if (job.salary_min) {
+          const minK = Math.round(job.salary_min / 1000);
+          salaryText = ` · ₹${minK}k+`;
+        }
+        
+        return `${jobTitle}${salaryText}`;
+      }).join('; ');
+      
+      return `${baseDescription} ${jobExamples}. Search for therapist, masseuse, and spa manager positions.`;
+    }
+    
+    return `${baseDescription} Search for therapist, masseuse, and spa manager positions.`;
+  }, [featuredJobs, popularJobs, loadingFeatured, loadingPopular]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* SEO Metadata */}
       <SEOHead
         title="SPA Jobs Near Me - Find Spa Jobs in Your City"
-        description="Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience. Search for therapist, masseuse, and spa manager positions."
+        description={enhancedDescription}
         keywords={[
           'spa jobs',
           'spa therapist jobs',

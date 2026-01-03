@@ -24,7 +24,7 @@ const experienceOptions: ExperienceOption[] = [
 interface LocationSuggestion {
   id: number;
   name: string;
-  type: 'area' | 'city' | 'state';
+  type: 'area' | 'city';
   fullName: string;
 }
 
@@ -150,7 +150,7 @@ export default function HeaderSearchBar() {
             id: city.id,
             name: city.name,
             type: 'city',
-            fullName: `${city.name}${city.state?.name ? `, ${city.state.name}` : ''}`,
+            fullName: city.name, // Just city name, no state
           });
         });
 
@@ -163,7 +163,7 @@ export default function HeaderSearchBar() {
             id: area.id,
             name: area.name,
             type: 'area',
-            fullName: `${area.name}${area.city?.name ? `, ${area.city.name}` : ''}`,
+            fullName: area.city?.name ? `${area.name} ${area.city.name}` : area.name, // Format: "area city" (no comma, no state)
           });
         });
 
@@ -183,11 +183,9 @@ export default function HeaderSearchBar() {
     try {
       const locationData: LocationData = await getUserLocation();
       if (locationData.city) {
-        const locationStr = [locationData.city, locationData.state]
-          .filter(Boolean)
-          .join(', ');
-        setLocation(locationStr);
-        setDetectedLocation(locationStr);
+        // Only use city, no state
+        setLocation(locationData.city);
+        setDetectedLocation(locationData.city);
       }
     } catch (error) {
       console.error('Failed to detect location:', error);
@@ -396,12 +394,7 @@ export default function HeaderSearchBar() {
                     >
                       <div className="flex items-center gap-2">
                         <FaMapMarkerAlt className="w-3.5 h-3.5 text-gray-400" />
-                        <div>
-                          <span className="text-gray-700 font-medium">{suggestion.name}</span>
-                          {suggestion.fullName !== suggestion.name && (
-                            <span className="text-gray-500 text-xs ml-1">({suggestion.fullName})</span>
-                          )}
-                        </div>
+                        <span className="text-gray-700 font-medium">{suggestion.fullName}</span>
                       </div>
                     </button>
                   ))}

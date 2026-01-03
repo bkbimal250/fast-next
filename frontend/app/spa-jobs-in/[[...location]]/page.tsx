@@ -6,70 +6,83 @@ import Navbar from '@/components/Navbar';
 import JobCard from '@/components/JobCard';
 import { jobAPI, Job } from '@/lib/job';
 import { locationAPI } from '@/lib/location';
+import { parseLocationSlug, formatLocationName, findLocationIds, parseLocationSlugSmart } from '@/lib/location-utils';
 import SEOHead from '@/components/SEOHead';
 import Link from 'next/link';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
 
-export default function AreaPage({ 
-  params 
-}: { 
-  params: { city: string; area: string } 
-}) {
+export default function LocationJobsPage() {
+  const params = useParams();
+  // Handle catch-all route: location is an array
+  const locationArray = params?.location as string[] | string | undefined;
+  const locationSlug = Array.isArray(locationArray) 
+    ? locationArray.join('-') 
+    : (locationArray || '');
+  
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobCount, setJobCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [areaName, setAreaName] = useState<string>('');
-  const [cityName, setCityName] = useState<string>('');
-  const [areaId, setAreaId] = useState<number | null>(null);
-  const [cityId, setCityId] = useState<number | null>(null);
+  const [locationNames, setLocationNames] = useState<{
+    area?: string;
+    city?: string;
+    state?: string;
+  }>({});
+  const [locationIds, setLocationIds] = useState<{
+    areaId?: number;
+    cityId?: number;
+    stateId?: number;
+  }>({});
 
   useEffect(() => {
-    if (params.city && params.area) {
+    if (locationSlug) {
       fetchLocationData();
     }
-  }, [params.city, params.area]);
+  }, [locationSlug]);
 
   useEffect(() => {
-    if (areaId || cityId) {
+    if (locationIds.areaId || locationIds.cityId || locationIds.stateId) {
       fetchJobs();
       fetchJobCount();
     }
-  }, [areaId, cityId]);
+  }, [locationIds]);
 
   const fetchLocationData = async () => {
     try {
-      const cities = await locationAPI.getCities();
-      const city = cities.find((c: any) => {
-        const citySlug = c.name.toLowerCase().replace(/\s+/g, '-');
-        return citySlug === params.city;
-      });
+      // Use smart parsing to match against actual location data
+      const parsed = await parseLocationSlugSmart(locationSlug);
       
-      if (city) {
-        setCityId(city.id);
-        setCityName(city.name);
-        
-        const areas = await locationAPI.getAreas(city.id);
-        const area = areas.find((a: any) => {
-          const areaSlug = a.name.toLowerCase().replace(/\s+/g, '-');
-          return areaSlug === params.area;
+      // Set location IDs if found
+      if (parsed.areaId || parsed.cityId || parsed.stateId) {
+        setLocationIds({
+          areaId: parsed.areaId,
+          cityId: parsed.cityId,
+          stateId: parsed.stateId,
         });
-        
-        if (area) {
-          setAreaId(area.id);
-          setAreaName(area.name);
-        } else {
-          setAreaName(params.area.replace(/-/g, ' '));
-        }
       } else {
-        setCityName(params.city.replace(/-/g, ' '));
-        setAreaName(params.area.replace(/-/g, ' '));
+        // Fallback: try to find IDs from names
+        const ids = await findLocationIds(parsed.area, parsed.city, parsed.state);
+        setLocationIds(ids);
+      }
+      
+      // Set location names
+      if (parsed.area || parsed.city || parsed.state) {
+        setLocationNames({
+          area: parsed.area,
+          city: parsed.city,
+          state: parsed.state,
+        });
+      } else {
+        // Fallback to simple parsing
+        const simpleParsed = parseLocationSlug(locationSlug);
+        setLocationNames(simpleParsed);
       }
     } catch (error) {
       console.error('Error fetching location data:', error);
-      setCityName(params.city.replace(/-/g, ' '));
-      setAreaName(params.area.replace(/-/g, ' '));
+      // Fallback to simple parsing
+      const parsed = parseLocationSlug(locationSlug);
+      setLocationNames(parsed);
     }
   };
 
@@ -80,10 +93,12 @@ export default function AreaPage({
         limit: 50,
       };
       
-      if (areaId) {
-        params_query.area_id = areaId;
-      } else if (cityId) {
-        params_query.city_id = cityId;
+      if (locationIds.areaId) {
+        params_query.area_id = locationIds.areaId;
+      } else if (locationIds.cityId) {
+        params_query.city_id = locationIds.cityId;
+      } else if (locationIds.stateId) {
+        params_query.state_id = locationIds.stateId;
       }
 
       const data = await jobAPI.getAllJobs(params_query);
@@ -100,10 +115,12 @@ export default function AreaPage({
     try {
       const params_query: any = {};
       
-      if (areaId) {
-        params_query.area_id = areaId;
-      } else if (cityId) {
-        params_query.city_id = cityId;
+      if (locationIds.areaId) {
+        params_query.area_id = locationIds.areaId;
+      } else if (locationIds.cityId) {
+        params_query.city_id = locationIds.cityId;
+      } else if (locationIds.stateId) {
+        params_query.state_id = locationIds.stateId;
       }
 
       const response = await axios.get(`${API_URL}/api/jobs/count`, { params: params_query });
@@ -113,12 +130,14 @@ export default function AreaPage({
     }
   };
 
+  // Generate location display name
   const locationDisplayName = useMemo(() => {
     const parts: string[] = [];
-    if (areaName) parts.push(areaName);
-    if (cityName) parts.push(cityName);
-    return parts.join(', ') || `${params.area}, ${params.city}`;
-  }, [areaName, cityName, params]);
+    if (locationNames.area) parts.push(locationNames.area);
+    if (locationNames.city) parts.push(locationNames.city);
+    if (locationNames.state && !locationNames.city) parts.push(locationNames.state);
+    return parts.join(', ') || formatLocationName(locationSlug);
+  }, [locationNames, locationSlug]);
 
   // Generate enhanced meta description with job examples
   const enhancedDescription = useMemo(() => {
@@ -153,7 +172,7 @@ export default function AreaPage({
   }, [locationDisplayName, jobCount, jobs, loading]);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
-  const pageUrl = `${siteUrl}/cities/${params.city}/${params.area}`;
+  const pageUrl = `${siteUrl}/spa-jobs-in-${locationSlug}`;
 
   // Structured data for SEO
   const collectionPageSchema = {
@@ -209,12 +228,6 @@ export default function AreaPage({
       {
         '@type': 'ListItem',
         position: 3,
-        name: `Jobs in ${cityName}`,
-        item: `${siteUrl}/cities/${params.city}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 4,
         name: `Jobs in ${locationDisplayName}`,
         item: pageUrl,
       },
@@ -336,3 +349,4 @@ export default function AreaPage({
     </div>
   );
 }
+

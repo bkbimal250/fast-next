@@ -25,7 +25,7 @@ const experienceOptions: ExperienceOption[] = [
 interface LocationSuggestion {
   id: number;
   name: string;
-  type: 'area' | 'city' | 'state';
+  type: 'area' | 'city';
   fullName: string;
 }
 
@@ -144,7 +144,7 @@ export default function SearchBar() {
             id: city.id,
             name: city.name,
             type: 'city',
-            fullName: `${city.name}${city.state?.name ? `, ${city.state.name}` : ''}`,
+            fullName: city.name, // Just city name, no state
           });
         });
 
@@ -157,7 +157,7 @@ export default function SearchBar() {
             id: area.id,
             name: area.name,
             type: 'area',
-            fullName: `${area.name}${area.city?.name ? `, ${area.city.name}` : ''}`,
+            fullName: area.city?.name ? `${area.name} ${area.city.name}` : area.name, // Format: "area city" (no comma, no state)
           });
         });
 
@@ -177,11 +177,9 @@ export default function SearchBar() {
     try {
       const locationData: LocationData = await getUserLocation();
       if (locationData.city) {
-        const locationStr = [locationData.city, locationData.state]
-          .filter(Boolean)
-          .join(', ');
-        setLocation(locationStr);
-        setDetectedLocation(locationStr);
+        // Only use city, no state
+        setLocation(locationData.city);
+        setDetectedLocation(locationData.city);
       }
     } catch (error) {
       console.error('Failed to detect location:', error);
@@ -230,7 +228,7 @@ export default function SearchBar() {
 
   return (
     <form onSubmit={handleSearch} className="w-full relative">
-      <div className="flex flex-col md:flex-row gap-2 md:gap-0 bg-white rounded-lg shadow-xl p-2 md:p-1.5">
+      <div className="flex flex-col md:flex-row gap-1 md:gap-0 bg-white rounded-lg shadow-xl p-2 md:p-1.5">
         {/* Job Title/Keywords Input with Autocomplete */}
         <div className="flex-1 flex items-center border md:border-r md:border-0 border-gray-200 rounded-lg md:rounded-none md:rounded-l-lg pr-3 md:pr-4 pl-4 md:pl-5 py-3 md:py-4 relative">
           <FaSearch className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
@@ -354,12 +352,7 @@ export default function SearchBar() {
                 >
                   <div className="flex items-center gap-2">
                     <FaMapMarkerAlt className="w-3.5 h-3.5 text-gray-400" />
-                    <div>
-                      <span className="text-gray-700 font-medium">{suggestion.name}</span>
-                      {suggestion.fullName !== suggestion.name && (
-                        <span className="text-gray-500 text-xs ml-1">({suggestion.fullName})</span>
-                      )}
-                    </div>
+                    <span className="text-gray-700 font-medium">{suggestion.fullName}</span>
                   </div>
                 </button>
               ))}

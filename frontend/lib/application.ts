@@ -22,6 +22,7 @@ export interface Application {
     spa_id?: number;
     city_id?: number;
     state_id?: number;
+    area_id?: number;
     country_id?: number;
     job_type_id?: number;
     job_category_id?: number;

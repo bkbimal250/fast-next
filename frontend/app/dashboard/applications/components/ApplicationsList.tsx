@@ -2,21 +2,35 @@
 
 import { Application } from '@/lib/application';
 import ApplicationCard from './ApplicationCard';
-import ApplicationFilters from './ApplicationFilters';
-import { useState, useMemo } from 'react';
-import { FaFileAlt, FaSearch } from 'react-icons/fa';
+import { useMemo } from 'react';
+import { FaFileAlt } from 'react-icons/fa';
 import Pagination from '@/components/Pagination';
+import SearchableSelect from '../../spas/components/SearchableSelect';
 
 interface ApplicationsListProps {
   applications: Application[];
   onViewDetails: (application: Application) => void;
   onStatusChange?: (id: number, status: string) => void;
   onDelete?: (id: number) => void;
-  filters: { status: string; search: string };
-  onFiltersChange: (filters: { status: string; search: string }) => void;
+  filters: {
+    status: string;
+    search: string;
+    stateId: number | null;
+    cityId: number | null;
+    areaId: number | null;
+    jobTypeId: number | null;
+    jobCategoryId: number | null;
+  };
+  onFiltersChange: (filters: any) => void;
   currentPage: number;
   onPageChange: (page: number) => void;
   itemsPerPage: number;
+  states: any[];
+  cities: any[];
+  areas: any[];
+  jobTypes: any[];
+  jobCategories: any[];
+  loadingLocations: boolean;
 }
 
 export default function ApplicationsList({
@@ -29,6 +43,12 @@ export default function ApplicationsList({
   currentPage,
   onPageChange,
   itemsPerPage,
+  states,
+  cities,
+  areas,
+  jobTypes,
+  jobCategories,
+  loadingLocations,
 }: ApplicationsListProps) {
   const filteredApplications = useMemo(() => {
     const filtered = applications.filter((app) => {
@@ -49,6 +69,31 @@ export default function ApplicationsList({
         if (!matchesSearch) {
           return false;
         }
+      }
+
+      // State filter (based on job location)
+      if (filters.stateId && app.job?.state_id !== filters.stateId) {
+        return false;
+      }
+
+      // City filter (based on job location)
+      if (filters.cityId && app.job?.city_id !== filters.cityId) {
+        return false;
+      }
+
+      // Area filter (based on job location)
+      if (filters.areaId && app.job?.area_id !== filters.areaId) {
+        return false;
+      }
+
+      // Job Type filter
+      if (filters.jobTypeId && app.job?.job_type_id !== filters.jobTypeId) {
+        return false;
+      }
+
+      // Job Category filter
+      if (filters.jobCategoryId && app.job?.job_category_id !== filters.jobCategoryId) {
+        return false;
       }
 
       return true;
@@ -73,20 +118,20 @@ export default function ApplicationsList({
     <div>
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200 mb-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative md:col-span-2">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <div className="text-gray-400">
-                <FaSearch size={16} />
-              </div>
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
             <input
               type="text"
               value={filters.search}
               onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
               className="block w-full pl-9 sm:pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm"
-              placeholder="Search by name, email, phone, or job title..."
+              placeholder="Search by name, email, phone, job title, or location..."
             />
           </div>
 
@@ -106,12 +151,64 @@ export default function ApplicationsList({
             </select>
           </div>
         </div>
-        <div className="mt-3 text-xs sm:text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{paginatedApplications.length}</span> of{' '}
-          <span className="font-semibold text-gray-900">{filteredApplications.length}</span> applications
-          {paginatedApplications.length !== filteredApplications.length && (
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+          {/* Job Type Filter */}
+          <SearchableSelect
+            options={jobTypes.map((type) => ({ id: type.id, name: type.name }))}
+            value={filters.jobTypeId}
+            onChange={(id) => onFiltersChange({ ...filters, jobTypeId: id })}
+            placeholder="All Job Types"
+            disabled={jobTypes.length === 0}
+          />
+
+          {/* Job Category Filter */}
+          <SearchableSelect
+            options={jobCategories.map((cat) => ({ id: cat.id, name: cat.name }))}
+            value={filters.jobCategoryId}
+            onChange={(id) => onFiltersChange({ ...filters, jobCategoryId: id })}
+            placeholder="All Categories"
+            disabled={jobCategories.length === 0}
+          />
+
+          {/* State Filter */}
+          <SearchableSelect
+            options={states.map((state) => ({ id: state.id, name: state.name }))}
+            value={filters.stateId}
+            onChange={(id) => onFiltersChange({ ...filters, stateId: id, cityId: null, areaId: null })}
+            placeholder="All States"
+            disabled={loadingLocations}
+          />
+
+          {/* City Filter */}
+          <SearchableSelect
+            options={cities
+              .filter((city) => !filters.stateId || city.state_id === filters.stateId)
+              .map((city) => ({ id: city.id, name: city.name }))}
+            value={filters.cityId}
+            onChange={(id) => onFiltersChange({ ...filters, cityId: id, areaId: null })}
+            placeholder="All Cities"
+            disabled={loadingLocations}
+          />
+
+          {/* Area Filter */}
+          <SearchableSelect
+            options={areas
+              .filter((area) => !filters.cityId || area.city_id === filters.cityId)
+              .map((area) => ({ id: area.id, name: area.name }))}
+            value={filters.areaId}
+            onChange={(id) => onFiltersChange({ ...filters, areaId: id })}
+            placeholder="All Areas"
+            disabled={loadingLocations || !filters.cityId}
+          />
+        </div>
+
+        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
+          Showing <span className="font-semibold text-gray-900">{filteredApplications.length}</span> of{' '}
+          <span className="font-semibold text-gray-900">{applications.length}</span> applications
+          {filteredApplications.length !== applications.length && (
             <span className="ml-2">
-              (Page {currentPage} of {Math.ceil(filteredApplications.length / itemsPerPage)})
+              ({paginatedApplications.length} on this page)
             </span>
           )}
         </div>

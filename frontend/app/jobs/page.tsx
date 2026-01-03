@@ -199,10 +199,36 @@ function JobsPageContent() {
       parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs across India.`);
     }
     
+    // Add job examples from current results (top 3-4 jobs with salary info)
+    if (jobs.length > 0 && !loading) {
+      const jobExamples = jobs
+        .filter(job => job.title && (job.salary_min || job.salary_max))
+        .slice(0, 4)
+        .map(job => {
+          const jobTitle = job.title || 'Spa Job';
+          let salaryText = '';
+          
+          if (job.salary_min && job.salary_max) {
+            const minK = Math.round(job.salary_min / 1000);
+            const maxK = Math.round(job.salary_max / 1000);
+            salaryText = ` · ₹${minK}k - ₹${maxK}k`;
+          } else if (job.salary_min) {
+            const minK = Math.round(job.salary_min / 1000);
+            salaryText = ` · ₹${minK}k+`;
+          }
+          
+          return `${jobTitle}${salaryText}`;
+        });
+      
+      if (jobExamples.length > 0) {
+        parts.push(jobExamples.join('; '));
+      }
+    }
+    
     parts.push('Browse therapist, masseuse, and spa manager positions. Apply directly without login.');
     
     return parts.join(' ');
-  }, [searchQuery, effectiveLocation, totalJobs]);
+  }, [searchQuery, effectiveLocation, totalJobs, jobs, loading]);
 
   const metadataKeywords = useMemo(() => {
     const keywords: string[] = [];

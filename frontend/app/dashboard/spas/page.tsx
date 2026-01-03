@@ -4,11 +4,13 @@ import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { spaAPI, Spa } from '@/lib/spa';
+import { locationAPI } from '@/lib/location';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import Pagination from '@/components/Pagination';
+import SearchableSelect from './components/SearchableSelect';
 
 function ManageSpasContent() {
   const { user } = useAuth();
@@ -25,10 +27,21 @@ function ManageSpasContent() {
   const [filterVerified, setFilterVerified] = useState<'all' | 'verified' | 'unverified'>(
     (searchParams.get('verified') as 'all' | 'verified' | 'unverified') || 'all'
   );
+  const [filterCityId, setFilterCityId] = useState<number | null>(
+    searchParams.get('city') ? parseInt(searchParams.get('city') || '0', 10) || null : null
+  );
+  const [filterAreaId, setFilterAreaId] = useState<number | null>(
+    searchParams.get('area') ? parseInt(searchParams.get('area') || '0', 10) || null : null
+  );
   const [currentPage, setCurrentPage] = useState(
     parseInt(searchParams.get('page') || '1', 10)
   );
   const itemsPerPage = 20;
+  
+  // Location data for filters
+  const [cities, setCities] = useState<any[]>([]);
+  const [areas, setAreas] = useState<any[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     spaId: number | null;
@@ -48,7 +61,39 @@ function ManageSpasContent() {
 
   useEffect(() => {
     loadSpas();
+    loadLocations();
   }, []);
+  
+  // Load cities and areas for filters
+  const loadLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const [citiesData, areasData] = await Promise.all([
+        locationAPI.getCities(undefined, undefined, 0, 1000),
+        locationAPI.getAreas(undefined, 0, 1000),
+      ]);
+      setCities(citiesData);
+      setAreas(areasData);
+    } catch (error) {
+      console.error('Failed to load locations:', error);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
+  
+  // Load areas when city filter changes
+  useEffect(() => {
+    if (filterCityId) {
+      locationAPI.getAreas(filterCityId, 0, 1000).then(setAreas).catch(console.error);
+    } else {
+      // If no city selected, show all areas
+      locationAPI.getAreas(undefined, 0, 1000).then(setAreas).catch(console.error);
+    }
+    // Reset area filter when city changes
+    if (filterAreaId) {
+      setFilterAreaId(null);
+    }
+  }, [filterCityId]);
 
   // Track if we're syncing from URL to prevent loops
   const isSyncingFromUrlRef = useRef(false);
@@ -58,6 +103,8 @@ function ManageSpasContent() {
     const urlSearch = searchParams.get('search') || '';
     const urlStatus = (searchParams.get('status') as 'all' | 'active' | 'inactive') || 'all';
     const urlVerified = (searchParams.get('verified') as 'all' | 'verified' | 'unverified') || 'all';
+    const urlCity = searchParams.get('city') ? parseInt(searchParams.get('city') || '0', 10) || null : null;
+    const urlArea = searchParams.get('area') ? parseInt(searchParams.get('area') || '0', 10) || null : null;
     const urlPage = parseInt(searchParams.get('page') || '1', 10);
     
     // Mark that we're syncing from URL
@@ -67,6 +114,8 @@ function ManageSpasContent() {
     setSearchTerm(urlSearch);
     setFilterStatus(urlStatus);
     setFilterVerified(urlVerified);
+    setFilterCityId(urlCity);
+    setFilterAreaId(urlArea);
     setCurrentPage(urlPage);
     
     // Reset the flag after a brief delay
@@ -95,6 +144,8 @@ function ManageSpasContent() {
     if (searchTerm) params.set('search', searchTerm);
     if (filterStatus !== 'all') params.set('status', filterStatus);
     if (filterVerified !== 'all') params.set('verified', filterVerified);
+    if (filterCityId) params.set('city', filterCityId.toString());
+    if (filterAreaId) params.set('area', filterAreaId.toString());
     if (currentPage > 1) params.set('page', currentPage.toString());
     
     const queryString = params.toString();
@@ -106,7 +157,7 @@ function ManageSpasContent() {
       // Use replace to avoid adding history entries, but preserve back button functionality
       router.replace(newUrl, { scroll: false });
     }
-  }, [searchTerm, filterStatus, filterVerified, currentPage, router, isInitialSync]);
+  }, [searchTerm, filterStatus, filterVerified, filterCityId, filterAreaId, currentPage, router, isInitialSync]);
 
   const loadSpas = async () => {
     setLoading(true);
@@ -147,9 +198,9 @@ function ManageSpasContent() {
     }
   };
 
-  // Filter and search SPAs
+  // Filter and search SPAs, then sort by created_at (newest first)
   const filteredSpas = useMemo(() => {
-    return spas.filter((spa) => {
+    const filtered = spas.filter((spa) => {
       const matchesSearch = 
         spa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         spa.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,9 +217,22 @@ function ManageSpasContent() {
         (filterVerified === 'verified' && spa.is_verified) ||
         (filterVerified === 'unverified' && !spa.is_verified);
 
-      return matchesSearch && matchesStatus && matchesVerified;
+      const matchesCity = 
+        !filterCityId || spa.city_id === filterCityId;
+
+      const matchesArea = 
+        !filterAreaId || spa.area_id === filterAreaId;
+
+      return matchesSearch && matchesStatus && matchesVerified && matchesCity && matchesArea;
     });
-  }, [spas, searchTerm, filterStatus, filterVerified]);
+    
+    // Sort by created_at descending (newest first)
+    return filtered.sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA; // Descending order
+    });
+  }, [spas, searchTerm, filterStatus, filterVerified, filterCityId, filterAreaId]);
 
   // Calculate statistics based on all SPAs (not filtered)
   const stats = useMemo(() => ({
@@ -186,25 +250,27 @@ function ManageSpasContent() {
   }, [filteredSpas, currentPage, itemsPerPage]);
 
   // Reset to page 1 when filters change (user interaction, not URL restoration)
-  const prevFiltersRef = useRef({ searchTerm, filterStatus, filterVerified });
+  const prevFiltersRef = useRef({ searchTerm, filterStatus, filterVerified, filterCityId, filterAreaId });
   
   useEffect(() => {
     if (isInitialSync) {
-      prevFiltersRef.current = { searchTerm, filterStatus, filterVerified };
+      prevFiltersRef.current = { searchTerm, filterStatus, filterVerified, filterCityId, filterAreaId };
       return;
     }
     
     const filtersChanged = 
       prevFiltersRef.current.searchTerm !== searchTerm ||
       prevFiltersRef.current.filterStatus !== filterStatus ||
-      prevFiltersRef.current.filterVerified !== filterVerified;
+      prevFiltersRef.current.filterVerified !== filterVerified ||
+      prevFiltersRef.current.filterCityId !== filterCityId ||
+      prevFiltersRef.current.filterAreaId !== filterAreaId;
     
     if (filtersChanged && currentPage !== 1) {
       setCurrentPage(1);
     }
     
-    prevFiltersRef.current = { searchTerm, filterStatus, filterVerified };
-  }, [searchTerm, filterStatus, filterVerified, currentPage, isInitialSync]);
+    prevFiltersRef.current = { searchTerm, filterStatus, filterVerified, filterCityId, filterAreaId };
+  }, [searchTerm, filterStatus, filterVerified, filterCityId, filterAreaId, currentPage, isInitialSync]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
 
@@ -312,9 +378,9 @@ function ManageSpasContent() {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200 mb-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Search */}
-            <div className="relative">
+            <div className="relative md:col-span-2">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -350,6 +416,26 @@ function ManageSpasContent() {
               <option value="verified">Verified Only</option>
               <option value="unverified">Unverified Only</option>
             </select>
+
+            {/* City Filter */}
+            <SearchableSelect
+              options={cities.map((city) => ({ id: city.id, name: city.name }))}
+              value={filterCityId}
+              onChange={setFilterCityId}
+              placeholder="All Cities"
+              disabled={loadingLocations}
+            />
+
+            {/* Area Filter */}
+            <SearchableSelect
+              options={areas
+                .filter((area) => !filterCityId || area.city_id === filterCityId)
+                .map((area) => ({ id: area.id, name: area.name }))}
+              value={filterAreaId}
+              onChange={setFilterAreaId}
+              placeholder="All Areas"
+              disabled={loadingLocations || !filterCityId}
+            />
           </div>
 
           {/* Results Count */}
@@ -384,7 +470,7 @@ function ManageSpasContent() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No SPAs Found</h3>
             <p className="text-gray-600 mb-6 text-sm sm:text-base">
-              {searchTerm || filterStatus !== 'all' || filterVerified !== 'all'
+              {searchTerm || filterStatus !== 'all' || filterVerified !== 'all' || filterCityId || filterAreaId
                 ? 'Try adjusting your filters to see more results.'
                 : 'Get started by creating your first SPA listing.'}
             </p>

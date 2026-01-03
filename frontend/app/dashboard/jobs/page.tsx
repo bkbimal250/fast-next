@@ -4,11 +4,13 @@ import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { jobAPI, Job, JobType, JobCategory } from '@/lib/job';
+import { locationAPI } from '@/lib/location';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import Pagination from '@/components/Pagination';
+import SearchableSelect from '../spas/components/SearchableSelect';
 
 type TabType = 'jobs' | 'types' | 'categories';
 
@@ -25,6 +27,36 @@ function ManageJobsContent() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
+
+  // Filter states (only for jobs tab)
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>(
+    (searchParams.get('status') as 'all' | 'active' | 'inactive') || 'all'
+  );
+  const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not-featured'>(
+    (searchParams.get('featured') as 'all' | 'featured' | 'not-featured') || 'all'
+  );
+  const [filterJobTypeId, setFilterJobTypeId] = useState<number | null>(
+    searchParams.get('job_type') ? parseInt(searchParams.get('job_type') || '0', 10) || null : null
+  );
+  const [filterJobCategoryId, setFilterJobCategoryId] = useState<number | null>(
+    searchParams.get('job_category') ? parseInt(searchParams.get('job_category') || '0', 10) || null : null
+  );
+  const [filterStateId, setFilterStateId] = useState<number | null>(
+    searchParams.get('state') ? parseInt(searchParams.get('state') || '0', 10) || null : null
+  );
+  const [filterCityId, setFilterCityId] = useState<number | null>(
+    searchParams.get('city') ? parseInt(searchParams.get('city') || '0', 10) || null : null
+  );
+  const [filterAreaId, setFilterAreaId] = useState<number | null>(
+    searchParams.get('area') ? parseInt(searchParams.get('area') || '0', 10) || null : null
+  );
+
+  // Location data for filters
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [areas, setAreas] = useState<any[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
 
   // Pagination state (only for jobs tab)
   const [currentPage, setCurrentPage] = useState(
@@ -60,23 +92,88 @@ function ManageJobsContent() {
       router.push('/dashboard');
     } else {
       fetchData();
+      if (activeTab === 'jobs') {
+        loadLocations();
+      }
     }
   }, [user, router, activeTab]);
+
+  // Load locations for filters
+  const loadLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const [statesData, citiesData, areasData] = await Promise.all([
+        locationAPI.getStates(undefined, 0, 1000),
+        locationAPI.getCities(undefined, undefined, 0, 1000),
+        locationAPI.getAreas(undefined, 0, 1000),
+      ]);
+      setStates(statesData);
+      setCities(citiesData);
+      setAreas(areasData);
+    } catch (error) {
+      console.error('Failed to load locations:', error);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
+
+  // Load cities when state filter changes
+  useEffect(() => {
+    if (filterStateId) {
+      locationAPI.getCities(filterStateId, undefined, 0, 1000).then(setCities).catch(console.error);
+    } else {
+      locationAPI.getCities(undefined, undefined, 0, 1000).then(setCities).catch(console.error);
+    }
+    // Reset city and area filters when state changes
+    if (filterCityId || filterAreaId) {
+      setFilterCityId(null);
+      setFilterAreaId(null);
+    }
+  }, [filterStateId]);
+
+  // Load areas when city filter changes
+  useEffect(() => {
+    if (filterCityId) {
+      locationAPI.getAreas(filterCityId, 0, 1000).then(setAreas).catch(console.error);
+    } else {
+      locationAPI.getAreas(undefined, 0, 1000).then(setAreas).catch(console.error);
+    }
+    // Reset area filter when city changes
+    if (filterAreaId) {
+      setFilterAreaId(null);
+    }
+  }, [filterCityId]);
 
   // Track if we're syncing from URL to prevent loops
   const isSyncingFromUrlRef = useRef(false);
 
   // Sync state from URL params when they change (e.g., browser back/forward)
   useEffect(() => {
-    // Only sync page for jobs tab
+    // Only sync for jobs tab
     if (activeTab !== 'jobs') return;
 
+    const urlSearch = searchParams.get('search') || '';
+    const urlStatus = (searchParams.get('status') as 'all' | 'active' | 'inactive') || 'all';
+    const urlFeatured = (searchParams.get('featured') as 'all' | 'featured' | 'not-featured') || 'all';
+    const urlJobType = searchParams.get('job_type') ? parseInt(searchParams.get('job_type') || '0', 10) || null : null;
+    const urlJobCategory = searchParams.get('job_category') ? parseInt(searchParams.get('job_category') || '0', 10) || null : null;
+    const urlState = searchParams.get('state') ? parseInt(searchParams.get('state') || '0', 10) || null : null;
+    const urlCity = searchParams.get('city') ? parseInt(searchParams.get('city') || '0', 10) || null : null;
+    const urlArea = searchParams.get('area') ? parseInt(searchParams.get('area') || '0', 10) || null : null;
     const urlPage = parseInt(searchParams.get('page') || '1', 10);
     
     // Mark that we're syncing from URL
     isSyncingFromUrlRef.current = true;
     
     // Only update if different
+    setSearchTerm(urlSearch);
+    setFilterStatus(urlStatus);
+    setFilterFeatured(urlFeatured);
+    setFilterJobTypeId(urlJobType);
+    setFilterJobCategoryId(urlJobCategory);
+    setFilterStateId(urlState);
+    setFilterCityId(urlCity);
+    setFilterAreaId(urlArea);
     setCurrentPage(urlPage);
     
     // Reset the flag after a brief delay
@@ -105,6 +202,14 @@ function ManageJobsContent() {
     }
     
     const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (filterStatus !== 'all') params.set('status', filterStatus);
+    if (filterFeatured !== 'all') params.set('featured', filterFeatured);
+    if (filterJobTypeId) params.set('job_type', filterJobTypeId.toString());
+    if (filterJobCategoryId) params.set('job_category', filterJobCategoryId.toString());
+    if (filterStateId) params.set('state', filterStateId.toString());
+    if (filterCityId) params.set('city', filterCityId.toString());
+    if (filterAreaId) params.set('area', filterAreaId.toString());
     if (currentPage > 1) params.set('page', currentPage.toString());
     
     const queryString = params.toString();
@@ -116,15 +221,121 @@ function ManageJobsContent() {
       // Use replace to avoid adding history entries, but preserve back button functionality
       router.replace(newUrl, { scroll: false });
     }
-  }, [currentPage, router, isInitialSync, activeTab]);
+  }, [searchTerm, filterStatus, filterFeatured, filterJobTypeId, filterJobCategoryId, filterStateId, filterCityId, filterAreaId, currentPage, router, isInitialSync, activeTab]);
 
-  // Paginate jobs (only for jobs tab)
+  // Filter and sort jobs (only for jobs tab)
+  const filteredJobs = useMemo(() => {
+    if (activeTab !== 'jobs') return [];
+    
+    const filtered = jobs.filter((job) => {
+      // Search filter
+      const matchesSearch = 
+        !searchTerm ||
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.spa?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.job_type?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.job_category?.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Status filter
+      const matchesStatus = 
+        filterStatus === 'all' || 
+        (filterStatus === 'active' && job.is_active) ||
+        (filterStatus === 'inactive' && !job.is_active);
+
+      // Featured filter
+      const matchesFeatured =
+        filterFeatured === 'all' ||
+        (filterFeatured === 'featured' && job.is_featured) ||
+        (filterFeatured === 'not-featured' && !job.is_featured);
+
+      // Job type filter
+      const matchesJobType = 
+        !filterJobTypeId || job.job_type_id === filterJobTypeId;
+
+      // Job category filter
+      const matchesJobCategory = 
+        !filterJobCategoryId || job.job_category_id === filterJobCategoryId;
+
+      // State filter
+      const matchesState = 
+        !filterStateId || job.state_id === filterStateId;
+
+      // City filter
+      const matchesCity = 
+        !filterCityId || job.city_id === filterCityId;
+
+      // Area filter
+      const matchesArea = 
+        !filterAreaId || job.area_id === filterAreaId;
+
+      return matchesSearch && matchesStatus && matchesFeatured && 
+             matchesJobType && matchesJobCategory && 
+             matchesState && matchesCity && matchesArea;
+    });
+    
+    // Sort by created_at descending (newest first)
+    return filtered.sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA; // Descending order
+    });
+  }, [jobs, searchTerm, filterStatus, filterFeatured, filterJobTypeId, filterJobCategoryId, filterStateId, filterCityId, filterAreaId, activeTab]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    if (activeTab !== 'jobs') return { total: 0, active: 0, inactive: 0, featured: 0 };
+    
+    return {
+      total: jobs.length,
+      active: jobs.filter((j) => j.is_active).length,
+      inactive: jobs.filter((j) => !j.is_active).length,
+      featured: jobs.filter((j) => j.is_featured).length,
+    };
+  }, [jobs, activeTab]);
+
+  // Paginate filtered jobs
   const paginatedJobs = useMemo(() => {
     if (activeTab !== 'jobs') return [];
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return jobs.slice(startIndex, endIndex);
-  }, [jobs, currentPage, itemsPerPage, activeTab]);
+    return filteredJobs.slice(startIndex, endIndex);
+  }, [filteredJobs, currentPage, itemsPerPage, activeTab]);
+
+  // Reset to page 1 when filters change (user interaction, not URL restoration)
+  const prevFiltersRef = useRef({ 
+    searchTerm, filterStatus, filterFeatured, filterJobTypeId, filterJobCategoryId, 
+    filterStateId, filterCityId, filterAreaId 
+  });
+  
+  useEffect(() => {
+    if (isInitialSync) {
+      prevFiltersRef.current = { 
+        searchTerm, filterStatus, filterFeatured, filterJobTypeId, filterJobCategoryId, 
+        filterStateId, filterCityId, filterAreaId 
+      };
+      return;
+    }
+    
+    const filtersChanged = 
+      prevFiltersRef.current.searchTerm !== searchTerm ||
+      prevFiltersRef.current.filterStatus !== filterStatus ||
+      prevFiltersRef.current.filterFeatured !== filterFeatured ||
+      prevFiltersRef.current.filterJobTypeId !== filterJobTypeId ||
+      prevFiltersRef.current.filterJobCategoryId !== filterJobCategoryId ||
+      prevFiltersRef.current.filterStateId !== filterStateId ||
+      prevFiltersRef.current.filterCityId !== filterCityId ||
+      prevFiltersRef.current.filterAreaId !== filterAreaId;
+    
+    if (filtersChanged && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    
+    prevFiltersRef.current = { 
+      searchTerm, filterStatus, filterFeatured, filterJobTypeId, filterJobCategoryId, 
+      filterStateId, filterCityId, filterAreaId 
+    };
+  }, [searchTerm, filterStatus, filterFeatured, filterJobTypeId, filterJobCategoryId, filterStateId, filterCityId, filterAreaId, currentPage, isInitialSync]);
 
   // Reset to page 1 when switching away from jobs tab
   useEffect(() => {
@@ -143,8 +354,15 @@ function ManageJobsContent() {
           if (user?.role === 'recruiter') {
             setJobs(await jobAPI.getMyJobs());
           } else {
-            // Fetch all jobs (with high limit for client-side pagination)
+            // Fetch all jobs (with high limit for client-side pagination and filtering)
             setJobs(await jobAPI.getAllJobs({ limit: 1000 }));
+          }
+          // Also fetch job types and categories for filters
+          if (jobTypes.length === 0) {
+            setJobTypes(await jobAPI.getJobTypes());
+          }
+          if (jobCategories.length === 0) {
+            setJobCategories(await jobAPI.getJobCategories());
           }
           // Don't reset page - it's already initialized from URL params
           break;
@@ -457,6 +675,174 @@ function ManageJobsContent() {
           </div>
         )}
 
+        {/* Statistics Cards - Only for Jobs Tab */}
+        {activeTab === 'jobs' && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Jobs</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+                </div>
+                <div className="bg-brand-100 rounded-lg p-2.5">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-600 mt-1">{stats.active}</p>
+                </div>
+                <div className="bg-green-100 rounded-lg p-2.5">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Inactive</p>
+                  <p className="text-xl sm:text-2xl font-bold text-red-600 mt-1">{stats.inactive}</p>
+                </div>
+                <div className="bg-red-100 rounded-lg p-2.5">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Featured</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gold-600 mt-1">{stats.featured}</p>
+                </div>
+                <div className="bg-gold-100 rounded-lg p-2.5">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gold-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filters and Search - Only for Jobs Tab */}
+        {activeTab === 'jobs' && (
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
+              {/* Search */}
+              <div className="relative md:col-span-2">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by title, description, SPA, type, or category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-full pl-9 sm:pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
+                className="border border-gray-300 rounded-lg px-3 sm:px-4 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+
+              {/* Featured Filter */}
+              <select
+                value={filterFeatured}
+                onChange={(e) => setFilterFeatured(e.target.value as 'all' | 'featured' | 'not-featured')}
+                className="border border-gray-300 rounded-lg px-3 sm:px-4 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm"
+              >
+                <option value="all">All Jobs</option>
+                <option value="featured">Featured Only</option>
+                <option value="not-featured">Not Featured</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+              {/* Job Type Filter */}
+              <SearchableSelect
+                options={jobTypes.map((type) => ({ id: type.id, name: type.name }))}
+                value={filterJobTypeId}
+                onChange={setFilterJobTypeId}
+                placeholder="All Job Types"
+                disabled={jobTypes.length === 0}
+              />
+
+              {/* Job Category Filter */}
+              <SearchableSelect
+                options={jobCategories.map((cat) => ({ id: cat.id, name: cat.name }))}
+                value={filterJobCategoryId}
+                onChange={setFilterJobCategoryId}
+                placeholder="All Categories"
+                disabled={jobCategories.length === 0}
+              />
+
+              {/* State Filter */}
+              <SearchableSelect
+                options={states.map((state) => ({ id: state.id, name: state.name }))}
+                value={filterStateId}
+                onChange={setFilterStateId}
+                placeholder="All States"
+                disabled={loadingLocations}
+              />
+
+              {/* City Filter */}
+              <SearchableSelect
+                options={cities
+                  .filter((city) => !filterStateId || city.state_id === filterStateId)
+                  .map((city) => ({ id: city.id, name: city.name }))}
+                value={filterCityId}
+                onChange={setFilterCityId}
+                placeholder="All Cities"
+                disabled={loadingLocations}
+              />
+
+              {/* Area Filter */}
+              <SearchableSelect
+                options={areas
+                  .filter((area) => !filterCityId || area.city_id === filterCityId)
+                  .map((area) => ({ id: area.id, name: area.name }))}
+                value={filterAreaId}
+                onChange={setFilterAreaId}
+                placeholder="All Areas"
+                disabled={loadingLocations || !filterCityId}
+              />
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{filteredJobs.length}</span> of{' '}
+              <span className="font-semibold text-gray-900">{stats.total}</span> jobs
+              {filteredJobs.length !== stats.total && (
+                <span className="ml-2">
+                  ({paginatedJobs.length} on this page)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-5">
@@ -500,16 +886,13 @@ function ManageJobsContent() {
                       </div>
                     ) : (
                       <>
-                        {/* Results Count */}
-                        <div className="mb-4 text-sm text-gray-600">
-                          Showing <span className="font-semibold text-gray-900">{paginatedJobs.length}</span> of{' '}
-                          <span className="font-semibold text-gray-900">{jobs.length}</span> jobs
-                          {paginatedJobs.length !== jobs.length && (
-                            <span className="ml-2">
-                              (Page {currentPage} of {Math.ceil(jobs.length / itemsPerPage)})
-                            </span>
-                          )}
-                        </div>
+                        {/* Pagination Info */}
+                        {filteredJobs.length > itemsPerPage && (
+                          <div className="mb-4 text-sm text-gray-600">
+                            Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
+                            <span className="font-semibold text-gray-900">{Math.ceil(filteredJobs.length / itemsPerPage)}</span>
+                          </div>
+                        )}
                         <div className="overflow-x-auto rounded-lg border border-gray-200">
                           <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gradient-to-r from-brand-50 to-brand-100">
@@ -623,11 +1006,11 @@ function ManageJobsContent() {
                         </div>
                         
                         {/* Pagination */}
-                        {jobs.length > itemsPerPage && (
+                        {filteredJobs.length > itemsPerPage && (
                           <div className="mt-4">
                             <Pagination
                               currentPage={currentPage}
-                              totalItems={jobs.length}
+                              totalItems={filteredJobs.length}
                               itemsPerPage={itemsPerPage}
                               onPageChange={setCurrentPage}
                             />
