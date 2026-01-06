@@ -170,8 +170,9 @@ export default function JobCard({
     return `+91${withoutZero}`;
   };
 
-  const whatsappUrl = hr_contact_phone 
-    ? `https://wa.me/${formatPhoneForWhatsApp(hr_contact_phone)?.replace('+', '')}?text=${encodeURIComponent(`Hi, I'm interested in the ${title} position at ${spaName || 'your company'}.`)}`
+  const formattedPhone = formatPhoneForWhatsApp(hr_contact_phone);
+  const whatsappUrl = formattedPhone
+    ? `https://wa.me/${formattedPhone.replace('+', '')}?text=${encodeURIComponent(`I applied from the workspa.in website, I'm interested in the  ${title} position at ${spaName} ${spaAddress}.`)}`
     : null;
 
   const callUrl = hr_contact_phone 
