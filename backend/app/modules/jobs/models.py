@@ -50,6 +50,8 @@ class Job(Base):
     description = Column(Text, nullable=False)
     requirements = Column(Text)
     responsibilities = Column(Text)
+    benefits = Column(Text, nullable=True)
+    job_timing = Column(String(255), nullable=True)
     key_skills = Column(Text)
     Industry_type = Column(String(255), nullable=False,default="Beauty and Spa")
     Employee_type = Column(String(255), nullable=False,default="Full Time")

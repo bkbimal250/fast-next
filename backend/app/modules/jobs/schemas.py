@@ -17,6 +17,8 @@ class JobBase(BaseModel):
     description: str
     requirements: Optional[str] = None
     responsibilities: Optional[str] = None
+    benefits: Optional[str] = None
+    job_timing: Optional[str] = None
     key_skills: Optional[str] = None
     Industry_type: Optional[str] = "Beauty and Spa"
     Employee_type: Optional[str] = "Full Time"
@@ -114,6 +116,8 @@ class JobUpdate(BaseModel):
     experience_years_min: Optional[int] = None
     experience_years_max: Optional[int] = None
     responsibilities: Optional[str] = None
+    benefits: Optional[str] = None
+    job_timing: Optional[str] = None
     key_skills: Optional[str] = None
     Industry_type: Optional[str] = None
     Employee_type: Optional[str] = None
