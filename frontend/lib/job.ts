@@ -13,6 +13,8 @@ export interface Job {
   experience_years_max?: number;
   job_opening_count?: number;
   responsibilities?: string;
+  benefits?: string;
+  job_timing?: string;
   key_skills?: string;
   Industry_type?: string;
   Employee_type?: string;

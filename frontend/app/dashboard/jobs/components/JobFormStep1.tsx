@@ -126,6 +126,43 @@ export default function JobFormStep1({
         ></textarea>
       </div>
 
+      {/* Benefits */}
+      <div>
+        <label htmlFor="benefits" className="block text-sm font-semibold text-gray-700 mb-2">
+          Benefits
+        </label>
+        <textarea
+          id="benefits"
+          name="benefits"
+          rows={3}
+          value={formData.benefits}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
+          placeholder="Benefits offered (e.g., Health Insurance, Paid Leave, Bonus, Incentives, etc.)"
+        ></textarea>
+        <p className="mt-1 text-xs text-gray-500">Describe the benefits and perks offered for this position</p>
+      </div>
+
+      {/* Job Timing */}
+      <div>
+        <label htmlFor="job_timing" className="block text-sm font-semibold text-gray-700 mb-2">
+          Job Timing
+        </label>
+        <select
+          id="job_timing"
+          name="job_timing"
+          value={formData.job_timing}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+        >
+          <option value="">Select Job Timing</option>
+          <option value="11:00 AM to 8:00 PM">11:00 AM to 8:00 PM</option>
+          <option value="11:00 AM to 10:00 PM">11:00 AM to 10:00 PM</option>
+          <option value="11:00 AM to 11:00 PM">11:00 AM to 11:00 PM</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">Select the working hours for this position</p>
+      </div>
+
       {/* Key Skills */}
       <div>
         <label htmlFor="key_skills" className="block text-sm font-semibold text-gray-700 mb-2">

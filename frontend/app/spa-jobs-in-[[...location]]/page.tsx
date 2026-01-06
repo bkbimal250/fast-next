@@ -339,6 +339,7 @@ export default function LocationJobsPage() {
                 } : undefined}
                 hr_contact_phone={job.hr_contact_phone}
                 required_gender={job.required_gender}
+                job_timing={job.job_timing}
               />
             ))}
           </div>

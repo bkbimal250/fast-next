@@ -374,6 +374,8 @@ export default function JobDetailPage() {
               jobType={job.job_type}
               employeeType={job.Employee_type}
               requiredGender={job.required_gender}
+              benefits={job.benefits}
+              jobTiming={job.job_timing}
               skills={skills}
             />
           </div>

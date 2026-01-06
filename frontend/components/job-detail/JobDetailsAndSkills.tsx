@@ -8,6 +8,8 @@ interface JobDetailsAndSkillsProps {
   jobType?: string | { name: string };
   employeeType?: string;
   requiredGender?: string;
+  benefits?: string;
+  jobTiming?: string;
   skills: string[];
 }
 
@@ -17,6 +19,8 @@ export default function JobDetailsAndSkills({
   jobType,
   employeeType,
   requiredGender,
+  benefits,
+  jobTiming,
   skills,
 }: JobDetailsAndSkillsProps) {
   return (
@@ -69,6 +73,32 @@ export default function JobDetailsAndSkills({
             </p>
           </div>
         )}
+        {benefits && (
+          <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+            <span className="text-xs text-gray-600 block mb-1 flex items-center gap-1">
+              <div className="text-purple-600">
+                <FaUser size={12} />
+              </div>
+              Benefits
+            </span>
+            <p className="text-sm font-semibold text-gray-900">
+              {benefits}
+            </p>
+          </div>
+        )}
+        {jobTiming && (
+          <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <span className="text-xs text-gray-600 block mb-1 flex items-center gap-1">
+              <div className="text-blue-600">
+                <FaBuilding size={12} />
+              </div>
+              Job Timing
+            </span>
+            <p className="text-sm font-semibold text-gray-900">
+              {jobTiming}
+            </p>
+          </div>
+        )}
       </div>
       
       {/* Key Skills */}
@@ -87,6 +117,8 @@ export default function JobDetailsAndSkills({
           </div>
         </>
       )}
+
+
     </div>
   );
 }

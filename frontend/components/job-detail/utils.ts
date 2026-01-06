@@ -11,6 +11,8 @@ export interface JobWithRelations {
   description?: string;
   requirements?: string;
   responsibilities?: string;
+  benefits?: string;
+  job_timing?: string;
   salary_min?: number;
   salary_max?: number;
   salary_currency?: string;

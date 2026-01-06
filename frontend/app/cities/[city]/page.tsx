@@ -264,6 +264,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
                 description={job.description}
                 hr_contact_phone={job.hr_contact_phone}
                 required_gender={job.required_gender}
+                job_timing={job.job_timing}
               />
             ))}
           </div>

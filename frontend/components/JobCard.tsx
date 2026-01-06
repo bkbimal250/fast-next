@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { applicationAPI } from '@/lib/application';
 import axios from 'axios';
-import { FaRupeeSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaWhatsapp, FaPhone, FaUser } from 'react-icons/fa';
+import { FaRupeeSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaWhatsapp, FaPhone, FaUser, FaClock } from 'react-icons/fa';
 import { showToast, showErrorToast } from '@/lib/toast';
 
 interface JobCardProps {
@@ -38,6 +38,7 @@ interface JobCardProps {
   };
   hr_contact_phone?: string;
   required_gender?: string;
+  job_timing?: string;
 }
 
 export default function JobCard({
@@ -63,6 +64,7 @@ export default function JobCard({
   postedBy,
   hr_contact_phone,
   required_gender,
+  job_timing,
 }: JobCardProps) {
   const router = useRouter();
   const { user } = useAuth();
@@ -298,6 +300,14 @@ export default function JobCard({
                         <FaUser size={16} />
                       </div>
                       <span className="text-gray-600">{required_gender === 'Any' ? 'Any Gender' : `${required_gender} Only`}</span>
+                    </div>
+                  )}
+                  {job_timing && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-4 h-4 text-blue-600 flex-shrink-0">
+                        <FaClock size={16} />
+                      </div>
+                      <span className="text-gray-600 font-medium">{job_timing}</span>
                     </div>
                   )}
                 </div>

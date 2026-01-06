@@ -32,6 +32,10 @@ export default function EditJobPage() {
     title: '',
     description: '',
     requirements: '',
+    responsibilities: '',
+    benefits: '',
+    job_timing: '',
+    key_skills: '',
     salary_min: '',
     salary_max: '',
     salary_currency: 'INR',
@@ -138,6 +142,10 @@ export default function EditJobPage() {
         title: data.title || '',
         description: data.description || '',
         requirements: data.requirements || '',
+        responsibilities: data.responsibilities || '',
+        benefits: data.benefits || '',
+        job_timing: data.job_timing || '',
+        key_skills: data.key_skills || '',
         salary_min: data.salary_min?.toString() || '',
         salary_max: data.salary_max?.toString() || '',
         salary_currency: data.salary_currency || 'INR',
@@ -190,6 +198,10 @@ export default function EditJobPage() {
         title: formData.title || undefined,
         description: formData.description || undefined,
         requirements: formData.requirements || undefined,
+        responsibilities: formData.responsibilities || undefined,
+        benefits: formData.benefits || undefined,
+        job_timing: formData.job_timing || undefined,
+        key_skills: formData.key_skills || undefined,
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : undefined,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : undefined,
         salary_currency: formData.salary_currency || undefined,
@@ -302,6 +314,65 @@ export default function EditJobPage() {
                   value={formData.requirements}
                   onChange={handleChange}
                   className="input-field"
+                ></textarea>
+              </div>
+              <div>
+                <label htmlFor="responsibilities" className="block text-sm font-medium text-gray-700">
+                  Responsibilities
+                </label>
+                <textarea
+                  id="responsibilities"
+                  name="responsibilities"
+                  rows={4}
+                  value={formData.responsibilities}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Key responsibilities and daily tasks..."
+                ></textarea>
+              </div>
+              <div>
+                <label htmlFor="benefits" className="block text-sm font-medium text-gray-700">
+                  Benefits
+                </label>
+                <textarea
+                  id="benefits"
+                  name="benefits"
+                  rows={3}
+                  value={formData.benefits}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Benefits offered (e.g., Health Insurance, Paid Leave, Bonus, Incentives, etc.)"
+                ></textarea>
+              </div>
+              <div>
+                <label htmlFor="job_timing" className="block text-sm font-medium text-gray-700">
+                  Job Timing
+                </label>
+                <select
+                  id="job_timing"
+                  name="job_timing"
+                  value={formData.job_timing}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="">Select Job Timing</option>
+                  <option value="11:00 AM to 8:00 PM">11:00 AM to 8:00 PM</option>
+                  <option value="11:00 AM to 10:00 PM">11:00 AM to 10:00 PM</option>
+                  <option value="11:00 AM to 11:00 PM">11:00 AM to 11:00 PM</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="key_skills" className="block text-sm font-medium text-gray-700">
+                  Key Skills
+                </label>
+                <textarea
+                  id="key_skills"
+                  name="key_skills"
+                  rows={3}
+                  value={formData.key_skills}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Essential skills required (separate with commas or list one per line)"
                 ></textarea>
               </div>
             </div>
