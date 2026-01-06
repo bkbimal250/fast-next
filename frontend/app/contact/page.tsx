@@ -62,7 +62,7 @@ export default function ContactPage() {
       '@type': 'Organization',
       name: 'Workspa - SPA Jobs Portal',
       email: 'info@workspa.in',
-      telephone: '+91 84228 55035',
+      telephone: '+919152120246',
       address: {
         '@type': 'PostalAddress',
         addressCountry: 'IN',
@@ -113,7 +113,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
                     <a href="tel:+911234567890" className="text-brand-600 hover:text-brand-700">
-                      +91  84228 55035
+                      +91 9152120246
                     </a>
                   </div>
                 </div>

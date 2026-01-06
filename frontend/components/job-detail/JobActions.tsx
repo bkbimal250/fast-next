@@ -18,17 +18,14 @@ interface JobActionsProps {
 export default function JobActions({ job, user, applying, onApply }: JobActionsProps) {
   const router = useRouter();
 
-  const whatsappUrl = job.hr_contact_phone 
-    ? `https://wa.me/${formatPhoneForWhatsApp(job.hr_contact_phone)?.replace('+', '')}?text=${encodeURIComponent(`Hi, I'm interested in the ${job.title} position at ${job.spa?.name || 'your company'}.`)}`
+  const formattedPhone = formatPhoneForWhatsApp(job.hr_contact_phone);
+  const whatsappUrl = formattedPhone
+    ? `https://wa.me/${formattedPhone.replace('+', '')}?text=${encodeURIComponent(`I applied from the workspa.in website, I'm interested in the  ${job.title} position at ${job.spa?.name} ${job.spa?.address}.`)}`
     : null;
 
   const callUrl = job.hr_contact_phone 
     ? `tel:${formatPhoneForCall(job.hr_contact_phone)}`
     : null;
-
-  const handleTrackApplyClick = () => {
-    axios.post(`${API_URL}/api/jobs/${job.id}/track-apply-click`).catch(() => {});
-  };
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
@@ -36,7 +33,6 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
         <>
           <Link
             href={`/apply/${job.slug}`}
-            onClick={handleTrackApplyClick}
             className="flex-1 px-6 py-3 border-2 border-brand-600 text-brand-600 font-semibold rounded-lg hover:bg-brand-50 transition-colors text-center min-h-[48px] flex items-center justify-center"
           >
             Quick Apply

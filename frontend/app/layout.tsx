@@ -74,6 +74,17 @@ export const metadata: Metadata = {
     canonical: siteUrl,
   },
   category: 'Job Portal',
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/favicon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon.png', type: 'image/png', sizes: '16x16' },
+    ],
+    apple: [
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+  },
 }
 
 export default function RootLayout({
@@ -84,8 +95,9 @@ export default function RootLayout({
   return (
     <html lang="en-IN">
       <head>
-        <link rel="icon" href="/uploads/favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/uploads/favicon.png" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
         <meta name="theme-color" content="#115e59" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
