@@ -138,6 +138,10 @@ export default function CategoryLocationJobsPage() {
             hiringOrganization: {
               '@type': 'Organization',
               name: job.spa?.name || 'SPA',
+              ...(job.spa?.logo_image && {
+                logo: `${API_URL}${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
+              }),
+              ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
             },
             jobLocation: {
               '@type': 'Place',

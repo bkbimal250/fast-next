@@ -163,6 +163,7 @@ export function generateSpaMetadata(
           '@type': 'Place',
           address: {
             '@type': 'PostalAddress',
+            streetAddress: spa.address || '',
             addressLocality: job.city?.name || locationNames.city || '',
             addressRegion: job.state?.name || locationNames.state || '',
             addressCountry: job.country?.name || locationNames.country || 'IN',

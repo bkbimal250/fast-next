@@ -105,6 +105,18 @@ export default function CityPage({ params }: { params: { city: string } }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const pageUrl = `${siteUrl}/cities/${params.city}`;
 
+  // Helper function to normalize employment type
+  const normalizeEmploymentType = (type: string): string => {
+    const normalized = type?.toUpperCase().trim() || 'FULL_TIME';
+    const validTypes = ['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'TEMPORARY', 'INTERN', 'VOLUNTEER', 'PER_DIEM', 'OTHER'];
+    const typeMap: Record<string, string> = {
+      'FULL TIME': 'FULL_TIME', 'PART TIME': 'PART_TIME', 'FULLTIME': 'FULL_TIME', 'PARTTIME': 'PART_TIME',
+      'FULL-TIME': 'FULL_TIME', 'PART-TIME': 'PART_TIME',
+    };
+    const mapped = typeMap[normalized] || normalized;
+    return validTypes.includes(mapped) ? mapped : 'FULL_TIME';
+  };
+
   const collectionPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -114,28 +126,46 @@ export default function CityPage({ params }: { params: { city: string } }) {
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: jobCount,
-      itemListElement: jobs.slice(0, 10).map((job, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        item: {
-          '@type': 'JobPosting',
-          title: job.title,
-          description: job.description?.substring(0, 200),
-          datePosted: job.created_at,
-          hiringOrganization: {
-            '@type': 'Organization',
-            name: job.spa?.name || 'SPA',
-          },
-          jobLocation: {
-            '@type': 'Place',
-            address: {
-              '@type': 'PostalAddress',
-              addressLocality: cityName,
-              ...(job.postalCode && { postalCode: job.postalCode }),
+      itemListElement: jobs.slice(0, 10).map((job, index) => {
+        const logoUrl = job.spa?.logo_image
+          ? `${API_URL}${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
+          : undefined;
+
+        return {
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'JobPosting',
+            title: job.title,
+            description: job.description?.substring(0, 200) || '',
+            identifier: {
+              '@type': 'PropertyValue',
+              name: job.spa?.name || 'SPA',
+              value: job.id.toString(),
+            },
+            datePosted: job.created_at,
+            validThrough: (job as any).expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+            employmentType: normalizeEmploymentType((job as any).Employee_type || 'FULL_TIME'),
+            hiringOrganization: {
+              '@type': 'Organization',
+              name: job.spa?.name || 'SPA',
+              ...(logoUrl && { logo: logoUrl }),
+              ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
+            },
+            jobLocation: {
+              '@type': 'Place',
+              address: {
+                '@type': 'PostalAddress',
+                ...(job.spa?.address && { streetAddress: job.spa.address }),
+                addressLocality: job.city?.name || cityName,
+                ...(job.state?.name && { addressRegion: job.state.name }),
+                ...(job.postalCode && { postalCode: job.postalCode }),
+                addressCountry: job.country?.name || 'IN',
+              },
             },
           },
-        },
-      })),
+        };
+      }),
     },
   };
 

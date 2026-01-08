@@ -228,6 +228,7 @@ export default function SpaDetailPage() {
         '@type': 'Organization',
         name: spa.name,
         ...(logoUrl && { logo: logoUrl }),
+        ...(spa.slug && { sameAs: `${SITE_URL}/spas/${spa.slug}` }),
       },
       jobLocation: {
         '@type': 'Place',
