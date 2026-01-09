@@ -40,20 +40,20 @@
 
 ### 5. **Current Keywords in Metadata**
 Located in `frontend/lib/seo.ts`:
-- spa jobs
+- Work Spa
 - spa therapist jobs
 - massage therapist jobs
 - spa manager jobs
-- beauty spa jobs
+- beauty Work Spa
 - wellness jobs
-- spa jobs near me
+- Work Spa near me
 - spa careers
 - spa employment
 - spa hiring
-- spa jobs India
-- spa jobs Mumbai
-- spa jobs Delhi
-- spa jobs Bangalore
+- Work Spa India
+- Work Spa Mumbai
+- Work Spa Delhi
+- Work Spa Bangalore
 
 ## ⚠️ What Needs Improvement
 
@@ -62,13 +62,13 @@ Located in `frontend/lib/seo.ts`:
 **Current keywords are generic. Need to add:**
 
 #### Core Spa Job Keywords (India)
-- ❌ spa jobs in india
+- ❌ Work Spa in india
 - ❌ spa job vacancy
 - ❌ spa job near me
 - ❌ spa therapist jobs
 - ✅ massage therapist jobs (already exists)
 - ❌ wellness jobs india
-- ❌ luxury spa jobs
+- ❌ luxury Work Spa
 - ❌ female therapist jobs
 - ❌ male therapist jobs
 - ❌ spa hiring today
@@ -90,7 +90,7 @@ Located in `frontend/lib/seo.ts`:
 - ❌ front desk executive spa
 - ❌ spa front office jobs
 - ❌ receptionist jobs in spa
-- ❌ female receptionist spa jobs
+- ❌ female receptionist Work Spa
 - ❌ spa desk job vacancy
 
 #### Spa Manager / Supervisor Keywords
@@ -114,7 +114,7 @@ Located in `frontend/lib/seo.ts`:
 - ❌ facial therapist jobs
 - ❌ cosmetologist jobs in spa
 - ❌ aesthetic therapist jobs
-- ❌ salon and spa jobs
+- ❌ salon and Work Spa
 
 #### Sales / Business / Support Keywords
 - ❌ spa sales executive jobs

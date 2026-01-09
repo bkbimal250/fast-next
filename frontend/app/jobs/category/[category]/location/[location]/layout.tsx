@@ -74,8 +74,8 @@ export async function generateMetadata({
     const jobCountText = jobCount > 0 ? `${jobCount.toLocaleString()} ` : '';
     const baseTitle = `${categoryName} Jobs In ${locationName}`;
     const fullTitle = jobCount > 0 
-      ? `${baseTitle} - ${jobCountText}${categoryName} Job Vacancies In ${locationName} | SPA Jobs Portal`
-      : `${baseTitle} | SPA Jobs Portal`;
+      ? `${baseTitle} - ${jobCountText}${categoryName} Job Vacancies In ${locationName} | Work Spa Portal`
+      : `${baseTitle} | Work Spa Portal`;
     
     // Use full title for SEO (search engines will show what they want)
     const title = fullTitle;
@@ -91,7 +91,7 @@ export async function generateMetadata({
         `${categoryName} jobs`,
         `${categoryName} jobs in ${locationName}`,
         `${categoryName} job vacancies in ${locationName}`,
-        `spa jobs ${locationName}`,
+        `Work Spa ${locationName}`,
         `${categoryName.toLowerCase()} jobs near me`,
         `jobs in ${locationName}`,
         locationName,
@@ -102,7 +102,7 @@ export async function generateMetadata({
         url: pageUrl,
         title,
         description,
-        siteName: 'Workspa - SPA Jobs Portal',
+        siteName: 'Workspa - Work Spa Portal',
       },
       twitter: {
         card: 'summary_large_image',
@@ -126,7 +126,7 @@ export async function generateMetadata({
       .join(' ');
     
     return {
-      title: `${categoryName} Jobs In ${locationName} | SPA Jobs Portal`,
+      title: `${categoryName} Jobs In ${locationName} | Work Spa Portal`,
       description: `Find ${categoryName.toLowerCase()} jobs in ${locationName}. Browse and apply to spa job vacancies.`,
     };
   }

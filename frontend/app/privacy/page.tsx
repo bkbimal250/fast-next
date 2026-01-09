@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { FaShieldAlt, FaLock, FaUserShield, FaEye, FaDatabase, FaCookie } from 'react-icons/fa';
-
+import Navbar from '@/components/Navbar';
 export const metadata: Metadata = {
-  title: 'Privacy Policy | SPA Jobs',
-  description: 'Read our privacy policy to understand how we collect, use, and protect your personal information on SPA Jobs.',
+  title: 'Privacy Policy | Work Spa',
+  description: 'Read our privacy policy to understand how we collect, use, and protect your personal information on Work Spa.',
   robots: 'index, follow',
 };
 
@@ -11,9 +11,11 @@ export default function PrivacyPolicyPage() {
   const lastUpdated = 'January 2024';
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50">
+       <Navbar />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
+       
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="text-brand-600">
@@ -25,7 +27,7 @@ export default function PrivacyPolicyPage() {
             Last Updated: <span className="font-semibold">{lastUpdated}</span>
           </p>
           <p className="text-gray-600 mt-2">
-            At SPA Jobs, we are committed to protecting your privacy and ensuring the security of your personal information. 
+            At Work Spa, we are committed to protecting your privacy and ensuring the security of your personal information. 
             This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
           </p>
         </div>
@@ -262,10 +264,11 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer Note */}
         <div className="mt-8 text-center text-sm text-gray-600">
-          <p>By using SPA Jobs, you acknowledge that you have read and understood this Privacy Policy.</p>
+          <p>By using Work Spa, you acknowledge that you have read and understood this Privacy Policy.</p>
         </div>
       </div>
     </div>
+    </>
   );
 }
 

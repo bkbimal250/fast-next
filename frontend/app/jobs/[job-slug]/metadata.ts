@@ -12,7 +12,7 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
   if (job.state?.name) locationParts.push(job.state.name)
   const location = locationParts.join(', ') || 'India'
 
-  const title = `${job.title} at ${spa?.name || 'SPA'} - ${location} | SPA Jobs Portal`
+  const title = `${job.title} at ${spa?.name || 'SPA'} - ${location} | Work Spa Portal`
   
   // Build description with location always included
   const salaryText = job.salary_min && job.salary_max 
@@ -41,7 +41,7 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
       `${job.title} jobs`,
       `${job.title} ${location}`,
       spa?.name || 'SPA',
-      'spa jobs',
+      'Work Spa',
       'spa therapist jobs',
       location,
       job.job_type?.name || '',
@@ -60,7 +60,7 @@ export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
           alt: `${job.title} at ${spa?.name || 'SPA'}`,
         },
       ],
-      siteName: 'Workspa - SPA Jobs Portal',
+      siteName: 'Workspa - Work Spa Portal',
     },
     twitter: {
       card: 'summary_large_image',

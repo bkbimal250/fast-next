@@ -11,22 +11,22 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'SPA Jobs Near Me - Find Spa Jobs in Your City | SPA Jobs Portal',
-    template: '%s | SPA Jobs Portal'
+    default: 'Work Spa Near Me - Find Work Spa in Your City | Work Spa Portal',
+    template: '%s | Work Spa Portal'
   },
-  description: 'Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience. Search for therapist, masseuse, and spa manager positions.',
+  description: 'Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience. Search for therapist, masseuse, and spa manager positions.',
   keywords: [
-    'spa jobs', 'spa jobs in india', 'spa job vacancy', 'spa job near me',
+    'Work Spa', 'Work Spa in india', 'spa job vacancy', 'spa job near me',
     'spa therapist jobs', 'massage therapist jobs', 'spa manager jobs',
-    'beauty spa jobs', 'wellness jobs india', 'luxury spa jobs',
+    'beauty Work Spa', 'wellness jobs india', 'luxury Work Spa',
     'female therapist jobs', 'male therapist jobs', 'spa hiring today',
     'spa receptionist jobs', 'spa housekeeping jobs', 'beauty therapist jobs',
-    'spa jobs Mumbai', 'spa jobs Delhi', 'spa jobs Bangalore',
-    'spa jobs near me', 'spa careers', 'spa employment', 'spa hiring'
+    'Work Spa Mumbai', 'Work Spa Delhi', 'Work Spa Bangalore',
+    'Work Spa near me', 'spa careers', 'spa employment', 'spa hiring'
   ],
-  authors: [{ name: 'Workspa - SPA Jobs Portal' }],
-  creator: 'Workspa - SPA Jobs Portal',
-  publisher: 'Workspa - SPA Jobs Portal',
+  authors: [{ name: 'Workspa - Work Spa Portal' }],
+  creator: 'Workspa - Work Spa Portal',
+  publisher: 'Workspa - Work Spa Portal',
   formatDetection: {
     email: false,
     address: false,
@@ -36,22 +36,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: siteUrl,
-    siteName: 'Workspa - SPA Jobs Portal',
-    title: 'SPA Jobs Near Me - Find Spa Jobs in Your City',
-    description: 'Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience.',
+    siteName: 'Workspa - Work Spa Portal',
+    title: 'Work Spa Near Me - Find Work Spa in Your City',
+    description: 'Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience.',
     images: [
       {
         url: `${siteUrl}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: 'SPA Jobs Portal - Find Your Dream Spa Job',
+        alt: 'Work Spa Portal - Find Your Dream Spa Job',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SPA Jobs Near Me - Find Spa Jobs in Your City',
-    description: 'Find the best spa jobs near you. Apply directly to spas without login.',
+    title: 'Work Spa Near Me - Find Work Spa in Your City',
+    description: 'Find the best Work Spa near you. Apply directly to spas without login.',
     images: [`${siteUrl}/og-image.jpg`],
     creator: '@spajobs',
   },

@@ -120,7 +120,7 @@
 - "Massage therapist jobs in Delhi"
 
 **After City Query:**
-- "Find all spa jobs in {city}"
+- "Find all Work Spa in {city}"
 - "Show me spas in {city}"
 - "Part-time jobs in {city}"
 - "Full-time therapist jobs in {city}"
@@ -160,7 +160,7 @@
     }
   ],
   "suggestions": [
-    "Find all spa jobs in Mumbai",
+    "Find all Work Spa in Mumbai",
     "Show me spas in Mumbai",
     "Part-time jobs in Mumbai",
     "Full-time therapist jobs in Mumbai"

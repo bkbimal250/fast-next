@@ -5,6 +5,7 @@ import { jobAPI, JobType, JobCategory } from '@/lib/job';
 import { locationAPI } from '@/lib/location';
 import { FaFilter, FaBriefcase, FaTags, FaMapMarkerAlt, FaRupeeSign, FaUserTie, FaStar, FaChevronDown, FaChevronUp, FaTimes, FaCrosshairs } from 'react-icons/fa';
 import { useLocation } from '@/hooks/useLocation';
+import SearchableSelect from '@/components/SearchableSelect';
 
 interface JobFiltersProps {
   onFilterChange: (filters: FilterState) => void;
@@ -49,7 +50,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
 
   useEffect(() => {
     if (filters.countryId) {
-      locationAPI.getStates(filters.countryId).then(setStates).catch(console.error);
+      locationAPI.getStates(filters.countryId, 0, 1000).then(setStates).catch(console.error);
       setFilters((prev) => ({ ...prev, stateId: undefined, cityId: undefined, areaId: undefined }));
       setCities([]);
       setAreas([]);
@@ -58,7 +59,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
 
   useEffect(() => {
     if (filters.stateId) {
-      locationAPI.getCities(filters.stateId).then(setCities).catch(console.error);
+      locationAPI.getCities(filters.stateId, undefined, 0, 1000).then(setCities).catch(console.error);
       setFilters((prev) => ({ ...prev, cityId: undefined, areaId: undefined }));
       setAreas([]);
     }
@@ -66,7 +67,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
 
   useEffect(() => {
     if (filters.cityId) {
-      locationAPI.getAreas(filters.cityId).then(setAreas).catch(console.error);
+      locationAPI.getAreas(filters.cityId, 0, 1000).then(setAreas).catch(console.error);
       setFilters((prev) => ({ ...prev, areaId: undefined }));
     }
   }, [filters.cityId]);
@@ -74,9 +75,9 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
   const fetchFilterData = async () => {
     try {
       const [typesData, categoriesData, countriesData] = await Promise.all([
-        jobAPI.getJobTypes(),
-        jobAPI.getJobCategories(),
-        locationAPI.getCountries(),
+        jobAPI.getJobTypes(0, 1000),
+        jobAPI.getJobCategories(0, 1000),
+        locationAPI.getCountries(0, 1000),
       ]);
       setJobTypes(typesData);
       setJobCategories(categoriesData);
@@ -89,7 +90,7 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
         setFilters(newFilters);
         onFilterChange(newFilters);
         // Load states for India
-        locationAPI.getStates(india.id).then(setStates).catch(console.error);
+        locationAPI.getStates(india.id, 0, 1000).then(setStates).catch(console.error);
       }
     } catch (error) {
       console.error('Error fetching filter data:', error);
@@ -270,68 +271,44 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
               {/* Rest of location filters */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Country</label>
-                <select
-                  value={filters.countryId || ''}
-                  onChange={(e) => updateFilter('countryId', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
-                >
-                  <option value="">Select Country</option>
-                  {countries.map((country) => (
-                    <option key={country.id} value={country.id}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  options={countries.map((country) => ({ id: country.id, name: country.name }))}
+                  value={filters.countryId || null}
+                  onChange={(value) => updateFilter('countryId', value || undefined)}
+                  placeholder="Search and select country..."
+                />
               </div>
               {filters.countryId && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">State</label>
-                  <select
-                    value={filters.stateId || ''}
-                    onChange={(e) => updateFilter('stateId', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
-                  >
-                    <option value="">Select State</option>
-                    {states.map((state) => (
-                      <option key={state.id} value={state.id}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    options={states.map((state) => ({ id: state.id, name: state.name }))}
+                    value={filters.stateId || null}
+                    onChange={(value) => updateFilter('stateId', value || undefined)}
+                    placeholder="Search and select state..."
+                  />
                 </div>
               )}
               {filters.stateId && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">City</label>
-                  <select
-                    value={filters.cityId || ''}
-                    onChange={(e) => updateFilter('cityId', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
-                  >
-                    <option value="">Select City</option>
-                    {cities.map((city) => (
-                      <option key={city.id} value={city.id}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    options={cities.map((city) => ({ id: city.id, name: city.name }))}
+                    value={filters.cityId || null}
+                    onChange={(value) => updateFilter('cityId', value || undefined)}
+                    placeholder="Search and select city..."
+                  />
                 </div>
               )}
               {filters.cityId && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Area</label>
-                  <select
-                    value={filters.areaId || ''}
-                    onChange={(e) => updateFilter('areaId', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full input-field text-sm border-gray-300 focus:border-brand-500 focus:ring-brand-500"
-                  >
-                    <option value="">Select Area</option>
-                    {areas.map((area) => (
-                      <option key={area.id} value={area.id}>
-                        {area.name}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    options={areas.map((area) => ({ id: area.id, name: area.name }))}
+                    value={filters.areaId || null}
+                    onChange={(value) => updateFilter('areaId', value || undefined)}
+                    placeholder="Search and select area..."
+                  />
                 </div>
               )}
             </div>

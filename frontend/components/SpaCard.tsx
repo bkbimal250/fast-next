@@ -5,6 +5,7 @@ import { Spa } from '@/lib/spa';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaGlobe, FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import { capitalizeTitle } from '@/lib/text-utils';
 
 interface SpaCardProps {
   spa: Spa;
@@ -126,9 +127,9 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
       {/* Content Section */}
       <div className="p-5">
         {/* Business Name */}
-        <Link href={`/spas/${spa.slug}`}>
+        <Link href={`/besttopspas/${spa.slug}`}>
           <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 hover:text-brand-600 transition-colors">
-            {spa.name}
+            {capitalizeTitle(spa.name)}
           </h3>
         </Link>
 
@@ -191,7 +192,7 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
           {/* Jobs Button */}
           {jobCount !== null && jobCount > 0 && (
             <Link
-              href={`/spas/${spa.slug}`}
+              href={`/besttopspas/${spa.slug}`}
               onClick={(e) => e.stopPropagation()}
               className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
             >

@@ -8,6 +8,7 @@ import { jobAPI, Job } from '@/lib/job';
 import { locationAPI } from '@/lib/location';
 import { parseLocationSlug, formatLocationName, findLocationIds, parseLocationSlugSmart } from '@/lib/location-utils';
 import SEOHead from '@/components/SEOHead';
+import Pagination from '@/components/Pagination';
 import Link from 'next/link';
 import axios from 'axios';
 
@@ -24,6 +25,8 @@ export default function LocationJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobCount, setJobCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [locationNames, setLocationNames] = useState<{
     area?: string;
     city?: string;
@@ -43,6 +46,7 @@ export default function LocationJobsPage() {
 
   useEffect(() => {
     if (locationIds.areaId || locationIds.cityId || locationIds.stateId) {
+      setCurrentPage(1); // Reset to first page when location changes
       fetchJobs();
       fetchJobCount();
     }
@@ -139,12 +143,19 @@ export default function LocationJobsPage() {
     return parts.join(', ') || formatLocationName(locationSlug);
   }, [locationNames, locationSlug]);
 
+  // Paginate jobs
+  const paginatedJobs = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return jobs.slice(startIndex, endIndex);
+  }, [jobs, currentPage, itemsPerPage]);
+
   // Generate enhanced meta description with job examples
   const enhancedDescription = useMemo(() => {
-    const baseDescription = `Find ${jobCount > 0 ? jobCount : ''} spa jobs in ${locationDisplayName}.`;
+    const baseDescription = `Find ${jobCount > 0 ? jobCount : ''} Work Spa in ${locationDisplayName}.`;
     
-    if (jobs.length > 0 && !loading) {
-      const jobExamples = jobs
+    if (paginatedJobs.length > 0 && !loading) {
+      const jobExamples = paginatedJobs
         .filter(job => job.title && (job.salary_min || job.salary_max))
         .slice(0, 4)
         .map(job => {
@@ -169,7 +180,7 @@ export default function LocationJobsPage() {
     }
     
     return `${baseDescription} Browse therapist, masseuse, and spa manager positions. Apply directly without login.`;
-  }, [locationDisplayName, jobCount, jobs, loading]);
+  }, [locationDisplayName, jobCount, paginatedJobs, loading]);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const pageUrl = `${siteUrl}/spa-jobs-in-${locationSlug}`;
@@ -190,13 +201,13 @@ export default function LocationJobsPage() {
   const collectionPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `SPA Jobs in ${locationDisplayName}`,
+    name: `Work Spa in ${locationDisplayName}`,
     description: enhancedDescription,
     url: pageUrl,
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: jobCount,
-      itemListElement: jobs.slice(0, 10).map((job, index) => {
+      itemListElement: paginatedJobs.slice(0, 10).map((job, index) => {
         const logoUrl = job.spa?.logo_image
           ? `${API_URL}${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
           : undefined;
@@ -220,7 +231,7 @@ export default function LocationJobsPage() {
               '@type': 'Organization',
               name: job.spa?.name || 'SPA',
               ...(logoUrl && { logo: logoUrl }),
-              ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
+              ...(job.spa?.slug && { sameAs: `${siteUrl}/besttopspas/${job.spa.slug}` }),
             },
             jobLocation: {
               '@type': 'Place',
@@ -268,12 +279,12 @@ export default function LocationJobsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* SEO Metadata */}
       <SEOHead
-        title={`SPA Jobs in ${locationDisplayName} - ${jobCount > 0 ? `${jobCount} Jobs Available` : 'Find Spa Jobs'}`}
+        title={`Work Spa in ${locationDisplayName} - ${jobCount > 0 ? `${jobCount} Jobs Available` : 'Find Work Spa'}`}
         description={enhancedDescription}
         keywords={[
-          `spa jobs ${locationDisplayName}`,
-          `spa jobs in ${locationDisplayName}`,
-          `${locationDisplayName} spa jobs`,
+          `Work Spa ${locationDisplayName}`,
+          `Work Spa in ${locationDisplayName}`,
+          `${locationDisplayName} Work Spa`,
           'spa therapist jobs',
           'massage therapist jobs',
           'spa manager jobs',
@@ -297,7 +308,7 @@ export default function LocationJobsPage() {
       <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            SPA Jobs in {locationDisplayName}
+            Work Spa in {locationDisplayName}
           </h1>
           <p className="text-xl sm:text-2xl text-brand-100">
             {jobCount > 0 ? `${jobCount}+ jobs available` : 'Find your dream spa job'}
@@ -334,46 +345,60 @@ export default function LocationJobsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {jobs.map((job) => (
-              <JobCard
-                key={job.id}
-                id={job.id}
-                title={job.title}
-                spaName={job.spa?.name}
-                spaAddress={job.spa?.address}
-                location={
-                  (() => {
-                    const locationParts = [];
-                    if (job.area?.name) locationParts.push(job.area.name);
-                    if (job.city?.name) locationParts.push(job.city.name);
-                    return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
-                  })()
-                }
-                salaryMin={job.salary_min}
-                salaryMax={job.salary_max}
-                salaryCurrency={job.salary_currency}
-                experienceMin={job.experience_years_min}
-                experienceMax={job.experience_years_max}
-                jobOpeningCount={job.job_opening_count}
-                jobType={typeof job.job_type === 'string' ? job.job_type : job.job_type?.name}
-                jobCategory={typeof job.job_category === 'string' ? job.job_category : job.job_category?.name}
-                slug={job.slug}
-                isFeatured={job.is_featured}
-                viewCount={job.view_count}
-                created_at={job.created_at}
-                description={job.description}
-                logoImage={job.spa?.logo_image}
-                postedBy={job.created_by_user ? {
-                  id: job.created_by_user.id,
-                  name: job.created_by_user.name,
-                  profile_photo: job.created_by_user.profile_photo,
-                } : undefined}
-                hr_contact_phone={job.hr_contact_phone}
-                required_gender={job.required_gender}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {paginatedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  title={job.title}
+                  spaName={job.spa?.name}
+                  spaAddress={job.spa?.address}
+                  location={
+                    (() => {
+                      const locationParts = [];
+                      if (job.area?.name) locationParts.push(job.area.name);
+                      if (job.city?.name) locationParts.push(job.city.name);
+                      return locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
+                    })()
+                  }
+                  salaryMin={job.salary_min}
+                  salaryMax={job.salary_max}
+                  salaryCurrency={job.salary_currency}
+                  experienceMin={job.experience_years_min}
+                  experienceMax={job.experience_years_max}
+                  jobOpeningCount={job.job_opening_count}
+                  jobType={typeof job.job_type === 'string' ? job.job_type : job.job_type?.name}
+                  jobCategory={typeof job.job_category === 'string' ? job.job_category : job.job_category?.name}
+                  slug={job.slug}
+                  isFeatured={job.is_featured}
+                  viewCount={job.view_count}
+                  created_at={job.created_at}
+                  description={job.description}
+                  logoImage={job.spa?.logo_image}
+                  postedBy={job.created_by_user ? {
+                    id: job.created_by_user.id,
+                    name: job.created_by_user.name,
+                    profile_photo: job.created_by_user.profile_photo,
+                  } : undefined}
+                  hr_contact_phone={job.hr_contact_phone}
+                  required_gender={job.required_gender}
+                />
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {jobs.length > itemsPerPage && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={jobs.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

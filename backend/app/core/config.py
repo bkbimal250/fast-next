@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "dev-secret-key-change-in-production"  # Default for testing
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours (24 * 60 minutes)
     
     # File Upload
     UPLOAD_DIR: str = "uploads"

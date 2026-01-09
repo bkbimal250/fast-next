@@ -83,7 +83,7 @@ export default function JobDetailsCard({ job, applicationCount = 0, onTrackApply
             )}
             <div>
               <p className="text-xs text-gray-500">Posted by</p>
-              <p className="text-sm font-semibold text-gray-900">{job.created_by_user.name}</p>
+              <p className="text-sm font-semibold text-gray-900">HR-{job.created_by_user.name}</p>
             </div>
           </div>
         )}

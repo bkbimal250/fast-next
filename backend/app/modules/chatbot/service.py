@@ -85,7 +85,7 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
         if filters["city"]:
             city = filters["city"]
             suggestions = [
-                f"Find all spa jobs in {city}",
+                f"Find all Work Spa in {city}",
                 f"Part-time jobs in {city}",
                 f"Full-time therapist jobs in {city}",
                 f"Spa manager jobs in {city}",
@@ -95,7 +95,7 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
                 "Find all jobs near me",
                 "Part-time jobs nearby",
                 "Therapist jobs near me",
-                "Spa jobs nearby",
+                "Work Spa nearby",
             ]
         else:
             suggestions = [
@@ -129,10 +129,10 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
             ]
     else:
         suggestions = [
-            "Find spa jobs in Mumbai",
+            "Find Work Spa in Mumbai",
             "Show spas near me",
             "Therapist jobs in Delhi",
-            "Part-time spa jobs",
+            "Part-time Work Spa",
         ]
     
     return suggestions[:4]  # Return max 4 suggestions
@@ -157,7 +157,7 @@ async def chatbot_search(
     if filters["intent"] == "greeting":
         suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
         return {
-            "message": "Hello! I can help you find spa jobs and spas. What are you looking for?",
+            "message": "Hello! I can help you find Work Spa and spas. What are you looking for?",
             "jobs": [],
             "spas": [],
             "suggestions": suggestions,
@@ -167,7 +167,7 @@ async def chatbot_search(
     if filters["intent"] == "unknown":
         suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
         return {
-            "message": "I can help you find spa jobs and spas. Try asking like 'I need therapist jobs in Mumbai' or 'Show me spas near me'.",
+            "message": "I can help you find Work Spa and spas. Try asking like 'I need therapist jobs in Mumbai' or 'Show me spas near me'.",
             "jobs": [],
             "spas": [],
             "suggestions": suggestions,
@@ -274,7 +274,7 @@ async def chatbot_search(
     # Fallback (should not reach here, but just in case)
     suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
     return {
-        "message": "I can help you find spa jobs and spas. Please specify what you're looking for.",
+        "message": "I can help you find Work Spa and spas. Please specify what you're looking for.",
         "jobs": [],
         "spas": [],
         "suggestions": suggestions,

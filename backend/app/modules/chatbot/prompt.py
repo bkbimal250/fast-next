@@ -2,7 +2,7 @@
 AI prompt template for extracting job search filters from user messages
 """
 
-CHATBOT_SYSTEM_PROMPT = """You are a spa job search assistant for SPA Jobs platform.
+CHATBOT_SYSTEM_PROMPT = """You are a spa job search assistant for Work Spa platform.
 
 Your task is to extract search filters from user messages and return ONLY valid JSON.
 

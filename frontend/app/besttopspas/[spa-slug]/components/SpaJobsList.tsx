@@ -3,6 +3,7 @@
 import { Job } from '@/lib/job';
 import JobCard from '@/components/JobCard';
 import { FaBriefcase } from 'react-icons/fa';
+import { capitalizeTitle } from '@/lib/text-utils';
 
 interface SpaJobsListProps {
   jobs: Job[];
@@ -17,7 +18,7 @@ export default function SpaJobsList({ jobs, spaName, spaAddress, locationStr }: 
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <span className="w-1 h-8 bg-brand-600 rounded-full"></span>
-          Urgent Hiring at {spaName}
+          Urgent Hiring at {capitalizeTitle(spaName)}
         </h2>
         {jobs.length > 0 && (
           <span className="bg-brand-100 text-brand-700 px-4 py-1.5 rounded-full text-sm font-semibold">
@@ -62,7 +63,7 @@ export default function SpaJobsList({ jobs, spaName, spaAddress, locationStr }: 
             <FaBriefcase size={64} />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No Job Openings Available</h3>
-          <p className="text-gray-600">Check back later for new opportunities at {spaName}.</p>
+          <p className="text-gray-600">Check back later for new opportunities at {capitalizeTitle(spaName)}.</p>
         </div>
       )}
     </div>

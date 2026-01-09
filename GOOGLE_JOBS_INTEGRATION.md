@@ -1,6 +1,6 @@
 # Google for Jobs Integration - Job Counts in Search Results
 
-This document explains how the SPA Jobs Portal is configured to show job counts in Google search results, similar to Naukri, Indeed, and other job portals.
+This document explains how the Work Spa Portal is configured to show job counts in Google search results, similar to Naukri, Indeed, and other job portals.
 
 ## ✅ Implementation Complete
 
@@ -116,10 +116,10 @@ When someone searches "therapist jobs in mumbai" on Google:
 
 3. **Google displays** in search results:
    ```
-   Therapist Jobs in Mumbai | SPA Jobs Portal
+   Therapist Jobs in Mumbai | Work Spa Portal
    https://spajobs.com/jobs/category/therapist/location/mumbai
    
-   Find 45+ Therapist jobs in Mumbai. Browse and apply to the best spa jobs...
+   Find 45+ Therapist jobs in Mumbai. Browse and apply to the best Work Spa...
    ```
 
 4. **Rich Results** may show:
@@ -185,7 +185,7 @@ After Google indexes your pages (usually 1-2 weeks):
 
 3. **Local SEO**:
    - Better ranking for location-based searches
-   - City pages rank for "spa jobs in [city]"
+   - City pages rank for "Work Spa in [city]"
    - Category+location pages rank for "[category] jobs in [city]"
 
 ## 🔧 Technical Details

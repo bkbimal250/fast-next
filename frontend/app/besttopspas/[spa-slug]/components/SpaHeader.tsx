@@ -2,6 +2,7 @@
 
 import { Spa } from '@/lib/spa';
 import { FaCheckCircle, FaStar, FaRegStar, FaStarHalfAlt, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaGlobe, FaCalendarCheck, FaDirections } from 'react-icons/fa';
+import { capitalizeTitle } from '@/lib/text-utils';
 
 interface SpaHeaderProps {
   spa: Spa;
@@ -69,7 +70,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-xl -mt-12 sm:-mt-16">
                 <img
                   src={`${apiUrl}/${allImages[0]}`}
-                  alt={spa.name}
+                  alt={capitalizeTitle(spa.name)}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
@@ -78,7 +79,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
               </div>
             ) : (
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold text-4xl sm:text-5xl shadow-xl -mt-12 sm:-mt-16 border-4 border-white">
-                {spa.name.charAt(0).toUpperCase()}
+                {capitalizeTitle(spa.name).charAt(0)}
               </div>
             )}
           </div>
@@ -86,7 +87,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
           {/* Title and Info */}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{spa.name}</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{capitalizeTitle(spa.name)}</h1>
               {spa.is_verified && (
                 <span 
                   className="bg-brand-600 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md cursor-help"

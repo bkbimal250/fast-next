@@ -1,6 +1,6 @@
 # SEO Improvements Summary
 
-This document outlines all SEO improvements made to the SPA Jobs Portal for better Google ranking and search visibility.
+This document outlines all SEO improvements made to the Work Spa Portal for better Google ranking and search visibility.
 
 ## ✅ Completed Improvements
 

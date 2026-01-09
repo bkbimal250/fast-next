@@ -302,7 +302,7 @@ async def forgot_password(
         # Send email
         email_sent = await send_email(
             to_email=forgot_data.email,
-            subject="Password Reset Request - SPA Jobs Portal",
+            subject="Password Reset Request - Work Spa Portal",
             html_content=html_content,
             text_content=text_content
         )

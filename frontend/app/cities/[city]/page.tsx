@@ -120,8 +120,8 @@ export default function CityPage({ params }: { params: { city: string } }) {
   const collectionPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `SPA Jobs in ${cityName}`,
-    description: `Find ${jobCount}+ spa jobs in ${cityName}. Browse therapist, masseuse, and spa manager positions.`,
+    name: `Work Spa in ${cityName}`,
+    description: `Find ${jobCount}+ Work Spa in ${cityName}. Browse therapist, masseuse, and spa manager positions.`,
     url: pageUrl,
     mainEntity: {
       '@type': 'ItemList',
@@ -150,7 +150,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
               '@type': 'Organization',
               name: job.spa?.name || 'SPA',
               ...(logoUrl && { logo: logoUrl }),
-              ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
+              ...(job.spa?.slug && { sameAs: `${siteUrl}/besttopspas/${job.spa.slug}` }),
             },
             jobLocation: {
               '@type': 'Place',
@@ -211,10 +211,10 @@ export default function CityPage({ params }: { params: { city: string } }) {
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            SPA Jobs in {cityName}
+            Work Spa in {cityName}
           </h1>
           <p className="text-xl sm:text-2xl text-blue-100">
-            {jobCount > 0 ? `${jobCount}+ jobs available` : 'Find your dream job'}
+            {jobCount > 0 ? `${jobCount}+ jobs available` : 'Apply jobs for first call'}
           </p>
         </div>
       </div>

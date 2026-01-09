@@ -76,7 +76,7 @@ export default function ChatWidget() {
     // Set initial welcome message with the selected name
     setMessages([
       {
-        text: `Hello! I'm ${randomName}, Workspa assistant. I can help you find spa jobs and spas. What are you looking for?`,
+        text: `Hello! I'm ${randomName}, Workspa assistant. I can help you find Work Spa and spas. What are you looking for?`,
         isUser: false,
         suggestions: [
           "Find spa therapist jobs in Mumbai",

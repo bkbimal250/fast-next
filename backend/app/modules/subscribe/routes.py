@@ -259,7 +259,7 @@ Unsubscribe: {unsubscribe_url}
     
     await send_email(
         to_email=email,
-        subject="Welcome to Job Notifications - SPA Jobs",
+        subject="Welcome to Job Notifications - Work Spa",
         html_content=html_content,
         text_content=text_content
     )

@@ -22,7 +22,7 @@ export default function SpaNearMePage() {
   const [distances, setDistances] = useState<Record<number, number>>({});
   const [sortBy, setSortBy] = useState<'distance' | 'name'>('distance');
   const [currentPage, setCurrentPage] = useState(1);
-  const spasPerPage = 12;
+  const spasPerPage = 15;
 
   useEffect(() => {
     // Only get location on client side
@@ -335,7 +335,7 @@ export default function SpaNearMePage() {
                   Enable Location
                 </button>
                 <Link
-                  href="/spas"
+                  href="/spa-near-me"
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg transition-colors text-sm sm:text-base text-center"
                 >
                   Browse All SPAs
@@ -357,7 +357,7 @@ export default function SpaNearMePage() {
                   Try 50 km
                 </button>
                 <Link
-                  href="/spas"
+                  href="/spa-near-me"
                   className="bg-brand-600 hover:bg-brand-700 text-white font-medium px-4 sm:px-6 py-2 rounded-lg transition-colors text-sm sm:text-base text-center"
                 >
                   Browse All SPAs

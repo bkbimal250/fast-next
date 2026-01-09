@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
 import { Job } from '@/lib/job';
 import { getLogoUrl, getInitials } from './utils';
+import { capitalizeTitle } from '@/lib/text-utils';
 
 interface PopularJobsListProps {
   jobs: Job[];
@@ -50,10 +51,10 @@ export default function PopularJobsList({ jobs, currentJobId }: PopularJobsListP
                   )}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 line-clamp-2 mb-1 group-hover:text-brand-600 transition-colors text-sm leading-tight">
-                      {job.title}
+                      {capitalizeTitle(job.title)}
                     </h4>
                     <p className="text-xs text-gray-600 mb-1.5">
-                      {job.spa?.name || 'SPA'}
+                      {capitalizeTitle(job.spa?.name) || 'SPA'}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       {job.salary_min && (

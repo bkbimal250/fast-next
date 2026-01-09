@@ -213,7 +213,7 @@ export default function Footer() {
         <div className="border-t border-white/20 mt-12 pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-white/70 text-sm text-center sm:text-left">
-              <p>&copy; {currentYear} SPA Jobs. All rights reserved.</p>
+              <p>&copy; {currentYear} Work Spa. All rights reserved.</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
               <Link href="/privacy" className="text-white/70 hover:text-white transition-colors">

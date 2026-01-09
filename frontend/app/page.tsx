@@ -53,8 +53,8 @@ export default function HomePage() {
   const homepageSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'SPA Jobs Portal',
-    description: 'Find the best spa jobs near you. Apply directly to spas without login.',
+    name: 'Work Spa Portal',
+    description: 'Find the best Work Spa near you. Apply directly to spas without login.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
     potentialAction: {
       '@type': 'SearchAction',
@@ -69,7 +69,7 @@ export default function HomePage() {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Workspa - SPA Jobs India',
+    name: 'Workspa - Work Spa India',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
     logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/logo.png`,
     description: 'India\'s leading platform for spa job opportunities',
@@ -80,7 +80,7 @@ export default function HomePage() {
 
   // Generate enhanced meta description with job examples
   const enhancedDescription = useMemo(() => {
-    const baseDescription = "Find the best spa jobs near you. Apply directly to spas without login. Browse thousands of spa jobs by location, salary, and experience.";
+    const baseDescription = "Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience.";
     
     // Get jobs for examples (combine featured and popular, take first 3-4 unique ones)
     const allJobs = [...featuredJobs, ...popularJobs];
@@ -115,16 +115,16 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       {/* SEO Metadata */}
       <SEOHead
-        title="SPA Jobs Near Me - Find Spa Jobs in Your City"
+        title="Work Spa Near Me - Find Work Spa in Your City"
         description={enhancedDescription}
         keywords={[
-          'spa jobs',
+          'Work Spa',
           'spa therapist jobs',
           'massage therapist jobs',
           'spa manager jobs',
-          'beauty spa jobs',
+          'beauty Work Spa',
           'wellness jobs',
-          'spa jobs near me',
+          'Work Spa near me',
           'spa careers',
           'spa employment',
           'spa hiring',
@@ -151,10 +151,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 relative z-10">
           <div className="text-center mb-8 sm:mb-10 animate-fade-in">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 leading-tight px-2">
-              Find Trusted Spa Jobs Across India
+              Find Trusted Work Spa Across India
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 sm:mb-10 px-4">
-              Verified spa jobs for therapists, managers & wellness professionals
+              Verified Work Spa for therapists, managers & wellness professionals
             </p>
           </div>
           

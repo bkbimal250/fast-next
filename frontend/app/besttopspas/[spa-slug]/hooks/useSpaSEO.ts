@@ -89,7 +89,7 @@ export function generateSpaMetadata(
   locationNames: LocationNames
 ): Metadata {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const canonical = `${baseUrl}/spas/${spa.slug}`;
+  const canonical = `${baseUrl}/besttopspas/${spa.slug}`;
   const locationStrForTitle = [locationNames.area, locationNames.city, locationNames.state]
     .filter(Boolean)
     .join(', ');
@@ -176,7 +176,7 @@ export function generateSpaMetadata(
   };
 
   return {
-    title: `${spa.name}${locationStrForTitle ? ` - ${locationStrForTitle}` : ''} | SPA Jobs Portal`,
+    title: `${spa.name}${locationStrForTitle ? ` - ${locationStrForTitle}` : ''} | Work Spa Portal`,
     description,
     canonical,
     ogTitle: `${spa.name}${locationStrForTitle ? ` - ${locationStrForTitle}` : ''}`,

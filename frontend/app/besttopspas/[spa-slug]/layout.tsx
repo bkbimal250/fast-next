@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: { 'spa-slug': strin
 
     if (!response.ok) {
       return {
-        title: 'SPA Not Found | SPA Jobs Portal',
+        title: 'SPA Not Found | Work Spa Portal',
         description: 'The SPA you are looking for does not exist.',
         robots: {
           index: false,
@@ -61,12 +61,12 @@ export async function generateMetadata({ params }: { params: { 'spa-slug': strin
       .filter(Boolean)
       .join(', ');
 
-    const title = `${spa.name}${locationStr ? ` - ${locationStr}` : ''} | SPA Jobs Portal`;
+    const title = `${spa.name}${locationStr ? ` - ${locationStr}` : ''} | Work Spa Portal`;
     const description = spa.description
       ? `${spa.description.substring(0, 155)}${spa.description.length > 155 ? '...' : ''}`
-      : `${spa.name}${locationStr ? ` located in ${locationStr}` : ''}. Find spa jobs, contact information, and more.`;
+      : `${spa.name}${locationStr ? ` located in ${locationStr}` : ''}. Find Work Spa, contact information, and more.`;
 
-    const canonical = `${SITE_URL}/spas/${spa.slug}`;
+    const canonical = `${SITE_URL}/besttopspas/${spa.slug}`;
     const ogImage = spa.logo_image
       ? `${API_URL}${spa.logo_image.startsWith('/') ? spa.logo_image : `/${spa.logo_image}`}`
       : `${SITE_URL}/og-image-default.jpg`;
@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: { params: { 'spa-slug': strin
         `${spa.name} spa`,
         `spa ${locationNames.city || ''}`,
         `spa ${locationNames.area || ''}`,
-        `spa jobs ${locationNames.city || ''}`,
+        `Work Spa ${locationNames.city || ''}`,
         `${spa.name} jobs`,
         `${spa.name} contact`,
         `spa near me ${locationNames.city || ''}`,
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: { params: { 'spa-slug': strin
         type: 'website',
         locale: 'en_IN',
         url: canonical,
-        siteName: 'Workspa - SPA Jobs Portal',
+        siteName: 'Workspa - Work Spa Portal',
         title: `${spa.name}${locationStr ? ` - ${locationStr}` : ''}`,
         description,
         images: [
@@ -124,7 +124,7 @@ export async function generateMetadata({ params }: { params: { 'spa-slug': strin
   } catch (error) {
     console.error('Error generating spa metadata:', error);
     return {
-      title: 'SPA Profile | SPA Jobs Portal',
+      title: 'SPA Profile | Work Spa Portal',
       description: 'View SPA profile and job openings.',
     };
   }

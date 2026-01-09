@@ -102,7 +102,7 @@ export default function CategoryLocationJobsPage() {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: `${categoryName} Jobs in ${locationName}`,
-    description: `Find ${jobCount}+ ${categoryName} jobs in ${locationName}. Browse and apply to the best spa jobs near you.`,
+    description: `Find ${jobCount}+ ${categoryName} jobs in ${locationName}. Browse and apply to the best Work Spa near you.`,
     url: pageUrl,
     mainEntity: {
       '@type': 'ItemList',
@@ -141,7 +141,7 @@ export default function CategoryLocationJobsPage() {
               ...(job.spa?.logo_image && {
                 logo: `${API_URL}${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
               }),
-              ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
+              ...(job.spa?.slug && { sameAs: `${siteUrl}/besttopspas/${job.spa.slug}` }),
             },
             jobLocation: {
               '@type': 'Place',
@@ -222,7 +222,7 @@ export default function CategoryLocationJobsPage() {
             {categoryName} Jobs in {locationName}
           </h1>
           <p className="text-xl sm:text-2xl text-blue-100">
-            {jobCount > 0 ? `${jobCount}+ jobs available` : 'Find your dream job'}
+            {jobCount > 0 ? `${jobCount}+ jobs available` : 'Apply jobs for first call'}
           </p>
         </div>
       </div>

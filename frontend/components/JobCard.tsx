@@ -9,6 +9,7 @@ import { applicationAPI } from '@/lib/application';
 import axios from 'axios';
 import { FaRupeeSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaWhatsapp, FaPhone, FaUser, FaClock } from 'react-icons/fa';
 import { showToast, showErrorToast } from '@/lib/toast';
+import { capitalizeTitle } from '@/lib/text-utils';
 
 interface JobCardProps {
   id: number;
@@ -39,6 +40,7 @@ interface JobCardProps {
   hr_contact_phone?: string;
   required_gender?: string;
   job_timing?: string;
+  isNew?: boolean;
 }
 
 export default function JobCard({
@@ -65,6 +67,7 @@ export default function JobCard({
   hr_contact_phone,
   required_gender,
   job_timing,
+  isNew = false,
 }: JobCardProps) {
   const router = useRouter();
   const { user } = useAuth();
@@ -214,11 +217,21 @@ export default function JobCard({
 
   return (
     <Link href={`/jobs/${slug}`} className="block">
-      <div className="bg-white border border-gray-300 rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden">
+      <div className={`bg-white rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden ${
+        isNew ? 'border-2 border-green-400 shadow-md' : 'border border-gray-300'
+      }`}>
         {/* Featured Badge - Top Right */}
         {isFeatured && (
           <div className="absolute top-0 right-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2 sm:px-3 py-1 rounded-bl-lg rounded-tr-lg shadow-md z-10">
             ⭐ Featured
+          </div>
+        )}
+        
+        {/* New Job Badge - Top Left */}
+        {isNew && (
+          <div className="absolute top-0 left-0 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-2 sm:px-3 py-1 rounded-br-lg rounded-tl-lg shadow-md z-10 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+            New
           </div>
         )}
 
@@ -250,12 +263,12 @@ export default function JobCard({
               <div className="flex-1 min-w-0">
                 {/* Job Title */}
                 <h3 className="text-base sm:text-lg font-semibold text-brand-600 group-hover:text-brand-700 transition-colors mb-1.5 line-clamp-2 leading-tight">
-                  {title}
+                  {capitalizeTitle(title)}
                 </h3>
                 
                 {/* SPA Name */}
                 <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2.5 sm:mb-3">
-                  {spaName || 'SPA'}
+                  {capitalizeTitle(spaName) || 'SPA'}
                 </p>
 
                 {/* Key Info Row - Salary, Experience, Location */}

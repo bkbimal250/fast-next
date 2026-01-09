@@ -67,12 +67,12 @@ export async function generateMetadata({
     }
 
     const jobCountText = jobCount > 0 ? `${jobCount.toLocaleString()} ` : '';
-    const baseTitle = `SPA Jobs in ${capitalizedArea}, ${capitalizedCity}`;
+    const baseTitle = `Work Spa in ${capitalizedArea}, ${capitalizedCity}`;
     const fullTitle = jobCount > 0 
-      ? `${baseTitle} - ${jobCountText}Jobs Available | SPA Jobs Portal`
-      : `${baseTitle} | SPA Jobs Portal`;
+      ? `${baseTitle} - ${jobCountText}Jobs Available | Work Spa Portal`
+      : `${baseTitle} | Work Spa Portal`;
     
-    const description = `Find ${jobCountText}spa jobs in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies in ${capitalizedArea}. Search spa jobs near you with salary, experience, and location filters.`;
+    const description = `Find ${jobCountText}Work Spa in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies in ${capitalizedArea}. Search Work Spa near you with salary, experience, and location filters.`;
     
     const pageUrl = `${siteUrl}/cities/${params.city}/${params.area}`;
     
@@ -80,12 +80,12 @@ export async function generateMetadata({
       title: fullTitle,
       description,
       keywords: [
-        `spa jobs ${capitalizedArea}`,
-        `spa jobs in ${capitalizedArea}`,
-        `spa jobs ${capitalizedArea} ${capitalizedCity}`,
-        `spa jobs in ${capitalizedArea} ${capitalizedCity}`,
+        `Work Spa ${capitalizedArea}`,
+        `Work Spa in ${capitalizedArea}`,
+        `Work Spa ${capitalizedArea} ${capitalizedCity}`,
+        `Work Spa in ${capitalizedArea} ${capitalizedCity}`,
         `jobs in ${capitalizedArea}`,
-        `${capitalizedArea} spa jobs`,
+        `${capitalizedArea} Work Spa`,
         capitalizedArea,
         capitalizedCity,
       ],
@@ -94,7 +94,7 @@ export async function generateMetadata({
         url: pageUrl,
         title: fullTitle,
         description,
-        siteName: 'Workspa - SPA Jobs Portal',
+        siteName: 'Workspa - Work Spa Portal',
       },
       twitter: {
         card: 'summary_large_image',
@@ -131,8 +131,8 @@ export async function generateMetadata({
       .join(' ');
     
     return {
-      title: `SPA Jobs in ${capitalizedArea}, ${capitalizedCity} | SPA Jobs Portal`,
-      description: `Find spa jobs in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies.`,
+      title: `Work Spa in ${capitalizedArea}, ${capitalizedCity} | Work Spa Portal`,
+      description: `Find Work Spa in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies.`,
       robots: {
         index: true,
         follow: true,

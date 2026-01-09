@@ -16,7 +16,7 @@ export default function ProcessPage() {
           How It Works
         </h2>
         <p className="mt-3 text-gray-600 max-w-xl mx-auto">
-          Find spa jobs faster with a simple, transparent hiring process
+          Find Work Spa faster with a simple, transparent hiring process
         </p>
       </div>
 
@@ -39,7 +39,7 @@ export default function ProcessPage() {
             Create Your Profile
           </h3>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Add your basic details or continue without login to explore spa jobs.
+            Add your basic details or continue without login to explore Work Spa.
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export default function ProcessPage() {
             Search & Apply
           </h3>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Find nearby spa jobs, view details, and apply instantly with your CV.
+            Find nearby Work Spa, view details, and apply instantly with your CV.
           </p>
         </div>
 

@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import JobCard from '@/components/JobCard';
 import JobFilters from '@/components/JobFilters';
-import SubscribeForm from '@/components/SubscribeForm';
 import Navbar from '@/components/Navbar';
 import Pagination from '@/components/Pagination';
 import { jobAPI, Job } from '@/lib/job';
@@ -35,6 +34,8 @@ function JobsPageContent() {
   const [totalJobs, setTotalJobs] = useState(0);
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary'>('recent');
   const [filters, setFilters] = useState<FilterState>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   const searchQuery = searchParams.get('q') || '';
   const locationQuery = searchParams.get('location') || '';
@@ -83,7 +84,7 @@ function JobsPageContent() {
     setLoading(true);
     try {
       const params: any = {
-        limit: 20,
+        limit: 100, // Fetch initial batch for faster LCP, pagination will load more if needed
       };
 
       if (searchQuery) {
@@ -114,7 +115,20 @@ function JobsPageContent() {
       if (filters.experienceMax) params.experience_years_max = filters.experienceMax;
       if (filters.isFeatured !== undefined) params.is_featured = filters.isFeatured;
 
-      let data = await jobAPI.getAllJobs(params);
+      // Fetch jobs and count in parallel
+      const [jobsData, countData] = await Promise.all([
+        jobAPI.getAllJobs(params),
+        jobAPI.getJobCount({
+          country_id: filters.countryId,
+          state_id: filters.stateId,
+          city_id: filters.cityId,
+          area_id: filters.areaId,
+          job_type: filters.jobTypeId?.toString(),
+          job_category: filters.jobCategoryId?.toString(),
+        }),
+      ]);
+
+      let data = jobsData;
       
       // Client-side location filtering if location parameter is provided as string
       if (locationQuery && !params.city_id && !params.state_id && !params.area_id) {
@@ -143,9 +157,16 @@ function JobsPageContent() {
       }
       
       setJobs(data);
-      setTotalJobs(data.length);
+      // Use the count from API, but if we have client-side filters, use filtered length
+      if (locationQuery || searchQuery) {
+        setTotalJobs(data.length);
+      } else {
+        setTotalJobs(countData.count);
+      }
     } catch (error) {
       console.error('Error fetching jobs:', error);
+      // Fallback: use jobs length if count API fails
+      setTotalJobs(jobs.length);
     } finally {
       setLoading(false);
     }
@@ -157,6 +178,63 @@ function JobsPageContent() {
 
   const handleSortChange = (newSort: 'recent' | 'popular' | 'salary') => {
     setSortBy(newSort);
+  };
+
+  // Sort and filter jobs based on sortBy
+  const sortedJobs = useMemo(() => {
+    let sorted = [...jobs];
+    
+    switch (sortBy) {
+      case 'recent':
+        // Sort by created_at descending (newest first)
+        sorted.sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      case 'popular':
+        // Sort by view_count descending
+        sorted.sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+        break;
+      case 'salary':
+        // Sort by salary_min descending (highest first)
+        sorted.sort((a, b) => {
+          const salaryA = a.salary_min || 0;
+          const salaryB = b.salary_min || 0;
+          return salaryB - salaryA;
+        });
+        break;
+      default:
+        // Default: recent
+        sorted.sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        });
+    }
+    
+    return sorted;
+  }, [jobs, sortBy]);
+
+  // Paginate sorted jobs
+  const paginatedJobs = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedJobs.slice(startIndex, endIndex);
+  }, [sortedJobs, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy, filters, searchQuery, locationQuery]);
+
+  // Check if a job is newly posted (within last 7 days)
+  const isNewJob = (createdAt?: string): boolean => {
+    if (!createdAt) return false;
+    const jobDate = new Date(createdAt);
+    const daysAgo = (Date.now() - jobDate.getTime()) / (1000 * 60 * 60 * 24);
+    return daysAgo <= 7;
   };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
@@ -172,7 +250,7 @@ function JobsPageContent() {
       ).join(' ');
       parts.push(`${queryFormatted} Jobs`);
     } else {
-      parts.push('SPA Jobs');
+      parts.push('Work Spa');
     }
     
     if (effectiveLocation) {
@@ -194,9 +272,9 @@ function JobsPageContent() {
     } else if (searchQuery) {
       parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} ${searchQuery.toLowerCase()} jobs across India.`);
     } else if (effectiveLocation) {
-      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs in ${effectiveLocation}.`);
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} Work Spa in ${effectiveLocation}.`);
     } else {
-      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs across India.`);
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} Work Spa across India.`);
     }
     
     // Add job examples from current results (top 3-4 jobs with salary info)
@@ -239,14 +317,14 @@ function JobsPageContent() {
     }
     
     if (effectiveLocation) {
-      keywords.push(`spa jobs ${effectiveLocation}`);
-      keywords.push(`spa jobs in ${effectiveLocation}`);
+      keywords.push(`Work Spa ${effectiveLocation}`);
+      keywords.push(`Work Spa in ${effectiveLocation}`);
       if (searchQuery) {
         keywords.push(`${searchQuery.toLowerCase()} jobs in ${effectiveLocation}`);
       }
     }
     
-    keywords.push('spa jobs', 'spa therapist jobs', 'massage therapist jobs');
+    keywords.push('Work Spa', 'spa therapist jobs', 'massage therapist jobs');
     
     return keywords;
   }, [searchQuery, effectiveLocation]);
@@ -318,7 +396,7 @@ function JobsPageContent() {
             ...(job.spa?.logo_image && {
               logo: `${process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in'}${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
             }),
-            ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
+            ...(job.spa?.slug && { sameAs: `${siteUrl}/besttopspas/${job.spa.slug}` }),
           },
           jobLocation: {
             '@type': 'Place',
@@ -398,7 +476,7 @@ function JobsPageContent() {
                 `${searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Jobs`
               )
             ) : effectiveLocation ? (
-              `SPA Jobs in ${effectiveLocation}`
+              `Work Spa in ${effectiveLocation}`
             ) : (
               'Find Your Dream SPA Job'
             )}
@@ -421,7 +499,6 @@ function JobsPageContent() {
                 onFilterChange={handleFilterChange} 
                 initialFilters={filters}
               />
-              <SubscribeForm />
             </div>
           </div>
 
@@ -484,8 +561,9 @@ function JobsPageContent() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {jobs.map((job) => (
+              <>
+                <div className="space-y-4">
+                  {paginatedJobs.map((job) => (
                   <JobCard
                     key={job.id}
                     id={job.id}
@@ -508,23 +586,37 @@ function JobsPageContent() {
                     jobOpeningCount={job.job_opening_count}
                     jobType={typeof job.job_type === 'string' ? job.job_type : job.job_type?.name}
                     jobCategory={typeof job.job_category === 'string' ? job.job_category : job.job_category?.name}
-                  slug={job.slug}
-                  isFeatured={job.is_featured}
-                  viewCount={job.view_count}
-                  created_at={job.created_at}
-                  description={job.description}
-                  logoImage={job.spa?.logo_image}
-                  postedBy={job.created_by_user ? {
-                    id: job.created_by_user.id,
-                    name: job.created_by_user.name,
-                    profile_photo: job.created_by_user.profile_photo,
-                  } : undefined}
-                  hr_contact_phone={job.hr_contact_phone}
-                  required_gender={job.required_gender}
-                  job_timing={job.job_timing}
-                />
-                ))}
-              </div>
+                    slug={job.slug}
+                    isFeatured={job.is_featured}
+                    viewCount={job.view_count}
+                    created_at={job.created_at}
+                    description={job.description}
+                    logoImage={job.spa?.logo_image}
+                    postedBy={job.created_by_user ? {
+                      id: job.created_by_user.id,
+                      name: job.created_by_user.name,
+                      profile_photo: job.created_by_user.profile_photo,
+                    } : undefined}
+                    hr_contact_phone={job.hr_contact_phone}
+                    required_gender={job.required_gender}
+                    job_timing={job.job_timing}
+                    isNew={isNewJob(job.created_at)}
+                  />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {sortedJobs.length > itemsPerPage && (
+                  <div className="mt-6">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalItems={sortedJobs.length}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

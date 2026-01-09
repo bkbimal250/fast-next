@@ -13,13 +13,13 @@ export async function generateMetadata({
     .join(' ');
 
   return generatePageMetadata(
-    `SPA Jobs in ${capitalizedCity}`,
-    `Find spa jobs in ${capitalizedCity}. Browse therapist, masseuse, and spa manager positions. Apply directly without login.`,
+    `Work Spa in ${capitalizedCity}`,
+    `Find Work Spa in ${capitalizedCity}. Browse therapist, masseuse, and spa manager positions. Apply directly without login.`,
     {
       keywords: [
-        `spa jobs ${capitalizedCity}`,
-        `spa jobs in ${capitalizedCity}`,
-        `${capitalizedCity} spa jobs`,
+        `Work Spa ${capitalizedCity}`,
+        `Work Spa in ${capitalizedCity}`,
+        `${capitalizedCity} Work Spa`,
         `spa careers ${capitalizedCity}`,
       ],
       url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/cities/${params.city}`,

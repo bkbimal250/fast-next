@@ -171,7 +171,7 @@ export default function SpaDetailPage() {
     '@type': 'LocalBusiness',
     name: spa.name,
     description: spa.description || `${spa.name} - Professional SPA Services`,
-    url: spa.website || `${SITE_URL}/spas/${spa.slug}`,
+    url: spa.website || `${SITE_URL}/besttopspas/${spa.slug}`,
     ...(spa.logo_image && {
       image: `${API_URL}${spa.logo_image.startsWith('/') ? spa.logo_image : `/${spa.logo_image}`}`,
     }),
@@ -228,7 +228,7 @@ export default function SpaDetailPage() {
         '@type': 'Organization',
         name: spa.name,
         ...(logoUrl && { logo: logoUrl }),
-        ...(spa.slug && { sameAs: `${SITE_URL}/spas/${spa.slug}` }),
+        ...(spa.slug && { sameAs: `${SITE_URL}/besttopspas/${spa.slug}` }),
       },
       jobLocation: {
         '@type': 'Place',
@@ -286,7 +286,7 @@ export default function SpaDetailPage() {
         '@type': 'ListItem',
         position: 3,
         name: spa.name,
-        item: `${SITE_URL}/spas/${spa.slug}`,
+        item: `${SITE_URL}/besttopspas/${spa.slug}`,
       },
     ],
   };

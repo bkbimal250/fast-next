@@ -3,9 +3,9 @@ import { generatePageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = generatePageMetadata(
   'Login - Sign In',
-  'Sign in to your SPA Jobs account to access saved jobs, applications, and personalized features.',
+  'Sign in to your Work Spa account to access saved jobs, applications, and personalized features.',
   {
-    keywords: ['login', 'sign in', 'spa jobs login'],
+    keywords: ['login', 'sign in', 'Work Spa login'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/login`,
   }
 );

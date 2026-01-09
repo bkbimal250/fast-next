@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import Image from 'next/image';
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaCheckCircle, FaExclamationCircle, FaClock, FaHeadset, FaPaperPlane } from 'react-icons/fa';
 import { contactAPI, ContactSubject } from '@/lib/contact';
 import Navbar from '@/components/Navbar';
+import SubscribeForm from '@/components/SubscribeForm';
 import type { Metadata } from 'next';
 
 // Note: Metadata is defined in layout.tsx (Next.js requires metadata in layout for client components)
@@ -55,12 +57,12 @@ export default function ContactPage() {
   const contactPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    name: 'Contact Us - SPA Jobs Portal',
-    description: 'Contact SPA Jobs Portal for inquiries, support, or feedback',
+    name: 'Contact Us - Work Spa Portal',
+    description: 'Contact Work Spa Portal for inquiries, support, or feedback',
     url: `${siteUrl}/contact`,
     mainEntity: {
       '@type': 'Organization',
-      name: 'Workspa - SPA Jobs Portal',
+      name: 'Workspa - Work Spa Portal',
       email: 'info@workspa.in',
       telephone: '+919152120246',
       address: {
@@ -79,172 +81,259 @@ export default function ContactPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
       />
       <Navbar />
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Have a question or feedback? We'd love to hear from you!
-          </p>
+      
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Contact Information */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                    <FaEnvelope color="#115e59" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <a href="mailto:info@workspa.in" className="text-brand-600 hover:text-brand-700">
-                      info@workspa.in
-                    </a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                    <FaPhone color="#115e59" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                    <a href="tel:+911234567890" className="text-brand-600 hover:text-brand-700">
-                      +91 9152120246
-                    </a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                    <FaMapMarkerAlt color="#115e59" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Address</h3>
-                    <p className="text-gray-600">India</p>
-                  </div>
-                </div>
-              </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24">
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
+              Get in Touch
             </div>
-
-            <div className="bg-brand-50 rounded-lg border border-brand-200 p-6">
-              <h3 className="font-semibold text-brand-900 mb-2">Response Time</h3>
-              <p className="text-sm text-brand-700">
-                We typically respond within 24-48 hours during business days. 
-                For urgent matters, please call us directly.
-              </p>
-            </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
-
-            {success && (
-              <div className="mb-6 bg-green-50 border-2 border-green-200 rounded-lg p-4 flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <FaCheckCircle color="#16a34a" size={20} />
-                </div>
-                <div>
-                  <p className="font-semibold text-green-700">Message sent successfully!</p>
-                  <p className="text-sm text-green-600 mt-1">
-                    We'll get back to you as soon as possible.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <FaExclamationCircle color="#dc2626" size={20} />
-                </div>
-                <div>
-                  <p className="font-semibold text-red-700">Error</p>
-                  <p className="text-sm text-red-600 mt-1">{error}</p>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Your name"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Your phone number"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject
-                </label>
-                <select
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value as ContactSubject })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                >
-                  <option value={ContactSubject.JOBS}>Jobs</option>
-                  <option value={ContactSubject.JOBS_LISTING}>Jobs Listing</option>
-                  <option value={ContactSubject.OTHERS}>Others</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Your message (optional)"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Sending...' : 'Send Message'}
-              </button>
-            </form>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              We're Here to
+              <span className="block text-gold-400">Help You</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed">
+              Have a question, feedback, or need support? Our team is ready to assist you. 
+              Reach out and we'll get back to you as soon as possible.
+            </p>
           </div>
         </div>
       </div>
-    </div>
+
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+
+          {/* Contact Information Cards */}
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FaEnvelope className="text-white" size={24} />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Email Us</h3>
+              <a href="mailto:info@workspa.in" className="text-brand-600 hover:text-brand-700 font-medium transition-colors">
+                info@workspa.in
+              </a>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FaPhone className="text-white" size={24} />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Call Us</h3>
+              <a href="tel:+919152120246" className="text-brand-600 hover:text-brand-700 font-medium transition-colors">
+                +91 9152120246
+              </a>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FaMapMarkerAlt className="text-white" size={24} />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Location</h3>
+              <p className="text-gray-600 font-medium">Navi Mumbai, Maharashtra, India</p>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Contact Information */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="relative">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <FaHeadset className="text-brand-600" size={24} />
+                    Contact Information
+                  </h2>
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <FaEnvelope className="text-white" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Email Address</h3>
+                        <a href="mailto:info@workspa.in" className="text-brand-600 hover:text-brand-700 font-medium">
+                          info@workspa.in
+                        </a>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
+                        <FaPhone className="text-white" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Phone Number</h3>
+                        <a href="tel:+919152120246" className="text-brand-600 hover:text-brand-700 font-medium">
+                          +91 9152120246
+                        </a>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                        <FaMapMarkerAlt className="text-white" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Office Location</h3>
+                        <p className="text-gray-600 font-medium">Navi Mumbai, Maharashtra, India</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-brand-50 to-blue-50 rounded-2xl border-2 border-brand-200 p-6 shadow-md">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center">
+                      <FaClock className="text-white" size={20} />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-brand-900 mb-2 text-lg">Response Time</h3>
+                    <p className="text-brand-700 leading-relaxed">
+                      We typically respond within <span className="font-semibold">24-48 hours</span> during business days. 
+                      For urgent matters, please call us directly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Form */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gold-50 rounded-full -translate-y-16 -translate-x-16"></div>
+              <div className="relative">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <FaPaperPlane className="text-brand-600" size={24} />
+                  Send us a Message
+                </h2>
+                <p className="text-gray-600 mb-6">Fill out the form below and we'll get back to you soon.</p>
+
+                {success && (
+                  <div className="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5 flex items-start gap-3 shadow-sm">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <FaCheckCircle className="text-green-600" size={22} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-green-800 text-lg">Message sent successfully!</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        We'll get back to you as soon as possible. Thank you for contacting us!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-5 flex items-start gap-3 shadow-sm">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <FaExclamationCircle className="text-red-600" size={22} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-red-800 text-lg">Error</p>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white"
+                      placeholder="+91 1234567890"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Subject
+                    </label>
+                    <select
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value as ContactSubject })}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white"
+                    >
+                      <option value={ContactSubject.JOBS}>Jobs</option>
+                      <option value={ContactSubject.JOBS_LISTING}>Jobs Listing</option>
+                      <option value={ContactSubject.OTHERS}>Others</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Message <span className="text-gray-500 text-xs font-normal">(Optional)</span>
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      rows={6}
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white resize-none"
+                      placeholder="Tell us how we can help you..."
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-brand-600 to-brand-700 text-white py-4 rounded-xl font-bold hover:from-brand-700 hover:to-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Sending Message...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaPaperPlane size={18} />
+                        <span>Send Message</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {/* Subscription Form */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 sm:p-10">
+            <SubscribeForm />
+          </div>
+        </div>
+      </div>
 
     </>
   );

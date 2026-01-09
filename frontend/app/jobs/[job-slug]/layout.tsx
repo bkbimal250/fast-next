@@ -22,7 +22,7 @@ export async function generateMetadata({
     if (!jobResponse.ok) {
       // Return fallback metadata if job not found
       return {
-        title: 'Job Not Found | SPA Jobs Portal',
+        title: 'Job Not Found | Work Spa Portal',
         description: 'The job you are looking for could not be found.',
       };
     }
@@ -51,7 +51,7 @@ export async function generateMetadata({
     console.error('Error generating job metadata:', error);
     // Return fallback metadata on error
     return {
-      title: 'SPA Job Details | SPA Jobs Portal',
+      title: 'SPA Job Details | Work Spa Portal',
       description: 'View detailed information about this spa job opportunity.',
     };
   }

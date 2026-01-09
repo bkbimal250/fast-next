@@ -3,8 +3,8 @@ import { FaFileContract, FaUserCheck, FaExclamationTriangle, FaGavel, FaHandshak
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | SPA Jobs',
-  description: 'Read our terms of service to understand the rules and guidelines for using SPA Jobs platform.',
+  title: 'Terms of Service | Work Spa',
+  description: 'Read our terms of service to understand the rules and guidelines for using Work Spa platform.',
   robots: 'index, follow',
 };
 
@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
             Last Updated: <span className="font-semibold">{lastUpdated}</span>
           </p>
           <p className="text-gray-600 mt-2">
-            Welcome to SPA Jobs. By accessing or using our platform, you agree to be bound by these Terms of Service. 
+            Welcome to Work Spa. By accessing or using our platform, you agree to be bound by these Terms of Service. 
             Please read these terms carefully before using our services.
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function TermsOfServicePage() {
             </div>
             <div className="space-y-3 text-gray-700">
               <p>
-                By accessing or using SPA Jobs ("the Platform", "we", "us", "our"), you agree to comply with and be bound by 
+                By accessing or using Work Spa ("the Platform", "we", "us", "our"), you agree to comply with and be bound by 
                 these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use our Platform.
               </p>
               <p>
@@ -184,7 +184,7 @@ export default function TermsOfServicePage() {
             <div className="space-y-3 text-gray-700">
               <p>
                 The Platform and its content, including but not limited to text, graphics, logos, images, software, and code, 
-                are the property of SPA Jobs or its licensors and are protected by copyright, trademark, and other intellectual property laws.
+                are the property of Work Spa or its licensors and are protected by copyright, trademark, and other intellectual property laws.
               </p>
               <p>
                 You may not reproduce, distribute, modify, create derivative works, publicly display, or commercially exploit 
@@ -226,7 +226,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Limitation of Liability</h2>
             <div className="space-y-3 text-gray-700">
               <p>
-                To the maximum extent permitted by law, SPA Jobs and its affiliates, officers, employees, and agents shall not be 
+                To the maximum extent permitted by law, Work Spa and its affiliates, officers, employees, and agents shall not be 
                 liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:
               </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
@@ -247,7 +247,7 @@ export default function TermsOfServicePage() {
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Indemnification</h2>
             <p className="text-gray-700">
-              You agree to indemnify, defend, and hold harmless SPA Jobs and its affiliates, officers, employees, and agents 
+              You agree to indemnify, defend, and hold harmless Work Spa and its affiliates, officers, employees, and agents 
               from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4 mt-3 text-gray-700">
@@ -330,16 +330,13 @@ export default function TermsOfServicePage() {
                 <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91 9152120246</a>
               </p>
               <p className="text-gray-700">
-                <strong>Address:</strong> India
+                <strong>Address:</strong> Navi Mumbai, Maharashtra, India
               </p>
             </div>
           </section>
         </div>
 
-        {/* Footer Note */}
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>By using SPA Jobs, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
-        </div>
+
       </div>
     </div>
     </>

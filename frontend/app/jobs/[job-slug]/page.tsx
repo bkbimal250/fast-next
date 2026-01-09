@@ -276,7 +276,7 @@ export default function JobDetailPage() {
       '@type': 'Organization',
       name: job.spa?.name || 'SPA',
       ...(logoUrl && { logo: logoUrl }),
-      ...(job.spa?.slug && { sameAs: `${siteUrl}/spas/${job.spa.slug}` }),
+      ...(job.spa?.slug && { sameAs: `${siteUrl}/besttopspas/${job.spa.slug}` }),
     },
     jobLocation: {
       '@type': 'Place',
@@ -321,7 +321,7 @@ export default function JobDetailPage() {
         keywords={[
           job.title.toLowerCase(),
           `${job.title} jobs`,
-          `spa jobs ${locationStr}`,
+          `Work Spa ${locationStr}`,
           job.spa?.name?.toLowerCase() || '',
           typeof job.job_category === 'string' ? job.job_category : job.job_category?.name || '',
         ]}

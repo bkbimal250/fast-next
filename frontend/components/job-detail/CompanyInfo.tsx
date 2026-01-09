@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaBuilding, FaStar, FaRegStar, FaCheckCircle } from 'react-icons/fa';
 import { JobWithRelations, getLogoUrl, getInitials } from './utils';
+import { capitalizeTitle } from '@/lib/text-utils';
 
 interface CompanyInfoProps {
   job: JobWithRelations;
@@ -44,8 +45,8 @@ export default function CompanyInfo({ job }: CompanyInfoProps) {
           )}
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Link href={`/spas/${job.spa.slug}`} className="text-lg font-semibold text-brand-600 hover:underline">
-                {job.spa.name}
+              <Link href={`/besttopspas/${job.spa.slug}`} className="text-lg font-semibold text-brand-600 hover:underline">
+                {capitalizeTitle(job.spa.name)}
               </Link>
               {(job.spa as any)?.is_verified && (
                 <span 
@@ -88,7 +89,7 @@ export default function CompanyInfo({ job }: CompanyInfoProps) {
           </div>
         )}
         <Link
-          href={`/spas/${job.spa.slug}`}
+          href={`/besttopspas/${job.spa.slug}`}
           className="block text-center px-4 py-2.5 border-2 border-brand-600 text-brand-600 rounded-lg hover:bg-brand-50 text-sm font-semibold transition-colors"
         >
           View Company Profile

@@ -45,22 +45,22 @@ function PopularJobsContent() {
   // Generate dynamic metadata based on job count
   const metadataTitle = useMemo(() => {
     if (loading) {
-      return 'Popular SPA Jobs - Most Viewed Job Opportunities';
+      return 'Popular Work Spa - Most Viewed Job Opportunities';
     }
     if (jobs.length > 0) {
-      return `Popular SPA Jobs - ${jobs.length} Most Viewed Job Opportunities`;
+      return `Popular Work Spa - ${jobs.length} Most Viewed Job Opportunities`;
     }
-    return 'Popular SPA Jobs - Most Viewed Job Opportunities';
+    return 'Popular Work Spa - Most Viewed Job Opportunities';
   }, [jobs.length, loading]);
 
   const metadataDescription = useMemo(() => {
     if (loading) {
-      return 'Browse the most popular and viewed spa jobs across India. Find trending opportunities for therapists, managers, and wellness professionals.';
+      return 'Browse the most popular and viewed Work Spa across India. Find trending opportunities for therapists, managers, and wellness professionals.';
     }
     if (jobs.length > 0) {
-      return `Browse ${jobs.length} most popular and viewed spa jobs across India. Find trending opportunities for therapists, managers, and wellness professionals.`;
+      return `Browse ${jobs.length} most popular and viewed Work Spa across India. Find trending opportunities for therapists, managers, and wellness professionals.`;
     }
-    return 'Browse the most popular and viewed spa jobs across India. Find trending opportunities for therapists, managers, and wellness professionals.';
+    return 'Browse the most popular and viewed Work Spa across India. Find trending opportunities for therapists, managers, and wellness professionals.';
   }, [jobs.length, loading]);
 
   return (
@@ -69,10 +69,10 @@ function PopularJobsContent() {
         title={metadataTitle}
         description={metadataDescription}
         keywords={[
-          'popular spa jobs',
-          'trending spa jobs',
-          'most viewed spa jobs',
-          'top spa jobs',
+          'popular Work Spa',
+          'trending Work Spa',
+          'most viewed Work Spa',
+          'top Work Spa',
           'spa therapist jobs',
           'spa manager jobs',
         ]}
@@ -86,7 +86,7 @@ function PopularJobsContent() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
-                Popular SPA Jobs
+                Popular Work Spa
               </h1>
               <p className="text-white/90 text-base sm:text-lg">
                 {loading ? 'Loading...' : `${jobs.length} most viewed job opportunities`}

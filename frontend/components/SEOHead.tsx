@@ -24,12 +24,12 @@ export default function SEOHead({
   noindex = false,
 }: SEOHeadProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
-  const siteName = 'Workspa - SPA Jobs Portal';
+  const siteName = 'Workspa - Work Spa Portal';
   const pageTitle = title ? `${title} | ${siteName}` : `${siteName}`;
-  const pageDescription = description || 'Find the best spa jobs near you. Apply directly to spas without login.';
+  const pageDescription = description || 'Find the best Work Spa near you. Apply directly to spas without login.';
   const pageUrl = url || siteUrl;
   const pageImage = image || `${siteUrl}/og-image.jpg`;
-  const keywordsString = keywords?.join(', ') || 'spa jobs, spa therapist jobs, massage therapist jobs';
+  const keywordsString = keywords?.join(', ') || 'Work Spa, spa therapist jobs, massage therapist jobs';
 
   useEffect(() => {
     // Update document title

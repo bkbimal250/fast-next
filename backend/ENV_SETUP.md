@@ -18,7 +18,7 @@ POSTGRES_PORT=5432
 # Security
 SECRET_KEY=dev-secret-key-change-this-in-production-use-random-string
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=1440  # 24 hours (24 * 60 minutes)
 
 # Site Configuration
 SITE_URL=http://localhost:3000

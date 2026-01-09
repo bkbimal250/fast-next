@@ -1,5 +1,7 @@
 'use client';
 
+import SearchableSelect from '@/app/dashboard/spas/components/SearchableSelect';
+
 interface JobFormStep2Props {
   formData: any;
   onFieldChange: (name: string, value: any) => void;
@@ -57,23 +59,20 @@ export default function JobFormStep2({
             <label htmlFor="country_id" className="block text-sm font-semibold text-gray-700 mb-2">
               Country <span className="text-red-500">*</span>
             </label>
-            <select
-              id="country_id"
-              name="country_id"
-              value={formData.country_id}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border ${
-                errors.country_id ? 'border-red-500' : 'border-gray-300'
-              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white`}
-              required
-            >
-              <option value="">Select Country</option>
-              {countries.map((country) => (
-                <option key={country.id} value={country.id}>
-                  {country.name}
-                </option>
-              ))}
-            </select>
+            <div className={errors.country_id ? 'border border-red-500 rounded-lg p-1' : ''}>
+              <SearchableSelect
+                options={countries.map(c => ({ id: c.id, name: c.name }))}
+                value={formData.country_id ? parseInt(formData.country_id) : null}
+                onChange={(value) => {
+                  const countryId = value ? value.toString() : '';
+                  onFieldChange('country_id', countryId);
+                  if (onCountryChange) {
+                    onCountryChange(countryId);
+                  }
+                }}
+                placeholder="Select Country"
+              />
+            </div>
             {errors.country_id && (
               <p className="mt-1 text-sm text-red-600">{typeof errors.country_id === 'string' ? errors.country_id : String(errors.country_id)}</p>
             )}
@@ -83,24 +82,21 @@ export default function JobFormStep2({
             <label htmlFor="state_id" className="block text-sm font-semibold text-gray-700 mb-2">
               State <span className="text-red-500">*</span>
             </label>
-            <select
-              id="state_id"
-              name="state_id"
-              value={formData.state_id}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border ${
-                errors.state_id ? 'border-red-500' : 'border-gray-300'
-              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white disabled:bg-gray-50 disabled:cursor-not-allowed`}
-              disabled={!formData.country_id}
-              required
-            >
-              <option value="">Select State</option>
-              {states.map((state) => (
-                <option key={state.id} value={state.id}>
-                  {state.name}
-                </option>
-              ))}
-            </select>
+            <div className={errors.state_id ? 'border border-red-500 rounded-lg p-1' : ''}>
+              <SearchableSelect
+                options={states.map(s => ({ id: s.id, name: s.name }))}
+                value={formData.state_id ? parseInt(formData.state_id) : null}
+                onChange={(value) => {
+                  const stateId = value ? value.toString() : '';
+                  onFieldChange('state_id', stateId);
+                  if (onStateChange) {
+                    onStateChange(stateId);
+                  }
+                }}
+                placeholder="Select State"
+                disabled={!formData.country_id}
+              />
+            </div>
             {errors.state_id && (
               <p className="mt-1 text-sm text-red-600">{typeof errors.state_id === 'string' ? errors.state_id : String(errors.state_id)}</p>
             )}
@@ -110,24 +106,21 @@ export default function JobFormStep2({
             <label htmlFor="city_id" className="block text-sm font-semibold text-gray-700 mb-2">
               City <span className="text-red-500">*</span>
             </label>
-            <select
-              id="city_id"
-              name="city_id"
-              value={formData.city_id}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border ${
-                errors.city_id ? 'border-red-500' : 'border-gray-300'
-              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white disabled:bg-gray-50 disabled:cursor-not-allowed`}
-              disabled={!formData.state_id}
-              required
-            >
-              <option value="">Select City</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
-            </select>
+            <div className={errors.city_id ? 'border border-red-500 rounded-lg p-1' : ''}>
+              <SearchableSelect
+                options={cities.map(c => ({ id: c.id, name: c.name }))}
+                value={formData.city_id ? parseInt(formData.city_id) : null}
+                onChange={(value) => {
+                  const cityId = value ? value.toString() : '';
+                  onFieldChange('city_id', cityId);
+                  if (onCityChange) {
+                    onCityChange(cityId);
+                  }
+                }}
+                placeholder="Select City"
+                disabled={!formData.state_id}
+              />
+            </div>
             {errors.city_id && (
               <p className="mt-1 text-sm text-red-600">{typeof errors.city_id === 'string' ? errors.city_id : String(errors.city_id)}</p>
             )}
@@ -137,21 +130,16 @@ export default function JobFormStep2({
             <label htmlFor="area_id" className="block text-sm font-semibold text-gray-700 mb-2">
               Area (Optional)
             </label>
-            <select
-              id="area_id"
-              name="area_id"
-              value={formData.area_id}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white disabled:bg-gray-50 disabled:cursor-not-allowed"
+            <SearchableSelect
+              options={areas.map(a => ({ id: a.id, name: a.name }))}
+              value={formData.area_id ? parseInt(formData.area_id) : null}
+              onChange={(value) => {
+                const areaId = value ? value.toString() : '';
+                onFieldChange('area_id', areaId);
+              }}
+              placeholder="Select Area"
               disabled={!formData.city_id}
-            >
-              <option value="">Select Area</option>
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>
