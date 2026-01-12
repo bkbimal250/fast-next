@@ -15,7 +15,7 @@ export async function GET() {
   if (apiUrl && (process.env.NODE_ENV === 'production' || !apiUrl.includes('localhost'))) {
     try {
       // Try to fetch sitemap from backend
-      const response = await fetch(`${apiUrl}/api/seo/sitemap`, {
+      const response = await fetch(`${apiUrl}/api/seo/sitemap.xml`, {
         next: { revalidate: 3600 } // Revalidate every hour
       });
       
