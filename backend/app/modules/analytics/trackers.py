@@ -5,6 +5,7 @@ Analytics tracking utilities
 import hashlib
 from sqlalchemy.orm import Session
 from app.modules.analytics.models import AnalyticsEvent
+from app.utils.device_detection import detect_device_type
 
 
 def hash_ip(ip: str) -> str:
@@ -22,9 +23,14 @@ def track_event(
     longitude: float = None,
     user_agent: str = None,
     ip_address: str = None,
-    device_type: str = None
+    device_type: str = None,
+    search_query: str = None
 ):
     """Track an analytics event"""
+    # Auto-detect device type if not provided
+    if not device_type and user_agent:
+        device_type = detect_device_type(user_agent)
+    
     event = AnalyticsEvent(
         event_type=event_type,
         job_id=job_id,
@@ -34,7 +40,8 @@ def track_event(
         longitude=longitude,
         user_agent=user_agent,
         ip_hash=hash_ip(ip_address) if ip_address else None,
-        device_type=device_type
+        device_type=device_type,
+        search_query=search_query
     )
     db.add(event)
     db.commit()

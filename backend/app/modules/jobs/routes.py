@@ -2,7 +2,7 @@
 Job API routes
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
@@ -442,28 +442,166 @@ def get_jobs_near_me(
 
 
 @router.post("/{job_id}/track-view")
-def track_job_view(job_id: int, db: Session = Depends(get_db)):
+def track_job_view(
+    job_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
     """
-    Increment view_count for a job.
+    Increment view_count for a job and track as analytics event.
 
     Frontend can call this when a job detail page is viewed.
     """
-    job = services.increment_job_view(db, job_id)
+    # Load job with relationships for analytics tracking
+    from sqlalchemy.orm import joinedload
+    job = db.query(Job).options(
+        joinedload(Job.city),
+        joinedload(Job.spa).joinedload("city")
+    ).filter(Job.id == job_id).first()
+    
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Increment view count
+    job.view_count = (job.view_count or 0) + 1
+    db.commit()
+    db.refresh(job)
+    
+    # Also track as analytics event
+    try:
+        from app.modules.analytics import trackers
+        from app.utils.ip_location import get_location_from_ip
+        
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        
+        # Get location from job (prefer job's own location, then spa, then IP)
+        city = None
+        latitude = None
+        longitude = None
+        
+        # Try job's own location first
+        if job.city:
+            city = job.city.name if hasattr(job.city, 'name') else None
+        if job.latitude and job.longitude:
+            latitude = job.latitude
+            longitude = job.longitude
+        
+        # Fallback to spa location
+        if (not latitude or not longitude) and job.spa:
+            if job.spa.latitude and job.spa.longitude:
+                latitude = job.spa.latitude
+                longitude = job.spa.longitude
+            if not city and job.spa.city:
+                city = job.spa.city.name if hasattr(job.spa.city, 'name') else None
+        
+        # Try IP-based location if still not available
+        if not latitude or not longitude:
+            ip_location = get_location_from_ip(client_ip)
+            if ip_location:
+                latitude = latitude or ip_location.get('latitude')
+                longitude = longitude or ip_location.get('longitude')
+                city = city or ip_location.get('city')
+        
+        trackers.track_event(
+            db=db,
+            event_type="page_view",
+            job_id=job_id,
+            spa_id=job.spa_id,
+            city=city,
+            latitude=latitude,
+            longitude=longitude,
+            user_agent=user_agent,
+            ip_address=client_ip,
+        )
+    except Exception as e:
+        # Analytics should not affect main behavior
+        import logging
+        logging.error(f"Failed to track page view analytics: {e}")
+        pass
+    
     return {"status": "ok", "view_count": job.view_count}
 
 
 @router.post("/{job_id}/track-apply-click")
-def track_job_apply_click(job_id: int, db: Session = Depends(get_db)):
+def track_job_apply_click(
+    job_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
     """
-    Increment apply_click_count for a job.
+    Increment apply_click_count for a job and track as analytics event.
 
     Frontend can call this when user clicks apply button.
     """
-    job = services.increment_job_apply_click(db, job_id)
+    # Load job with relationships for analytics tracking
+    from sqlalchemy.orm import joinedload
+    job = db.query(Job).options(
+        joinedload(Job.city),
+        joinedload(Job.spa).joinedload("city")
+    ).filter(Job.id == job_id).first()
+    
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Increment apply click count
+    job.apply_click_count = (job.apply_click_count or 0) + 1
+    db.commit()
+    db.refresh(job)
+    
+    # Also track as analytics event
+    try:
+        from app.modules.analytics import trackers
+        from app.utils.ip_location import get_location_from_ip
+        
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        
+        # Get location from job (prefer job's own location, then spa, then IP)
+        city = None
+        latitude = None
+        longitude = None
+        
+        # Try job's own location first
+        if job.city:
+            city = job.city.name if hasattr(job.city, 'name') else None
+        if job.latitude and job.longitude:
+            latitude = job.latitude
+            longitude = job.longitude
+        
+        # Fallback to spa location
+        if (not latitude or not longitude) and job.spa:
+            if job.spa.latitude and job.spa.longitude:
+                latitude = job.spa.latitude
+                longitude = job.spa.longitude
+            if not city and job.spa.city:
+                city = job.spa.city.name if hasattr(job.spa.city, 'name') else None
+        
+        # Try IP-based location if still not available
+        if not latitude or not longitude:
+            ip_location = get_location_from_ip(client_ip)
+            if ip_location:
+                latitude = latitude or ip_location.get('latitude')
+                longitude = longitude or ip_location.get('longitude')
+                city = city or ip_location.get('city')
+        
+        trackers.track_event(
+            db=db,
+            event_type="apply_click",
+            job_id=job_id,
+            spa_id=job.spa_id,
+            city=city,
+            latitude=latitude,
+            longitude=longitude,
+            user_agent=user_agent,
+            ip_address=client_ip,
+        )
+    except Exception as e:
+        # Analytics should not affect main behavior
+        import logging
+        logging.error(f"Failed to track apply click analytics: {e}")
+        pass
+    
     return {"status": "ok", "apply_click_count": job.apply_click_count}
 
 

@@ -104,4 +104,96 @@ def get_event_counts_by_type(db: Session, days: int | None = None):
         "apply_click": counts.get("apply_click", 0),
         "cv_upload": counts.get("cv_upload", 0),
         "chat_opened": counts.get("chat_opened", 0),
+        "job_search": counts.get("job_search", 0),
+        "spa_booking_click": counts.get("spa_booking_click", 0),
     }
+
+
+def get_top_job_searches(db: Session, limit: int = 10, days: int | None = None):
+    """
+    Get top job search queries.
+    Returns a list of dicts: [{"search_query": str, "count": int}, ...]
+    """
+    query = db.query(
+        AnalyticsEvent.search_query,
+        func.count(AnalyticsEvent.id).label("count"),
+    ).filter(
+        AnalyticsEvent.event_type == "job_search",
+        AnalyticsEvent.search_query.isnot(None),
+        AnalyticsEvent.search_query != ""
+    )
+    
+    if days is not None and days > 0:
+        since = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(AnalyticsEvent.created_at >= since)
+    
+    results = (
+        query.group_by(AnalyticsEvent.search_query)
+        .order_by(func.count(AnalyticsEvent.id).desc())
+        .limit(limit)
+        .all()
+    )
+    
+    return [
+        {"search_query": row.search_query, "count": row.count}
+        for row in results
+    ]
+
+
+def get_unique_visitors(db: Session, days: int | None = None):
+    """
+    Get count of unique visitors (by IP hash).
+    If `days` is provided, only count visitors within that time window.
+    Returns: int
+    """
+    query = db.query(func.count(func.distinct(AnalyticsEvent.ip_hash)))
+    
+    if days is not None and days > 0:
+        since = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(AnalyticsEvent.created_at >= since)
+    
+    # Filter out None IP hashes
+    query = query.filter(AnalyticsEvent.ip_hash.isnot(None))
+    
+    return query.scalar() or 0
+
+
+def get_device_type_breakdown(db: Session, days: int | None = None):
+    """
+    Get event counts by device type.
+    Returns a dict: {"mobile": int, "desktop": int, "tablet": int}
+    """
+    query = db.query(
+        AnalyticsEvent.device_type,
+        func.count(AnalyticsEvent.id).label("count"),
+    ).filter(AnalyticsEvent.device_type.isnot(None))
+    
+    if days is not None and days > 0:
+        since = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(AnalyticsEvent.created_at >= since)
+    
+    results = query.group_by(AnalyticsEvent.device_type).all()
+    
+    counts = {row.device_type: row.count for row in results}
+    
+    return {
+        "mobile": counts.get("mobile", 0),
+        "desktop": counts.get("desktop", 0),
+        "tablet": counts.get("tablet", 0),
+    }
+
+
+def get_booking_click_count(db: Session, days: int | None = None):
+    """
+    Get total booking/appointment button clicks.
+    Returns: int
+    """
+    query = db.query(func.count(AnalyticsEvent.id)).filter(
+        AnalyticsEvent.event_type == "spa_booking_click"
+    )
+    
+    if days is not None and days > 0:
+        since = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(AnalyticsEvent.created_at >= since)
+    
+    return query.scalar() or 0

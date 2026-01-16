@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.modules.analytics import trackers, reports
 from app.modules.analytics.chatbot_reports import get_chatbot_usage
 from app.utils.ip_location import get_location_from_ip
+from app.utils.device_detection import detect_device_type
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -22,6 +23,7 @@ async def track_event(
     city: str | None = None,
     latitude: float | None = None,
     longitude: float | None = None,
+    search_query: str | None = None,
     db: Session = Depends(get_db),
 ):
     """Track an analytics event"""
@@ -46,6 +48,7 @@ async def track_event(
         longitude=longitude,
         user_agent=user_agent,
         ip_address=client_ip,
+        search_query=search_query
     )
 
     return {"status": "tracked"}
@@ -119,4 +122,53 @@ async def get_location_from_ip_endpoint(request: Request):
         "success": False,
         "message": "Could not determine location from IP"
     }
+
+
+@router.get("/top-job-searches")
+def get_top_job_searches(
+    limit: int = 10,
+    days: int | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get top job search queries.
+    Optional: days - if provided, only count searches within the last `days` days.
+    """
+    return reports.get_top_job_searches(db, limit=limit, days=days)
+
+
+@router.get("/unique-visitors")
+def get_unique_visitors(
+    days: int | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get count of unique visitors (by IP hash).
+    Optional: days - if provided, only count visitors within the last `days` days.
+    """
+    return {"unique_visitors": reports.get_unique_visitors(db, days=days)}
+
+
+@router.get("/device-breakdown")
+def get_device_breakdown(
+    days: int | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get event counts by device type (mobile, desktop, tablet).
+    Optional: days - if provided, only count events within the last `days` days.
+    """
+    return reports.get_device_type_breakdown(db, days=days)
+
+
+@router.get("/booking-clicks")
+def get_booking_clicks(
+    days: int | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get total booking/appointment button clicks.
+    Optional: days - if provided, only count clicks within the last `days` days.
+    """
+    return {"booking_clicks": reports.get_booking_click_count(db, days=days)}
 
