@@ -596,6 +596,33 @@ def track_job_apply_click(
             user_agent=user_agent,
             ip_address=client_ip,
         )
+        
+        # Also track as button click
+        try:
+            # Try to get current user if available (optional)
+            user_id = None
+            try:
+                from app.modules.users.routes import get_current_user_optional
+                current_user = get_current_user_optional(request, db)
+                if current_user:
+                    user_id = current_user.id
+            except:
+                pass
+            
+            trackers.track_button_click(
+                db=db,
+                button_type="apply",
+                job_id=job_id,
+                user_id=user_id,
+                city=city,
+                latitude=latitude,
+                longitude=longitude,
+                user_agent=user_agent,
+                ip_address=client_ip,
+            )
+        except Exception as btn_err:
+            # Button click tracking failure should not affect main flow
+            pass
     except Exception as e:
         # Analytics should not affect main behavior
         import logging

@@ -172,3 +172,86 @@ def get_booking_clicks(
     """
     return {"booking_clicks": reports.get_booking_click_count(db, days=days)}
 
+
+@router.post("/track-button-click")
+async def track_button_click(
+    request: Request,
+    button_type: str,  # 'whatsapp', 'call', 'share', 'apply'
+    job_id: int,
+    user_id: int | None = None,
+    city: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    share_platform: str | None = None,  # For share button
+    db: Session = Depends(get_db),
+):
+    """
+    Track a button click (WhatsApp, Call, Share, or Apply).
+    
+    Frontend should call this when user clicks any of these buttons.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
+    # Auto-detect location from IP if not provided
+    if not latitude or not longitude:
+        ip_location = get_location_from_ip(client_ip)
+        if ip_location:
+            latitude = latitude or ip_location.get('latitude')
+            longitude = longitude or ip_location.get('longitude')
+            city = city or ip_location.get('city')
+    
+    from app.modules.analytics import trackers
+    trackers.track_button_click(
+        db=db,
+        button_type=button_type,
+        job_id=job_id,
+        user_id=user_id,
+        city=city,
+        latitude=latitude,
+        longitude=longitude,
+        user_agent=user_agent,
+        ip_address=client_ip,
+        share_platform=share_platform
+    )
+    
+    return {"status": "tracked"}
+
+
+@router.get("/button-clicks")
+def get_button_clicks(
+    job_id: int | None = None,
+    button_type: str | None = None,  # 'whatsapp', 'call', 'share', 'apply'
+    days: int | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get button click counts.
+    
+    Optional parameters:
+    - job_id: Filter by specific job
+    - button_type: Filter by button type ('whatsapp', 'call', 'share', 'apply')
+    - days: Only count clicks within the last `days` days
+    
+    Returns counts grouped by button type and optionally by job.
+    """
+    return reports.get_button_click_counts(db, job_id=job_id, button_type=button_type, days=days)
+
+
+@router.get("/button-clicks-by-day")
+def get_button_clicks_by_day(
+    button_type: str | None = None,
+    days: int = 30,
+    db: Session = Depends(get_db),
+):
+    """
+    Get button click counts per day.
+    
+    Optional:
+    - button_type: Filter by button type
+    - days: Number of days to look back (default 30)
+    
+    Returns: [{"date": "YYYY-MM-DD", "count": int, "button_type": str}, ...]
+    """
+    return reports.get_button_clicks_by_day(db, button_type=button_type, days=days)
+

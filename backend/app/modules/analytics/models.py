@@ -23,3 +23,22 @@ class AnalyticsEvent(Base):
     search_query = Column(Text, nullable=True)  # Store search queries for job searches
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
+
+# WhatsApp, Call, Share, and Apply button click analytics for all jobs
+
+class JobButtonClickAnalytics(Base):
+    __tablename__ = "job_button_click_analytics"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    button_type = Column(String, index=True)  # 'whatsapp', 'call', 'share', 'apply'
+    job_id = Column(Integer, ForeignKey("jobs.id"), index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=True)  # Optional - if user is logged in
+    city = Column(String, index=True, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    user_agent = Column(String, nullable=True)
+    ip_hash = Column(String, index=True, nullable=True)  # Hashed IP for privacy
+    device_type = Column(String, index=True, nullable=True)  # 'mobile', 'desktop', 'tablet'
+    share_platform = Column(String, nullable=True)  # For share button: 'facebook', 'twitter', 'linkedin', 'whatsapp', 'email', 'native'
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.modules.analytics.models import AnalyticsEvent
+from app.modules.analytics.models import AnalyticsEvent, JobButtonClickAnalytics
 
 
 def get_popular_locations(db: Session, limit: int = 10, days: int | None = None):
@@ -197,3 +197,100 @@ def get_booking_click_count(db: Session, days: int | None = None):
         query = query.filter(AnalyticsEvent.created_at >= since)
     
     return query.scalar() or 0
+
+
+def get_button_click_counts(
+    db: Session,
+    job_id: int | None = None,
+    button_type: str | None = None,
+    days: int | None = None
+):
+    """
+    Get button click counts grouped by button type and optionally by job.
+    
+    Returns:
+    - If job_id is provided: {"whatsapp": int, "call": int, "share": int, "apply": int}
+    - If job_id is None: [{"job_id": int, "button_type": str, "count": int}, ...]
+    """
+    query = db.query(
+        JobButtonClickAnalytics.button_type,
+        func.count(JobButtonClickAnalytics.id).label("count")
+    )
+    
+    if job_id:
+        query = query.filter(JobButtonClickAnalytics.job_id == job_id)
+    
+    if button_type:
+        query = query.filter(JobButtonClickAnalytics.button_type == button_type)
+    
+    if days is not None and days > 0:
+        since = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(JobButtonClickAnalytics.created_at >= since)
+    
+    if job_id:
+        # Return counts by button type for a specific job
+        results = query.group_by(JobButtonClickAnalytics.button_type).all()
+        counts = {row.button_type: row.count for row in results}
+        return {
+            "whatsapp": counts.get("whatsapp", 0),
+            "call": counts.get("call", 0),
+            "share": counts.get("share", 0),
+            "apply": counts.get("apply", 0),
+        }
+    else:
+        # Return counts grouped by job_id and button_type
+        query = query.add_columns(JobButtonClickAnalytics.job_id)
+        results = query.group_by(
+            JobButtonClickAnalytics.job_id,
+            JobButtonClickAnalytics.button_type
+        ).order_by(func.count(JobButtonClickAnalytics.id).desc()).all()
+        
+        return [
+            {
+                "job_id": row.job_id,
+                "button_type": row.button_type,
+                "count": row.count
+            }
+            for row in results
+        ]
+
+
+def get_button_clicks_by_day(
+    db: Session,
+    button_type: str | None = None,
+    days: int = 30
+):
+    """
+    Get button click counts per day.
+    
+    Returns: [{"date": "YYYY-MM-DD", "count": int, "button_type": str}, ...]
+    """
+    since = datetime.utcnow() - timedelta(days=days)
+    
+    query = db.query(
+        func.date(JobButtonClickAnalytics.created_at).label("click_date"),
+        JobButtonClickAnalytics.button_type,
+        func.count(JobButtonClickAnalytics.id).label("count")
+    ).filter(
+        JobButtonClickAnalytics.created_at >= since
+    )
+    
+    if button_type:
+        query = query.filter(JobButtonClickAnalytics.button_type == button_type)
+    
+    results = query.group_by(
+        func.date(JobButtonClickAnalytics.created_at),
+        JobButtonClickAnalytics.button_type
+    ).order_by(
+        func.date(JobButtonClickAnalytics.created_at),
+        JobButtonClickAnalytics.button_type
+    ).all()
+    
+    return [
+        {
+            "date": str(row.click_date),
+            "button_type": row.button_type,
+            "count": row.count
+        }
+        for row in results
+    ]

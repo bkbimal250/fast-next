@@ -4,7 +4,7 @@ Analytics tracking utilities
 
 import hashlib
 from sqlalchemy.orm import Session
-from app.modules.analytics.models import AnalyticsEvent
+from app.modules.analytics.models import AnalyticsEvent, JobButtonClickAnalytics
 from app.utils.device_detection import detect_device_type
 
 
@@ -46,4 +46,39 @@ def track_event(
     db.add(event)
     db.commit()
     return event
+
+
+def track_button_click(
+    db: Session,
+    button_type: str,  # 'whatsapp', 'call', 'share', 'apply'
+    job_id: int,
+    user_id: int = None,
+    city: str = None,
+    latitude: float = None,
+    longitude: float = None,
+    user_agent: str = None,
+    ip_address: str = None,
+    device_type: str = None,
+    share_platform: str = None  # For share button: 'facebook', 'twitter', 'linkedin', 'whatsapp', 'email', 'native'
+):
+    """Track a button click (WhatsApp, Call, Share, or Apply)"""
+    # Auto-detect device type if not provided
+    if not device_type and user_agent:
+        device_type = detect_device_type(user_agent)
+    
+    click_event = JobButtonClickAnalytics(
+        button_type=button_type,
+        job_id=job_id,
+        user_id=user_id,
+        city=city,
+        latitude=latitude,
+        longitude=longitude,
+        user_agent=user_agent,
+        ip_hash=hash_ip(ip_address) if ip_address else None,
+        device_type=device_type,
+        share_platform=share_platform
+    )
+    db.add(click_event)
+    db.commit()
+    return click_event
 
