@@ -7,6 +7,7 @@ import JobFilters from '@/components/JobFilters';
 import Navbar from '@/components/Navbar';
 import Pagination from '@/components/Pagination';
 import { jobAPI, Job } from '@/lib/job';
+import { analyticsAPI } from '@/lib/analytics';
 import Link from 'next/link';
 import { useLocation } from '@/hooks/useLocation';
 import { FaMapMarkerAlt, FaCrosshairs } from 'react-icons/fa';
@@ -154,6 +155,14 @@ function JobsPageContent() {
           job.job_category?.name.toLowerCase().includes(queryLower) ||
           job.job_type?.name.toLowerCase().includes(queryLower)
         );
+        
+        // Track job search
+        analyticsAPI.trackEvent('job_search', {
+          search_query: searchQuery,
+          city: userLocation?.city,
+          latitude: userLocation?.latitude,
+          longitude: userLocation?.longitude,
+        }).catch(() => {}); // Silently fail - analytics should not break the app
       }
       
       setJobs(data);

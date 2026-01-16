@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import axios from 'axios';
+import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
 
@@ -212,6 +213,68 @@ export default function ProfilePage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Profile Completion */}
+            {(() => {
+              const fields = [
+                user.name,
+                user.email,
+                user.phone,
+                user.profile_photo,
+                user.bio,
+                user.address,
+                user.city_id,
+                user.state_id,
+                user.country_id,
+                user.resume_path,
+              ];
+              const completedFields = fields.filter(field => {
+                if (field === null || field === undefined) return false;
+                if (typeof field === 'string' && field.trim() === '') return false;
+                if (typeof field === 'number' && field === 0) return false;
+                return true;
+              }).length;
+              const totalFields = fields.length;
+              const percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+              const profileCompletion = Math.max(0, Math.min(100, percentage));
+              
+              return (
+                <div className="card">
+                  <h3 className="font-semibold mb-4">Profile Completion</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">Progress</span>
+                        <span className={`text-sm font-bold ${
+                          profileCompletion >= 80
+                            ? 'text-green-600'
+                            : profileCompletion >= 50
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
+                        }`}>
+                          {profileCompletion}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className={`h-3 rounded-full transition-all ${
+                            profileCompletion >= 80
+                              ? 'bg-green-500'
+                              : profileCompletion >= 50
+                              ? 'bg-yellow-500'
+                              : 'bg-red-500'
+                          }`}
+                          style={{ width: `${profileCompletion}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      {completedFields} of {totalFields} fields completed
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="card">
               <h3 className="font-semibold mb-4">Profile Summary</h3>
               <div className="space-y-3 text-sm">
@@ -230,6 +293,15 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="card">
+              <Link
+                href="/profile/view"
+                className="block w-full text-center px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-medium text-sm"
+              >
+                View My Profile
+              </Link>
             </div>
           </div>
         </div>

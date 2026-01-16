@@ -4,12 +4,15 @@
 
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export enum ContactSubject {
-  JOBS = 'jobs',
-  JOBS_LISTING = 'jobs listing',
-  OTHERS = 'others',
+  Therapist='Female Therapist jobs',
+  spaTherapist='Thai Therapist jobs',
+  manager='Male Spa Manager jobs',
+  receptionist='Female Receptionist jobs',
+  housekeeping='Male Housekeeping jobs',
+
 }
 
 export interface ContactCreate {

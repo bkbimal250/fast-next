@@ -23,6 +23,49 @@ const ROLE_COLORS = {
   user: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
+// Calculate profile completion percentage
+const calculateProfileCompletion = (user: User): number => {
+  if (!user) return 0;
+  
+  const fields = [
+    user.name,
+    user.email,
+    user.phone,
+    user.profile_photo,
+    user.bio,
+    user.address,
+    user.city_id,
+    user.state_id,
+    user.country_id,
+    user.resume_path,
+  ];
+  
+  const completedFields = fields.filter(field => {
+    if (field === null || field === undefined) return false;
+    if (typeof field === 'string' && field.trim() === '') return false;
+    if (typeof field === 'number' && field === 0) return false;
+    return true;
+  }).length;
+  
+  const totalFields = fields.length;
+  const percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+  
+  return Math.max(0, Math.min(100, percentage)); // Ensure it's between 0 and 100
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+
+// Get profile photo URL
+const getProfilePhotoUrl = (profilePhoto?: string): string | null => {
+  if (!profilePhoto) return null;
+  // Check if it's already a full URL
+  if (profilePhoto.startsWith('http://') || profilePhoto.startsWith('https://')) {
+    return profilePhoto;
+  }
+  // Otherwise, prepend API URL
+  return `${API_URL}/${profilePhoto}`;
+};
+
 export default function ManageUsersPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -165,6 +208,50 @@ export default function ManageUsersPage() {
               </Link>
             </div>
           </div>
+
+          {/* Profile Completion Summary */}
+          {users.length > 0 && (
+            <div className="bg-gradient-to-r from-brand-50 to-blue-50 rounded-xl shadow-sm p-4 sm:p-5 border border-brand-200 mb-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Profile Completion Overview</h3>
+                  <p className="text-xs text-gray-600">
+                    {(() => {
+                      const avgCompletion = users.length > 0
+                        ? Math.round(users.reduce((sum, u) => sum + calculateProfileCompletion(u), 0) / users.length)
+                        : 0;
+                      const completeProfiles = users.filter(u => calculateProfileCompletion(u) >= 80).length;
+                      return `${completeProfiles} of ${users.length} users have complete profiles (${avgCompletion}% average)`;
+                    })()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const avgCompletion = users.length > 0
+                      ? Math.round(users.reduce((sum, u) => sum + calculateProfileCompletion(u), 0) / users.length)
+                      : 0;
+                    return (
+                      <>
+                        <div className="w-24 bg-gray-200 rounded-full h-3">
+                          <div
+                            className={`h-3 rounded-full ${
+                              avgCompletion >= 80 ? 'bg-green-500' : avgCompletion >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${avgCompletion}%` }}
+                          />
+                        </div>
+                        <span className={`text-sm font-bold ${
+                          avgCompletion >= 80 ? 'text-green-600' : avgCompletion >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                          {avgCompletion}%
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Statistics Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 mb-5">
@@ -341,7 +428,7 @@ export default function ManageUsersPage() {
                 <thead className="bg-brand-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      User
+                      User (Click to View Profile)
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Contact
@@ -351,6 +438,9 @@ export default function ManageUsersPage() {
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Profile Completion
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Created
@@ -363,12 +453,14 @@ export default function ManageUsersPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map((u) => {
                     const RoleIcon = ROLE_ICONS[u.role] || FaUser;
+                    const profileCompletion = calculateProfileCompletion(u);
+                    const profilePhotoUrl = getProfilePhotoUrl(u.profile_photo);
                     return (
                       <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
+                              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm overflow-hidden ${
                                 u.role === 'admin'
                                   ? 'bg-purple-500'
                                   : u.role === 'manager'
@@ -378,18 +470,27 @@ export default function ManageUsersPage() {
                                   : 'bg-gray-500'
                               }`}
                             >
-                              {u.profile_photo ? (
+                              {profilePhotoUrl ? (
                                 <img
-                                  src={u.profile_photo}
+                                  src={profilePhotoUrl}
                                   alt={u.name}
                                   className="w-full h-full rounded-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    (e.target as HTMLImageElement).parentElement!.textContent = u.name.charAt(0).toUpperCase();
+                                  }}
                                 />
                               ) : (
                                 u.name.charAt(0).toUpperCase()
                               )}
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{u.name}</p>
+                              <Link
+                                href={`/dashboard/users/${u.id}`}
+                                className="text-sm font-medium text-gray-900 hover:text-brand-600 transition-colors cursor-pointer"
+                              >
+                                {u.name}
+                              </Link>
                               {u.bio && <p className="text-xs text-gray-500 truncate max-w-xs">{u.bio}</p>}
                             </div>
                           </div>
@@ -443,6 +544,32 @@ export default function ManageUsersPage() {
                             )}
                           </div>
                         </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2 min-w-[100px]">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2.5 min-w-[60px] max-w-[100px]">
+                              <div
+                                className={`h-2.5 rounded-full transition-all ${
+                                  profileCompletion >= 80
+                                    ? 'bg-green-500'
+                                    : profileCompletion >= 50
+                                    ? 'bg-yellow-500'
+                                    : 'bg-red-500'
+                                }`}
+                                style={{ width: `${Math.max(0, Math.min(100, profileCompletion))}%` }}
+                                title={`${profileCompletion}% Complete`}
+                              />
+                            </div>
+                            <span className={`text-xs font-bold min-w-[45px] text-right ${
+                              profileCompletion >= 80
+                                ? 'text-green-600'
+                                : profileCompletion >= 50
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
+                            }`}>
+                              {profileCompletion}%
+                            </span>
+                          </div>
+                        </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
@@ -450,24 +577,33 @@ export default function ManageUsersPage() {
                           <div className="flex justify-end gap-2">
                             <Link
                               href={`/dashboard/users/${u.id}`}
-                              className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
-                              title="View Details"
+                              className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors group relative"
+                              title="View Profile"
                             >
                               <FaEye size={14} />
+                              <span className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                View Profile
+                              </span>
                             </Link>
                             <Link
                               href={`/dashboard/users/${u.id}/edit`}
-                              className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
+                              className="p-2 text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors group relative"
                               title="Edit User"
                             >
                               <FaEdit size={14} />
+                              <span className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                Edit User
+                              </span>
                             </Link>
                             <button
                               onClick={() => handleDeleteClick(u.id, u.name)}
-                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors group relative"
                               title="Delete User"
                             >
                               <FaTrash size={14} />
+                              <span className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                Delete User
+                              </span>
                             </button>
                           </div>
                         </td>

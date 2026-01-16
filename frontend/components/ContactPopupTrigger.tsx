@@ -4,28 +4,17 @@ import { useEffect, useState } from 'react';
 import ContactPopup from '@/app/Popup/ContactPopup';
 
 /**
- * Component that triggers the contact popup after 15 seconds of visiting the website
- * Uses localStorage to remember if user has dismissed it (optional - can be removed if you want it to show every time)
+ * Component that triggers the contact popup after 10 seconds of visiting the website
+ * Shows on every page refresh/visit
  */
 export default function ContactPopupTrigger() {
   const [showPopup, setShowPopup] = useState(false);
-  const [hasShown, setHasShown] = useState(false);
 
   useEffect(() => {
-    // Check if popup has been shown before (optional - remove if you want it to show every visit)
-    const popupShown = localStorage.getItem('contactPopupShown');
-    
-    if (popupShown === 'true') {
-      setHasShown(true);
-      return;
-    }
-
-    // Set timer to show popup after 15 seconds
+    // Set timer to show popup after 10 seconds on every page load/refresh
     const timer = setTimeout(() => {
       setShowPopup(true);
-      // Mark as shown in localStorage (optional)
-      localStorage.setItem('contactPopupShown', 'true');
-    }, 15000); // 15 seconds
+    }, 10000); // 10 seconds
 
     // Cleanup timer on unmount
     return () => clearTimeout(timer);
@@ -35,8 +24,8 @@ export default function ContactPopupTrigger() {
     setShowPopup(false);
   };
 
-  // Don't render if already shown or if not time yet
-  if (hasShown || !showPopup) {
+  // Don't render if not time yet
+  if (!showPopup) {
     return null;
   }
 

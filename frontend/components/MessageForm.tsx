@@ -6,15 +6,17 @@
 
 import { useState } from 'react';
 import { messageAPI, MessageCreate } from '@/lib/message';
-import { FaEnvelope, FaUser, FaPhone, FaComment } from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaPhone, FaComment, FaTimes } from 'react-icons/fa';
 
 interface MessageFormProps {
   jobId: number;
   jobTitle?: string;
   onSuccess?: () => void;
+  isPopup?: boolean;
+  onClose?: () => void;
 }
 
-export default function MessageForm({ jobId, jobTitle, onSuccess }: MessageFormProps) {
+export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = false, onClose }: MessageFormProps) {
   const [formData, setFormData] = useState<MessageCreate>({
     job_id: jobId,
     sender_name: '',
@@ -52,8 +54,16 @@ export default function MessageForm({ jobId, jobTitle, onSuccess }: MessageFormP
         onSuccess();
       }
       
-      // Reset success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
+      // Close popup after success if it's a popup
+      if (isPopup && onClose) {
+        setTimeout(() => {
+          setSuccess(false);
+          onClose();
+        }, 2000);
+      } else {
+        // Reset success message after 3 seconds for non-popup
+        setTimeout(() => setSuccess(false), 3000);
+      }
     } catch (err: any) {
       // Handle validation errors properly
       let errorMessage = 'Failed to send message. Please try again.';
@@ -100,6 +110,153 @@ export default function MessageForm({ jobId, jobTitle, onSuccess }: MessageFormP
     );
   }
 
+  // Popup wrapper
+  if (isPopup) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 animate-in fade-in duration-200">
+        <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
+            aria-label="Close popup"
+          >
+            <FaTimes size={20} />
+          </button>
+
+          <div className="mb-4 pr-8">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <FaEnvelope className="text-brand-600" size={20} />
+              Send a Free Message
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Have a question about this job? Send a message without creating an account.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="popup_sender_name" className="block text-sm font-medium text-gray-700 mb-1">
+                Your Name *
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="text-gray-400" size={16} />
+                </div>
+                <input
+                  id="popup_sender_name"
+                  type="text"
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  placeholder="Enter your full name"
+                  value={formData.sender_name}
+                  onChange={(e) => setFormData({ ...formData, sender_name: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="popup_phone" className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number *
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaPhone className="text-gray-400" size={16} />
+                </div>
+                <input
+                  id="popup_phone"
+                  type="tel"
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  placeholder="Enter your phone number"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="popup_email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address (Optional)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaEnvelope className="text-gray-400" size={16} />
+                </div>
+                <input
+                  id="popup_email"
+                  type="email"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  placeholder="Enter your email (optional)"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="popup_message" className="block text-sm font-medium text-gray-700 mb-1">
+                Your Message *
+              </label>
+              <div className="relative">
+                <div className="absolute top-3 left-3 pointer-events-none">
+                  <FaComment className="text-gray-400" size={16} />
+                </div>
+                <textarea
+                  id="popup_message"
+                  required
+                  rows={4}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 pt-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 resize-none"
+                  placeholder="Ask about the job, working hours, salary details, or any other questions..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-1/2 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-1/2 rounded-lg bg-brand-600 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaEnvelope />
+                    <span>Send Message</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-xs text-center text-gray-500">
+              No account required. Your message will be reviewed by the admin/manager.
+            </p>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular (non-popup) form
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
       <div className="mb-4">

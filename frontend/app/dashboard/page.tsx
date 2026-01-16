@@ -96,6 +96,13 @@ export default function DashboardPage() {
   const getQuickLinks = () => {
     const baseLinks = [
       {
+        title: 'View My Profile',
+        description: 'See your complete profile and completion status',
+        link: '/profile/view',
+        icon: FaUser,
+        color: 'bg-purple-100 text-purple-600',
+      },
+      {
         title: 'My Applications',
         description: 'View your job applications',
         link: '/dashboard/applications',
@@ -259,12 +266,21 @@ export default function DashboardPage() {
                 {roleLabels[user.role] || user.role}
               </span>
             </div>
-            <Link
-              href="/profile"
-              className="px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
-            >
-              Edit Profile
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href="/profile/view"
+                className="px-4 py-2 text-white bg-brand-600 border-2 border-brand-600 rounded-lg hover:bg-brand-700 transition-colors font-medium text-sm sm:text-base flex items-center gap-2"
+              >
+                <FaUser size={14} />
+                View My Profile
+              </Link>
+              <Link
+                href="/profile"
+                className="px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
+              >
+                Edit Profile
+              </Link>
+            </div>
           </div>
 
           {/* Statistics Cards */}

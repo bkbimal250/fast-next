@@ -42,6 +42,7 @@ export default function JobDetailPage() {
   const [applicationCount, setApplicationCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  const [showMessagePopup, setShowMessagePopup] = useState(false);
 
   useEffect(() => {
     if (params['job-slug']) {
@@ -57,6 +58,17 @@ export default function JobDetailPage() {
       fetchApplicationCount();
     }
   }, [job]);
+
+  // Show popup after 10 seconds when job is loaded
+  useEffect(() => {
+    if (job && !loading) {
+      const timer = setTimeout(() => {
+        setShowMessagePopup(true);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [job, loading]);
 
   const fetchJob = async () => {
     try {
@@ -338,6 +350,19 @@ export default function JobDetailPage() {
       />
       <Navbar />
       
+      {/* Message Form Popup */}
+      {showMessagePopup && job && (
+        <MessageForm
+          jobId={job.id}
+          jobTitle={job.title}
+          isPopup={true}
+          onClose={() => setShowMessagePopup(false)}
+          onSuccess={() => {
+            setShowMessagePopup(false);
+          }}
+        />
+      )}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content - Left Panel */}
@@ -382,11 +407,6 @@ export default function JobDetailPage() {
 
           {/* Right Sidebar */}
           <div className="space-y-5">
-            {/* Message Form - Sticky */}
-            <div className="sticky top-20 z-40">
-              <MessageForm jobId={job.id} jobTitle={job.title} />
-            </div>
-
             {/* Popular Jobs */}
             <PopularJobsList jobs={popularJobs} currentJobId={job.id} />
 

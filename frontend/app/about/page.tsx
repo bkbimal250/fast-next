@@ -62,7 +62,7 @@ export default function AboutPage() {
                 
             
                   <Image
-                    src="/uploads/about-hero.jpg"
+                    src="/uploads/workspa.png"
                     alt="Work Spa - Connecting Professionals"
                     width={450}
                     height={450}

@@ -21,9 +21,16 @@ module.exports = {
           900: '#134e4a',
         },
         gold: {
+          50: '#FDF4E3',
+          100: '#F9E4B3',
+          200: '#F5D483',
+          300: '#F1C453',
           400: '#E6B566',
           500: '#C9A24D',   // CTA / Accent (Primary Buttons)
           600: '#B8963C',
+          700: '#A7822B',
+          800: '#966E1A',
+          900: '#855A09',
         },
         surface: {
           light: '#F7F9F8',

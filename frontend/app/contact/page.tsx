@@ -16,7 +16,7 @@ export default function ContactPage() {
     name: '',
     phone: '',
     message: '',
-    subject: ContactSubject.OTHERS,
+    subject: ContactSubject.Therapist,
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -42,12 +42,35 @@ export default function ContactPage() {
         name: '',
         phone: '',
         message: '',
-        subject: ContactSubject.OTHERS,
+        subject: ContactSubject.Therapist,
       });
       // Hide success message after 5 seconds
       setTimeout(() => setSuccess(false), 5000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to send message. Please try again.');
+      // Handle validation errors properly
+      let errorMessage = 'Failed to send message. Please try again.';
+      
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        
+        // Handle Pydantic validation errors
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            // Multiple validation errors
+            const errors = errorData.detail.map((e: any) => {
+              const field = e.loc?.join('.') || 'field';
+              return `${field}: ${e.msg}`;
+            });
+            errorMessage = errors.join(', ');
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else {
+            errorMessage = 'Validation error. Please check your input.';
+          }
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -82,30 +105,44 @@ export default function ContactPage() {
       />
       <Navbar />
       
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 text-white overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
-              Get in Touch
-            </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              We're Here to
-              <span className="block text-gold-400">Help You</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed">
-              Have a question, feedback, or need support? Our team is ready to assist you. 
-              Reach out and we'll get back to you as soon as possible.
-            </p>
-          </div>
+ {/* Hero Section */}
+<section className="relative w-full overflow-hidden bg-black">
+  {/* Fixed Hero Height */}
+  <div className="relative w-full h-[280px] sm:h-[380px] md:h-[480px] lg:h-[900px] mt-1 mb-1">
+
+    {/* Hero Image */}
+    <Image
+      src="/uploads/workspacontact.png"
+      alt="We Are Hiring Spa Jobs"
+      fill
+      priority
+      className="object-cover object-center"
+      sizes="100vw"
+    />
+
+    {/* Dark Gradient Overlay (for readability if needed later) */}
+    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent"></div>
+
+    {/* Optional Content Overlay */}
+    <div className="absolute inset-0 flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl text-white">
+          <span className="inline-block mb-3 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur text-sm font-semibold">
+            We Are Hiring
+          </span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+            Join Our Spa Team
+          </h1>
+          <p className="mt-4 text-white/90 text-sm sm:text-base">
+            Therapist • Manager • Receptionist • Housekeeping • Beautician
+          </p>
         </div>
       </div>
+    </div>
+
+  </div>
+</section>
+
 
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -285,15 +322,18 @@ export default function ContactPage() {
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value as ContactSubject })}
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white"
                     >
-                      <option value={ContactSubject.JOBS}>Jobs</option>
-                      <option value={ContactSubject.JOBS_LISTING}>Jobs Listing</option>
-                      <option value={ContactSubject.OTHERS}>Others</option>
+                      
+                      <option value={ContactSubject.Therapist}>Female Therapist jobs</option>
+                      <option value={ContactSubject.spaTherapist}>Thai Therapist jobs</option>
+                      <option value={ContactSubject.manager}>Male Spa Manager jobs</option>
+                      <option value={ContactSubject.receptionist}>Female Receptionist jobs</option>
+                      <option value={ContactSubject.housekeeping}>Male Housekeeping jobs</option>
                     </select>
                   </div>
 
                   <div>
                     <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Message <span className="text-gray-500 text-xs font-normal">(Optional)</span>
+                      Message <span className="text-gray-500 text-xs font-normal">(eg mumbai or navi mumbai)</span>
                     </label>
                     <textarea
                       id="message"

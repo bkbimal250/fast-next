@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { analyticsAPI, ChatbotUsageStats, TimeSeriesPoint, EventCounts } from '@/lib/analytics';
+import { analyticsAPI, ChatbotUsageStats, TimeSeriesPoint, EventCounts, TopJobSearch, DeviceBreakdown } from '@/lib/analytics';
 import { jobAPI } from '@/lib/job';
 import { userAPI } from '@/lib/user';
 import { spaAPI } from '@/lib/spa';
 import { applicationAPI } from '@/lib/application';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
-import { FaChartLine, FaBriefcase, FaUser, FaBuilding, FaMapMarkerAlt, FaEye, FaMousePointer, FaCalendarAlt } from 'react-icons/fa';
+import { FaChartLine, FaBriefcase, FaUser, FaBuilding, FaMapMarkerAlt, FaEye, FaMousePointer, FaCalendarAlt, FaSearch, FaMobileAlt, FaLaptop, FaTabletAlt } from 'react-icons/fa';
 
 interface AnalyticsStats {
   totalJobs: number;
@@ -43,6 +43,10 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
   const [chatbotUsage, setChatbotUsage] = useState<ChatbotUsageStats | null>(null);
   const [timeSeries, setTimeSeries] = useState<TimeSeriesPoint[]>([]);
+  const [topJobSearches, setTopJobSearches] = useState<TopJobSearch[]>([]);
+  const [uniqueVisitors, setUniqueVisitors] = useState<number>(0);
+  const [deviceBreakdown, setDeviceBreakdown] = useState<DeviceBreakdown>({ mobile: 0, desktop: 0, tablet: 0 });
+  const [bookingClicks, setBookingClicks] = useState<number>(0);
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
@@ -56,8 +60,10 @@ export default function AnalyticsPage() {
     setLoading(true);
     setError(null);
     try {
+      const daysParam = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : undefined;
+      
       // Fetch all statistics in parallel - only fetch users for admins
-      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData, chatbotUsageData, timeSeriesData, eventCountsData] = await Promise.all([
+      const [jobCountData, usersData, spasData, applicationsData, popularLocationsData, chatbotUsageData, timeSeriesData, eventCountsData, topSearchesData, uniqueVisitorsData, deviceBreakdownData, bookingClicksData] = await Promise.all([
         jobAPI.getJobCount().catch(() => ({ count: 0 })),
         user && user.role === 'admin' 
           ? userAPI.getAllUsers(0, 1000).catch(() => [])
@@ -69,7 +75,7 @@ export default function AnalyticsPage() {
           ? applicationAPI.getAllApplications({ skip: 0, limit: 1000 }).catch(() => [])
           : Promise.resolve([]),
         analyticsAPI
-          .getPopularLocations(10)
+          .getPopularLocations(10, daysParam)
           .catch(() => []),
         analyticsAPI.getChatbotUsage().catch(() => ({
           total: 0,
@@ -81,12 +87,18 @@ export default function AnalyticsPage() {
         analyticsAPI
           .getTimeSeries(timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365)
           .catch(() => []),
-        analyticsAPI.getEventCounts().catch(() => ({
+        analyticsAPI.getEventCounts(daysParam).catch(() => ({
           page_view: 0,
           apply_click: 0,
           cv_upload: 0,
           chat_opened: 0,
+          job_search: 0,
+          spa_booking_click: 0,
         })),
+        analyticsAPI.getTopJobSearches(10, daysParam).catch(() => []),
+        analyticsAPI.getUniqueVisitors(daysParam).catch(() => ({ unique_visitors: 0 })),
+        analyticsAPI.getDeviceBreakdown(daysParam).catch(() => ({ mobile: 0, desktop: 0, tablet: 0 })),
+        analyticsAPI.getBookingClicks(daysParam).catch(() => ({ booking_clicks: 0 })),
       ]);
 
       // Calculate statistics
@@ -122,6 +134,10 @@ export default function AnalyticsPage() {
 
       setChatbotUsage(chatbotUsageData);
       setTimeSeries(Array.isArray(timeSeriesData) ? timeSeriesData : []);
+      setTopJobSearches(Array.isArray(topSearchesData) ? topSearchesData : []);
+      setUniqueVisitors(uniqueVisitorsData?.unique_visitors || 0);
+      setDeviceBreakdown(deviceBreakdownData || { mobile: 0, desktop: 0, tablet: 0 });
+      setBookingClicks(bookingClicksData?.booking_clicks || 0);
     } catch (err: any) {
       // Only show error if it's not a permission error (403)
       if (err.response?.status !== 403) {
@@ -261,7 +277,7 @@ export default function AnalyticsPage() {
 
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Clicks</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Apply Clicks</p>
               <div className="bg-orange-100 rounded-lg p-2">
                 <div className="text-orange-600">
                   <FaMousePointer size={16} />
@@ -270,6 +286,32 @@ export default function AnalyticsPage() {
             </div>
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalClicks.toLocaleString()}</p>
             <p className="text-xs text-gray-500 mt-1">Total clicks</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Unique Visitors</p>
+              <div className="bg-cyan-100 rounded-lg p-2">
+                <div className="text-cyan-600">
+                  <FaUser size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{uniqueVisitors.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Unique people</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Booking Clicks</p>
+              <div className="bg-pink-100 rounded-lg p-2">
+                <div className="text-pink-600">
+                  <FaCalendarAlt size={16} />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{bookingClicks.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Appointment clicks</p>
           </div>
 
           {/* Chatbot Usage */}
@@ -309,6 +351,101 @@ export default function AnalyticsPage() {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+          {/* Top Job Searches */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <FaSearch size={18} />
+                </div>
+                Top Job Searches
+              </h2>
+            </div>
+            {topJobSearches.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p>No search data available</p>
+                <p className="text-sm mt-2">Search queries will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topJobSearches.map((search, index) => {
+                  const maxCount = topJobSearches[0]?.count || 1;
+                  const percentage = (search.count / maxCount) * 100;
+                  return (
+                    <div key={index} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-gray-900 truncate pr-2">"{search.search_query}"</span>
+                        <span className="text-gray-600 font-semibold whitespace-nowrap">{search.count.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-brand-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Device Breakdown */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <div className="text-brand-600">
+                  <FaChartLine size={18} />
+                </div>
+                Device Breakdown
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 rounded-lg p-2">
+                    <div className="text-green-600">
+                      <FaMobileAlt size={14} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Mobile</p>
+                    <p className="text-xs text-gray-500">Phone devices</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-900">{deviceBreakdown.mobile.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 rounded-lg p-2">
+                    <div className="text-blue-600">
+                      <FaLaptop size={14} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Desktop</p>
+                    <p className="text-xs text-gray-500">Laptop/PC</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-900">{deviceBreakdown.desktop.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 rounded-lg p-2">
+                    <div className="text-purple-600">
+                      <FaTabletAlt size={14} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Tablet</p>
+                    <p className="text-xs text-gray-500">Tablet devices</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-gray-900">{deviceBreakdown.tablet.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Popular Locations */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-4">
