@@ -85,7 +85,7 @@ function JobsPageContent() {
     setLoading(true);
     try {
       const params: any = {
-        limit: 100, // Fetch initial batch for faster LCP, pagination will load more if needed
+        limit: 1000, // Fetch all jobs (increased from 100 to show all 463+ jobs)
       };
 
       if (searchQuery) {
