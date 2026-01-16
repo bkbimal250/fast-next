@@ -16,7 +16,7 @@ class ContactMessage(Base):
     name = Column(String(100), nullable=False)
     phone = Column(String(20), nullable=False)
     message = Column(Text, nullable=True)
-    subject = Column(String(50), nullable=False, default="others")  # "jobs", "jobs listing", "others"
+    subject = Column(String(50), nullable=False, default="Female Therapist jobs")  # Job-specific subjects from ContactSubject enum
     
     # Status tracking
     status = Column(String(20), default="new")  # "new", "read", "replied", "closed"

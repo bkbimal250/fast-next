@@ -10,9 +10,11 @@ from enum import Enum
 
 class ContactSubject(str, Enum):
     """Contact form subject options"""
-    JOBS = "jobs"
-    JOBS_LISTING = "jobs listing"
-    OTHERS = "others"
+    Therapist = "Female Therapist jobs"
+    spaTherapist = "Thai Therapist jobs"
+    manager = "Male Spa Manager jobs"
+    receptionist = "Female Receptionist jobs"
+    housekeeping = "Male Housekeeping jobs"
 
 
 class ContactCreate(BaseModel):
@@ -20,7 +22,7 @@ class ContactCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="Contact name")
     phone: str = Field(..., min_length=10, max_length=20, description="Contact phone number")
     message: Optional[str] = Field(None, max_length=2000, description="Contact message")
-    subject: ContactSubject = Field(default=ContactSubject.OTHERS, description="Contact subject")
+    subject: ContactSubject = Field(default=ContactSubject.Therapist, description="Contact subject")
 
 
 class ContactResponse(BaseModel):
