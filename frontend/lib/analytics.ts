@@ -113,4 +113,61 @@ export const analyticsAPI = {
       console.error('Analytics tracking failed:', error);
     }
   },
+
+  trackButtonClick: async (
+    buttonType: 'whatsapp' | 'call' | 'share' | 'apply',
+    jobId: number,
+    data?: {
+      user_id?: number;
+      city?: string;
+      latitude?: number;
+      longitude?: number;
+      share_platform?: string;  // For share button: 'facebook', 'twitter', 'linkedin', 'whatsapp', 'email', 'native'
+    }
+  ): Promise<void> => {
+    try {
+      const params: any = {
+        button_type: buttonType,
+        job_id: jobId,
+      };
+      if (data?.user_id) params.user_id = data.user_id;
+      if (data?.city) params.city = data.city;
+      if (data?.latitude !== undefined) params.latitude = data.latitude;
+      if (data?.longitude !== undefined) params.longitude = data.longitude;
+      if (data?.share_platform) params.share_platform = data.share_platform;
+      
+      await apiClient.post(`/api/analytics/track-button-click`, null, { params });
+    } catch (error) {
+      // Silently fail - analytics should not break the app
+      console.error('Button click tracking failed:', error);
+    }
+  },
+
+  getButtonClicks: async (
+    jobId?: number,
+    buttonType?: 'whatsapp' | 'call' | 'share' | 'apply',
+    days?: number
+  ): Promise<any> => {
+    const response = await apiClient.get(`/api/analytics/button-clicks`, {
+      params: {
+        ...(jobId ? { job_id: jobId } : {}),
+        ...(buttonType ? { button_type: buttonType } : {}),
+        ...(days ? { days } : {}),
+      },
+    });
+    return response.data;
+  },
+
+  getButtonClicksByDay: async (
+    buttonType?: 'whatsapp' | 'call' | 'share' | 'apply',
+    days: number = 30
+  ): Promise<any[]> => {
+    const response = await apiClient.get(`/api/analytics/button-clicks-by-day`, {
+      params: {
+        ...(buttonType ? { button_type: buttonType } : {}),
+        days,
+      },
+    });
+    return response.data;
+  },
 };

@@ -10,6 +10,9 @@ import axios from 'axios';
 import { FaRupeeSign, FaBriefcase, FaMapMarkerAlt, FaUsers, FaCalendarAlt, FaEye, FaWhatsapp, FaPhone, FaUser, FaClock } from 'react-icons/fa';
 import { showToast, showErrorToast } from '@/lib/toast';
 import { capitalizeTitle } from '@/lib/text-utils';
+import ShareButton from '@/components/ShareButton';
+import { analyticsAPI } from '@/lib/analytics';
+import { useLocation } from '@/hooks/useLocation';
 
 interface JobCardProps {
   id: number;
@@ -72,6 +75,7 @@ export default function JobCard({
   const router = useRouter();
   const { user } = useAuth();
   const [applying, setApplying] = useState(false);
+  const { location: userLocation } = useLocation(false); // Don't auto-fetch, just use if available
   const formatSalary = () => {
     if (!salaryMin && !salaryMax) return null;
     const formatAmount = (amount: number) => {
@@ -129,11 +133,6 @@ export default function JobCard({
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
   const logoUrl = logoImage 
     ? `${API_URL}${logoImage.startsWith('/') ? logoImage : `/${logoImage}`}`
-    : null;
-  
-  // Construct profile photo URL
-  const profilePhotoUrl = postedBy?.profile_photo
-    ? `${API_URL}${postedBy.profile_photo.startsWith('/') ? postedBy.profile_photo : `/${postedBy.profile_photo}`}`
     : null;
   
   // Get initials for fallback
@@ -334,7 +333,16 @@ export default function JobCard({
                     {callUrl && (
                       <a
                         href={callUrl}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Track call button click
+                          analyticsAPI.trackButtonClick('call', id, {
+                            user_id: user?.id,
+                            city: userLocation?.city,
+                            latitude: userLocation?.latitude,
+                            longitude: userLocation?.longitude,
+                          }).catch(() => {});
+                        }}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none flex items-center justify-center gap-1.5"
                         title="Call HR"
                       >
@@ -347,7 +355,16 @@ export default function JobCard({
                         href={whatsappUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Track WhatsApp button click
+                          analyticsAPI.trackButtonClick('whatsapp', id, {
+                            user_id: user?.id,
+                            city: userLocation?.city,
+                            latitude: userLocation?.latitude,
+                            longitude: userLocation?.longitude,
+                          }).catch(() => {});
+                        }}
                         className="bg-green-500 hover:bg-green-600 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none flex items-center justify-center gap-1.5"
                         title="WhatsApp HR"
                       >
@@ -357,6 +374,28 @@ export default function JobCard({
                     )}
                   </>
                 )}
+                <div 
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 sm:flex-none"
+                >
+                  <ShareButton
+                    url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/jobs/${slug}`}
+                    title={title}
+                    description={`${title} at ${spaName} - ${location}`}
+                    variant="icon"
+                    className="w-full sm:w-auto"
+                    onShare={(platform) => {
+                      // Track share button click
+                      analyticsAPI.trackButtonClick('share', id, {
+                        user_id: user?.id,
+                        city: userLocation?.city,
+                        latitude: userLocation?.latitude,
+                        longitude: userLocation?.longitude,
+                        share_platform: platform,
+                      }).catch(() => {});
+                    }}
+                  />
+                </div>
                 <button
                   onClick={handleApplyClick}
                   disabled={applying}
@@ -392,13 +431,13 @@ export default function JobCard({
 
               {/* Metadata - Posted By, Date & Views */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-500">
-                {/* Posted By */}
-                {postedBy?.name && (
+                {/* Posted By - Show SPA name and logo */}
+                {spaName && (
                   <div className="flex items-center gap-1.5">
-                    {profilePhotoUrl ? (
+                    {logoUrl ? (
                       <Image
-                        src={profilePhotoUrl}
-                        alt={postedBy.name}
+                        src={logoUrl}
+                        alt={spaName || 'SPA Logo'}
                         width={20}
                         height={20}
                         className="w-5 h-5 rounded-full object-cover"
@@ -406,10 +445,10 @@ export default function JobCard({
                       />
                     ) : (
                       <div className="w-5 h-5 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-xs font-semibold">
-                        {getInitials(postedBy.name)}
+                        {getInitials(spaName || 'SPA')}
                       </div>
                     )}
-                    <span className="text-gray-600 font-medium">Posted by {postedBy.name}</span>
+                    <span className="text-gray-600 font-medium">Posted by {spaName}</span>
                   </div>
                 )}
                 {formatDate(created_at) && (

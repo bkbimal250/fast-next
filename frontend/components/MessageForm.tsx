@@ -27,11 +27,41 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+
+  const handlePhoneChange = (value: string) => {
+    // Remove all non-digit characters
+    const digitsOnly = value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    const limitedDigits = digitsOnly.slice(0, 10);
+    
+    setFormData({ ...formData, phone: limitedDigits });
+    
+    // Clear error when user starts typing
+    if (phoneError) {
+      setPhoneError('');
+    }
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    // Check if phone is exactly 10 digits
+    const digitsOnly = phone.replace(/\D/g, '');
+    return digitsOnly.length === 10;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setPhoneError('');
     setLoading(true);
+
+    // Validate phone number
+    if (!validatePhone(formData.phone)) {
+      setPhoneError('Phone number must be exactly 10 digits');
+      setLoading(false);
+      return;
+    }
 
     try {
       // Prepare data: convert empty email to null/undefined
@@ -42,6 +72,7 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
       
       await messageAPI.createMessage(dataToSend);
       setSuccess(true);
+      setPhoneError('');
       setFormData({
         job_id: jobId,
         sender_name: '',
@@ -127,11 +158,9 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
           <div className="mb-4 pr-8">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <FaEnvelope className="text-brand-600" size={20} />
-              Send a Free Message
+             Apply for {jobTitle}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Have a question about this job? Send a message without creating an account.
-            </p>
+           
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -163,7 +192,7 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
 
             <div>
               <label htmlFor="popup_phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number *
+                Phone Number * <span className="text-gray-500 text-xs">(10 digits)</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -173,12 +202,23 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
                   id="popup_phone"
                   type="tel"
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                  placeholder="Enter your phone number"
+                  maxLength={10}
+                  className={`w-full rounded-lg border px-4 py-2 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
+                    phoneError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter 10 digit phone number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
                 />
               </div>
+              {phoneError && (
+                <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+              )}
+              {formData.phone && !phoneError && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {formData.phone.length}/10 digits
+                </p>
+              )}
             </div>
 
             <div>
@@ -298,7 +338,7 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
 
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-            Phone Number *
+            Phone Number * <span className="text-gray-500 text-xs">(10 digits)</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -308,12 +348,23 @@ export default function MessageForm({ jobId, jobTitle, onSuccess, isPopup = fals
               id="phone"
               type="tel"
               required
-              className="input-field pl-10"
-              placeholder="Enter your phone number"
+              maxLength={10}
+              className={`input-field pl-10 ${
+                phoneError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+              }`}
+              placeholder="Enter 10 digit phone number"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) => handlePhoneChange(e.target.value)}
             />
           </div>
+          {phoneError && (
+            <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+          )}
+          {formData.phone && !phoneError && (
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.phone.length}/10 digits
+            </p>
+          )}
         </div>
 
         <div>

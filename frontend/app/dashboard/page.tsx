@@ -19,7 +19,8 @@ import {
   FaShieldAlt,
   FaCog,
   FaArrowRight,
-  FaEnvelope
+  FaEnvelope,
+  FaMousePointer
 } from 'react-icons/fa';
 
 interface DashboardStats {
@@ -140,6 +141,13 @@ export default function DashboardPage() {
           link: '/dashboard/analytics',
           icon: FaChartLine,
           color: 'bg-purple-100 text-purple-600',
+        },
+        {
+          title: 'Click Analytics',
+          description: 'Button click tracking & insights',
+          link: '/dashboard/clickAnalytics',
+          icon: FaMousePointer,
+          color: 'bg-pink-100 text-pink-600',
         },
         {
           title: 'Manage Jobs',

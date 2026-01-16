@@ -65,25 +65,25 @@ export default function JobDetailsCard({ job, applicationCount = 0, onTrackApply
 
       {/* Posted By & Metrics */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5 pb-5 border-b border-gray-200">
-        {job.created_by_user && (
+        {job.spa && (
           <div className="flex items-center gap-3">
-            {job.created_by_user.profile_photo ? (
+            {getLogoUrl(job.spa?.logo_image) ? (
               <Image
-                src={`${API_URL}${job.created_by_user.profile_photo.startsWith('/') ? job.created_by_user.profile_photo : `/${job.created_by_user.profile_photo}`}`}
-                alt={job.created_by_user.name}
+                src={getLogoUrl(job.spa?.logo_image)!}
+                alt={job.spa?.name || 'SPA Logo'}
                 width={40}
                 height={40}
-                className="w-10 h-10 rounded-full object-cover border-2 border-brand-200"
+                className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                 unoptimized
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-brand-200">
-                {getInitials(job.created_by_user.name)}
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-sm font-semibold border border-gray-200">
+                {getInitials(job.spa?.name || 'SPA')}
               </div>
             )}
             <div>
               <p className="text-xs text-gray-500">Posted by</p>
-              <p className="text-sm font-semibold text-gray-900">HR-{job.created_by_user.name}</p>
+              <p className="text-sm font-semibold text-gray-900">{job.spa?.name}</p>
             </div>
           </div>
         )}

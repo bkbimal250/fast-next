@@ -5,8 +5,12 @@ import Link from 'next/link';
 import { FaPhone, FaWhatsapp } from 'react-icons/fa';
 import axios from 'axios';
 import { JobWithRelations, formatPhoneForWhatsApp, formatPhoneForCall } from './utils';
+import ShareButton from '@/components/ShareButton';
+import { analyticsAPI } from '@/lib/analytics';
+import { useLocation } from '@/hooks/useLocation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 interface JobActionsProps {
   job: JobWithRelations;
@@ -17,6 +21,7 @@ interface JobActionsProps {
 
 export default function JobActions({ job, user, applying, onApply }: JobActionsProps) {
   const router = useRouter();
+  const { location: userLocation } = useLocation(false); // Don't auto-fetch, just use if available
 
   const formattedPhone = formatPhoneForWhatsApp(job.hr_contact_phone);
   const whatsappUrl = formattedPhone
@@ -26,6 +31,15 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
   const callUrl = job.hr_contact_phone 
     ? `tel:${formatPhoneForCall(job.hr_contact_phone)}`
     : null;
+
+  const jobUrl = `${SITE_URL}/jobs/${job.slug}`;
+  const locationParts = [
+    job.area?.name,
+    job.city?.name,
+    job.state?.name,
+  ].filter(Boolean);
+  const locationStr = locationParts.join(', ') || 'Location not specified';
+  const shareDescription = `${job.title} at ${job.spa?.name || 'SPA'} - ${locationStr}`;
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
@@ -42,6 +56,15 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
               {callUrl && (
                 <a
                   href={callUrl}
+                  onClick={() => {
+                    // Track call button click
+                    analyticsAPI.trackButtonClick('call', job.id, {
+                      user_id: user?.id,
+                      city: userLocation?.city,
+                      latitude: userLocation?.latitude,
+                      longitude: userLocation?.longitude,
+                    }).catch(() => {});
+                  }}
                   className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
                 >
                   <FaPhone size={18} />
@@ -53,6 +76,15 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    // Track WhatsApp button click
+                    analyticsAPI.trackButtonClick('whatsapp', job.id, {
+                      user_id: user?.id,
+                      city: userLocation?.city,
+                      latitude: userLocation?.latitude,
+                      longitude: userLocation?.longitude,
+                    }).catch(() => {});
+                  }}
                   className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
                 >
                   <FaWhatsapp size={18} />
@@ -82,6 +114,15 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
               {callUrl && (
                 <a
                   href={callUrl}
+                  onClick={() => {
+                    // Track call button click
+                    analyticsAPI.trackButtonClick('call', job.id, {
+                      user_id: user?.id,
+                      city: userLocation?.city,
+                      latitude: userLocation?.latitude,
+                      longitude: userLocation?.longitude,
+                    }).catch(() => {});
+                  }}
                   className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
                 >
                   <FaPhone size={18} />
@@ -93,6 +134,15 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    // Track WhatsApp button click
+                    analyticsAPI.trackButtonClick('whatsapp', job.id, {
+                      user_id: user?.id,
+                      city: userLocation?.city,
+                      latitude: userLocation?.latitude,
+                      longitude: userLocation?.longitude,
+                    }).catch(() => {});
+                  }}
                   className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors shadow-md min-h-[48px] flex items-center justify-center gap-2"
                 >
                   <FaWhatsapp size={18} />
@@ -103,6 +153,24 @@ export default function JobActions({ job, user, applying, onApply }: JobActionsP
           )}
         </>
       )}
+      {/* Share Button */}
+      <ShareButton
+        url={jobUrl}
+        title={job.title}
+        description={shareDescription}
+        variant="dropdown"
+        className="min-h-[48px]"
+        onShare={(platform) => {
+          // Track share button click
+          analyticsAPI.trackButtonClick('share', job.id, {
+            user_id: user?.id,
+            city: userLocation?.city,
+            latitude: userLocation?.latitude,
+            longitude: userLocation?.longitude,
+            share_platform: platform,
+          }).catch(() => {});
+        }}
+      />
     </div>
   );
 }
