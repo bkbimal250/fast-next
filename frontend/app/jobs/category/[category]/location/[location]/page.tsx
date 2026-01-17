@@ -7,7 +7,7 @@ import JobCard from '@/components/JobCard';
 import { jobAPI, Job } from '@/lib/job';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export default function CategoryLocationJobsPage() {
   const params = useParams();

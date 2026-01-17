@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { generateJobMetadata } from './metadata';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ;
 
 interface JobDetailLayoutProps {
   children: React.ReactNode;

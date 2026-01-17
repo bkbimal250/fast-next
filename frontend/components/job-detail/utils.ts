@@ -2,7 +2,7 @@
  * Utility functions for job detail page
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export interface JobWithRelations {
   id: number;

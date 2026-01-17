@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 export async function generateMetadata({ params }: { params: { 'spa-slug': string } }): Promise<Metadata> {

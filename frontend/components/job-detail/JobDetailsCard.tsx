@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { FaBriefcase, FaRupeeSign, FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaEye } from 'react-icons/fa';
 import { JobWithRelations, formatSalary, formatExperience, formatDate, getInitials, getLogoUrl } from './utils';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 interface JobDetailsCardProps {
   job: JobWithRelations;

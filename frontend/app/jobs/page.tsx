@@ -403,7 +403,7 @@ function JobsPageContent() {
             '@type': 'Organization',
             name: job.spa?.name || 'SPA',
             ...(job.spa?.logo_image && {
-              logo: `${process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in'}${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
+              logo: `${process.env.NEXT_PUBLIC_API_URL }${job.spa.logo_image.startsWith('/') ? job.spa.logo_image : `/${job.spa.logo_image}`}`
             }),
             ...(job.spa?.slug && { sameAs: `${siteUrl}/besttopspas/${job.spa.slug}` }),
           },

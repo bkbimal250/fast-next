@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { FaEdit, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaFileAlt, FaArrowLeft } from 'react-icons/fa';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export default function ViewProfilePage() {
   const { user } = useAuth();

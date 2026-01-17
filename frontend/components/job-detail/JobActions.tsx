@@ -9,7 +9,7 @@ import ShareButton from '@/components/ShareButton';
 import { analyticsAPI } from '@/lib/analytics';
 import { useLocation } from '@/hooks/useLocation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 interface JobActionsProps {

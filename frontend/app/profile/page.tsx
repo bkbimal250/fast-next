@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import axios from 'axios';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export default function ProfilePage() {
   const { user, token, updateUser } = useAuth();

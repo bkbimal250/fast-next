@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL 
     
     // Forward to backend analytics API
     const response = await fetch(`${apiUrl}/api/analytics/track`, {

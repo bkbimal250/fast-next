@@ -53,7 +53,7 @@ const calculateProfileCompletion = (user: User): number => {
   return Math.max(0, Math.min(100, percentage)); // Ensure it's between 0 and 100
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 // Get profile photo URL
 const getProfilePhotoUrl = (profilePhoto?: string): string | null => {

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Spa } from '@/lib/spa';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
 import { FaGlobe, FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { capitalizeTitle } from '@/lib/text-utils';
 
@@ -16,18 +16,17 @@ interface SpaCardProps {
 
 export default function SpaCard({ spa, distance, showDistance = true, jobCount: initialJobCount }: SpaCardProps) {
   const [jobCount, setJobCount] = useState<number | null>(initialJobCount ?? null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
 
   useEffect(() => {
     if (jobCount === null && spa.id) {
-      // Fetch job count for this spa
-      axios.get(`${API_URL}/api/jobs?spa_id=${spa.id}`)
+      // Fetch job count for this spa using apiClient (which handles HTTPS properly)
+      apiClient.get('/api/jobs/', { params: { spa_id: spa.id } })
         .then(res => {
           setJobCount(Array.isArray(res.data) ? res.data.length : 0);
         })
         .catch(() => setJobCount(0));
     }
-  }, [spa.id, jobCount, API_URL]);
+  }, [spa.id, jobCount]);
 
   const formatDistance = (dist: number): string => {
     if (dist < 1) {
@@ -90,7 +89,7 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
       <div className="relative h-48 sm:h-56 bg-gray-200">
         {spa.spa_images && spa.spa_images.length > 0 ? (
           <img
-            src={`${API_URL}/${spa.spa_images[0]}`}
+            src={spa.spa_images[0].startsWith('http') ? spa.spa_images[0] : apiClient.defaults.baseURL + '/' + spa.spa_images[0].replace(/^\//, '')}
             alt={spa.name}
             className="w-full h-full object-cover"
             onError={(e) => {

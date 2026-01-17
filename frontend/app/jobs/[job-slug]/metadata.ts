@@ -3,7 +3,7 @@ import { Job } from '@/lib/job'
 import { Spa } from '@/lib/spa'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL 
 
 export function generateJobMetadata(job: Job, spa?: Spa | null): Metadata {
   const locationParts = []

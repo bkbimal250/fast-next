@@ -5,7 +5,7 @@
 import axios from 'axios';
 import { tokenManager } from './auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export type SubscriptionFrequency = 'daily' | 'weekly' | 'monthly' | 'instant';
 

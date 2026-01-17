@@ -130,7 +130,7 @@ export default function JobCard({
   };
 
   // Construct logo image URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL ;
   const logoUrl = logoImage 
     ? `${API_URL}${logoImage.startsWith('/') ? logoImage : `/${logoImage}`}`
     : null;

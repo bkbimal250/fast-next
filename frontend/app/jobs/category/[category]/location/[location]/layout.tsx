@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 interface CategoryLocationLayoutProps {

@@ -5,7 +5,14 @@
 import axios from 'axios';
 import { tokenManager } from './auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
+// Get API URL from environment or use default
+let API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Ensure HTTPS is used when page is served over HTTPS (fix mixed content errors)
+if (typeof window !== 'undefined' && window.location.protocol === 'https:' && API_URL) {
+  // If page is HTTPS, ensure API URL is also HTTPS
+  API_URL = API_URL.replace(/^http:/, 'https:');
+}
 
 // Create axios instance
 const apiClient = axios.create({
