@@ -37,9 +37,12 @@ function JobsPageContent() {
   const [filters, setFilters] = useState<FilterState>({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
+  const [jobTypes, setJobTypes] = useState<any[]>([]);
+  const [jobCategories, setJobCategories] = useState<any[]>([]);
 
   const searchQuery = searchParams.get('q') || '';
   const locationQuery = searchParams.get('location') || '';
+  const jobCategoryParam = searchParams.get('job_category') || '';
   const experienceMinParam = searchParams.get('experience_years_min');
   const experienceMaxParam = searchParams.get('experience_years_max');
 
@@ -77,9 +80,31 @@ function JobsPageContent() {
     }
   }, [experienceMinParam, experienceMaxParam]);
 
+  // Fetch job types and categories for ID to name conversion
   useEffect(() => {
+    const fetchTypesAndCategories = async () => {
+      try {
+        const [types, categories] = await Promise.all([
+          jobAPI.getJobTypes(0, 1000),
+          jobAPI.getJobCategories(0, 1000),
+        ]);
+        setJobTypes(types || []);
+        setJobCategories(categories || []);
+      } catch (error) {
+        console.error('Error fetching job types and categories:', error);
+        setJobTypes([]);
+        setJobCategories([]);
+      }
+    };
+    fetchTypesAndCategories();
+  }, []);
+
+
+  useEffect(() => {
+    // Fetch jobs - if filters use jobTypeId or jobCategoryId, we need the arrays loaded
+    // But we can still fetch if arrays aren't loaded yet (they'll be empty filters)
     fetchJobs();
-  }, [searchParams, sortBy, filters, useNearMe, userLocation]);
+  }, [searchParams, sortBy, filters, useNearMe, userLocation, jobCategoryParam, jobTypes, jobCategories]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -103,9 +128,23 @@ function JobsPageContent() {
         params.radius_km = 10; // 10km radius
       }
 
-      // Apply filters
-      if (filters.jobTypeId) params.job_type_id = filters.jobTypeId;
-      if (filters.jobCategoryId) params.job_category_id = filters.jobCategoryId;
+      // Apply filters - convert IDs to names for backend API
+      // Job Type filter
+      if (filters.jobTypeId && jobTypes.length > 0) {
+        const jobType = jobTypes.find(t => t.id === filters.jobTypeId);
+        if (jobType) {
+          params.job_type = jobType.name;
+        }
+      }
+      // Job Category filter - URL param takes precedence, then filter
+      if (jobCategoryParam) {
+        params.job_category = jobCategoryParam;
+      } else if (filters.jobCategoryId && jobCategories.length > 0) {
+        const jobCategory = jobCategories.find(c => c.id === filters.jobCategoryId);
+        if (jobCategory) {
+          params.job_category = jobCategory.name;
+        }
+      }
       if (filters.countryId) params.country_id = filters.countryId;
       if (filters.stateId) params.state_id = filters.stateId;
       if (filters.cityId) params.city_id = filters.cityId;
@@ -124,8 +163,8 @@ function JobsPageContent() {
           state_id: filters.stateId,
           city_id: filters.cityId,
           area_id: filters.areaId,
-          job_type: filters.jobTypeId?.toString(),
-          job_category: filters.jobCategoryId?.toString(),
+          job_type: filters.jobTypeId ? jobTypes.find(t => t.id === filters.jobTypeId)?.name : undefined,
+          job_category: jobCategoryParam || (filters.jobCategoryId ? jobCategories.find(c => c.id === filters.jobCategoryId)?.name : undefined),
         }),
       ]);
 

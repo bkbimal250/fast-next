@@ -7,21 +7,6 @@ import { locationAPI, City, Area } from '@/lib/location';
 import { jobAPI } from '@/lib/job';
 import { getUserLocation, LocationData } from '@/lib/location';
 
-interface ExperienceOption {
-  label: string;
-  min?: number;
-  max?: number;
-}
-
-const experienceOptions: ExperienceOption[] = [
-  { label: 'Select experience', min: undefined, max: undefined },
-  { label: '0-1 years', min: 0, max: 1 },
-  { label: '1-3 years', min: 1, max: 3 },
-  { label: '3-5 years', min: 3, max: 5 },
-  { label: '5-10 years', min: 5, max: 10 },
-  { label: '10+ years', min: 10, max: undefined },
-];
-
 interface LocationSuggestion {
   id: number;
   name: string;
@@ -32,8 +17,6 @@ interface LocationSuggestion {
 export default function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('');
-  const [selectedExperience, setSelectedExperience] = useState<ExperienceOption>(experienceOptions[0]);
-  const [isExperienceOpen, setIsExperienceOpen] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string>('');
   
@@ -92,9 +75,6 @@ export default function SearchBar() {
       }
       if (locationSuggestionsRef.current && !locationSuggestionsRef.current.contains(event.target as Node)) {
         setShowLocationSuggestions(false);
-      }
-      if (!searchInputRef.current?.contains(event.target as Node) && !locationInputRef.current?.contains(event.target as Node)) {
-        setIsExperienceOpen(false);
       }
     };
 
@@ -200,14 +180,6 @@ export default function SearchBar() {
       params.append('location', location.trim());
     }
     
-    if (selectedExperience.min !== undefined || selectedExperience.max !== undefined) {
-      if (selectedExperience.min !== undefined) {
-        params.append('experience_years_min', selectedExperience.min.toString());
-      }
-      if (selectedExperience.max !== undefined) {
-        params.append('experience_years_max', selectedExperience.max.toString());
-      }
-    }
     
     router.push(`/jobs?${params.toString()}`);
     setShowJobSuggestions(false);
@@ -228,20 +200,20 @@ export default function SearchBar() {
 
   return (
     <form onSubmit={handleSearch} className="w-full relative">
-      <div className="flex flex-col md:flex-row gap-1 md:gap-0 bg-white rounded-lg shadow-xl p-2 md:p-1.5">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 bg-white rounded-lg sm:rounded-xl shadow-xl p-2 sm:p-1.5">
         {/* Job Title/Keywords Input with Autocomplete */}
-        <div className="flex-1 flex items-center border md:border-r md:border-0 border-gray-200 rounded-lg md:rounded-none md:rounded-l-lg pr-3 md:pr-4 pl-4 md:pl-5 py-3 md:py-4 relative">
-          <FaSearch className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+        <div className="flex-1 flex items-center border sm:border-r sm:border-0 border-gray-200 rounded-lg sm:rounded-none sm:rounded-l-lg pr-2 sm:pr-3 md:pr-4 pl-3 sm:pl-4 md:pl-5 py-2.5 sm:py-3 md:py-4 relative min-w-0">
+          <FaSearch className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Job title, keywords, or company"
+            placeholder="spa Therapist, spa manager, receptionist"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => {
               if (jobSuggestions.length > 0) setShowJobSuggestions(true);
             }}
-            className="flex-1 outline-none text-gray-700 placeholder-gray-500 text-sm sm:text-base md:text-lg"
+            className="flex-1 outline-none text-gray-700 placeholder-gray-500 text-sm sm:text-base min-w-0"
           />
           
           {/* Job Suggestions Dropdown */}
@@ -255,11 +227,11 @@ export default function SearchBar() {
                   key={index}
                   type="button"
                   onClick={() => handleJobSuggestionClick(suggestion)}
-                  className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-left text-xs sm:text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                 >
                   <div className="flex items-center gap-2">
-                    <FaSearch className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-gray-700">{suggestion}</span>
+                    <FaSearch className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-700 truncate">{suggestion}</span>
                   </div>
                 </button>
               ))}
@@ -267,73 +239,32 @@ export default function SearchBar() {
           )}
         </div>
 
-        {/* Experience Dropdown */}
-        <div className="relative flex-shrink-0 border md:border-r md:border-0 border-gray-200 rounded-lg md:rounded-none">
-          <button
-            type="button"
-            onClick={() => setIsExperienceOpen(!isExperienceOpen)}
-            className="flex items-center justify-between px-4 md:px-5 py-3 md:py-4 w-full md:w-48 text-left hover:bg-gray-50 transition-colors"
-          >
-            <span className={`text-sm sm:text-base md:text-lg ${selectedExperience.label === 'Select experience' ? 'text-gray-400' : 'text-gray-700'}`}>
-              {selectedExperience.label}
-            </span>
-            <FaChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isExperienceOpen ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {isExperienceOpen && (
-            <>
-              <div 
-                className="fixed inset-0 z-10" 
-                onClick={() => setIsExperienceOpen(false)}
-              />
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
-                {experienceOptions.map((option, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => {
-                      setSelectedExperience(option);
-                      setIsExperienceOpen(false);
-                    }}
-                    className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
-                      selectedExperience.label === option.label
-                        ? 'bg-brand-50 text-brand-700 font-medium'
-                        : 'text-gray-700'
-                    } ${index === 0 ? 'rounded-t-lg' : ''} ${index === experienceOptions.length - 1 ? 'rounded-b-lg' : ''}`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
         {/* Location Input with Autocomplete and Auto-detect */}
-        <div className="flex-1 flex items-center border md:border-r md:border-0 border-gray-200 rounded-lg md:rounded-none pr-3 md:pr-4 pl-4 md:pl-5 py-3 md:py-4 relative">
-          <FaMapMarkerAlt className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+        <div className="flex-1 flex items-center border sm:border-r sm:border-0 border-gray-200 rounded-lg sm:rounded-none pr-2 sm:pr-3 md:pr-4 pl-3 sm:pl-4 md:pl-5 py-2.5 sm:py-3 md:py-4 relative min-w-0">
+          <FaMapMarkerAlt className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
           <input
             ref={locationInputRef}
             type="text"
-            placeholder="City, area, or zip"
+            placeholder="City, area..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onFocus={() => {
               if (locationSuggestions.length > 0) setShowLocationSuggestions(true);
             }}
-            className="flex-1 outline-none text-gray-700 placeholder-gray-500 text-sm sm:text-base md:text-lg pr-8"
+            className="flex-1 outline-none text-gray-700 placeholder-gray-500 text-sm sm:text-base pr-7 sm:pr-8 min-w-0"
           />
           <button
             type="button"
             onClick={handleAutoDetectLocation}
             disabled={isDetectingLocation}
-            className="absolute right-2 p-1.5 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+            className="absolute right-1.5 sm:right-2 p-1 sm:p-1.5 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 flex-shrink-0"
             title="Auto-detect location"
+            aria-label="Auto-detect location"
           >
             {isDetectingLocation ? (
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <FaCrosshairs className="w-4 h-4" />
+              <FaCrosshairs className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </button>
 
@@ -348,11 +279,11 @@ export default function SearchBar() {
                   key={`${suggestion.type}-${suggestion.id}`}
                   type="button"
                   onClick={() => handleLocationSuggestionClick(suggestion)}
-                  className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-left text-xs sm:text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                 >
                   <div className="flex items-center gap-2">
-                    <FaMapMarkerAlt className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-gray-700 font-medium">{suggestion.fullName}</span>
+                    <FaMapMarkerAlt className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-700 font-medium truncate">{suggestion.fullName}</span>
                   </div>
                 </button>
               ))}
@@ -362,9 +293,11 @@ export default function SearchBar() {
 
         <button
           type="submit"
-          className="bg-gold-500 hover:bg-gold-600 text-white font-semibold px-6 md:px-10 py-3 md:py-4 rounded-lg transition-all duration-200 whitespace-nowrap text-sm sm:text-base md:text-lg shadow-md hover:shadow-lg w-full md:w-auto"
+          className="bg-gold-500 hover:bg-gold-600 active:bg-gold-700 text-white font-semibold px-4 sm:px-6 md:px-10 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-r-lg transition-all duration-200 whitespace-nowrap text-sm sm:text-base shadow-md hover:shadow-lg w-full sm:w-auto flex items-center justify-center gap-2"
         >
-          Search Jobs
+          <FaSearch className="w-4 h-4 sm:hidden" />
+          <span className="hidden sm:inline">Search Jobs</span>
+          <span className="sm:hidden">Search</span>
         </button>
       </div>
     </form>

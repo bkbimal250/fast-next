@@ -216,7 +216,7 @@ export default function JobCard({
 
   return (
     <Link href={`/jobs/${slug}`} className="block">
-      <div className={`bg-white rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden ${
+      <div className={`bg-white rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden min-h-[200px] sm:min-h-[220px] ${
         isNew ? 'border-2 border-green-400 shadow-md' : 'border border-gray-300'
       }`}>
         {/* Featured Badge - Top Right */}
@@ -235,21 +235,22 @@ export default function JobCard({
         )}
 
         <div className="flex gap-3 sm:gap-4">
-          {/* SPA Logo/Avatar - Left Side */}
-          <div className="flex-shrink-0">
+          {/* SPA Logo/Avatar - Left Side - Fixed dimensions to prevent CLS */}
+          <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16">
             {logoUrl ? (
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden shadow-md group-hover:shadow-lg transition-shadow bg-white flex items-center justify-center">
+              <div className="w-full h-full rounded-lg overflow-hidden shadow-md group-hover:shadow-lg transition-shadow bg-white flex items-center justify-center" style={{ aspectRatio: '1/1' }}>
                 <Image
                   src={logoUrl}
                   alt={spaName || 'SPA Logo'}
                   width={64}
                   height={64}
                   className="w-full h-full object-cover"
+                  style={{ aspectRatio: '1/1' }}
                   unoptimized
                 />
               </div>
             ) : (
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-md group-hover:shadow-lg transition-shadow">
+              <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-md group-hover:shadow-lg transition-shadow" style={{ aspectRatio: '1/1' }}>
                 {getInitials(spaName)}
               </div>
             )}

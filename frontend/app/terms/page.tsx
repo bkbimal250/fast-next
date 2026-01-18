@@ -330,7 +330,8 @@ export default function TermsOfServicePage() {
                 <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91 9152120246</a>
               </p>
               <p className="text-gray-700">
-                <strong>Address:</strong> Navi Mumbai, Maharashtra, India
+                <strong>Address:</strong> Navi Mumbai,Mumbai, Thane India
+
               </p>
             </div>
           </section>

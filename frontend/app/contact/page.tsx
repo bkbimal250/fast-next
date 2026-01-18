@@ -174,7 +174,8 @@ export default function ContactPage() {
                 <FaMapMarkerAlt className="text-white" size={24} />
               </div>
               <h3 className="font-bold text-gray-900 mb-2 text-lg">Location</h3>
-              <p className="text-gray-600 font-medium">Navi Mumbai, Maharashtra, India</p>
+              <p className="text-gray-600 font-medium">Navi Mumbai,Mumbai, Thane India
+</p>
             </div>
           </div>
 
@@ -217,7 +218,8 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-1">Office Location</h3>
-                        <p className="text-gray-600 font-medium">Navi Mumbai, Maharashtra, India</p>
+                        <p className="text-gray-600 font-medium">Navi Mumbai,Mumbai, Thane India
+</p>
                       </div>
                     </div>
                   </div>
