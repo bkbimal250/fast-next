@@ -211,6 +211,9 @@ def delete_lead(db: Session, lead_id: int):
     if not lead:
         return None
 
+    # Delete associated followups first to avoid FK constraint errors
+    db.query(LeadFollowUp).filter(LeadFollowUp.lead_id == lead_id).delete()
+
     db.delete(lead)
     db.commit()
     return lead
