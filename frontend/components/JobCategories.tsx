@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { jobAPI, JobCategory } from '@/lib/job';
-import { 
-  FaBriefcase, 
-  FaUser, 
-  FaHeart, 
-  FaHeadphones, 
-  FaUsers, 
+import {
+  FaBriefcase,
+  FaUser,
+  FaHeart,
+  FaHeadphones,
+  FaUsers,
   FaCog,
   FaSpa,
   FaHandSparkles,
@@ -23,7 +23,7 @@ interface CategoryWithCount extends JobCategory {
 // Map category names to icons and colors (matching design)
 const getCategoryIcon = (categoryName: string) => {
   const name = categoryName.toLowerCase();
-  
+
   // Spa Therapist - Light green with star/sparkle
   if (name.includes('spa') && name.includes('therapist')) {
     return { icon: FaHandSparkles, color: 'bg-green-100 text-green-600' };
@@ -52,7 +52,7 @@ const getCategoryIcon = (categoryName: string) => {
   if (name.includes('therapist')) {
     return { icon: FaSpa, color: 'bg-green-100 text-green-600' };
   }
-  
+
   // Default
   return { icon: FaBriefcase, color: 'bg-gray-100 text-gray-600' };
 };
@@ -78,8 +78,8 @@ export default function JobCategories() {
       const categoriesWithCounts: CategoryWithCount[] = await Promise.all(
         jobCategories.map(async (category: JobCategory) => {
           try {
-            const countData = await jobAPI.getJobCount({ 
-              job_category: category.name 
+            const countData = await jobAPI.getJobCount({
+              job_category: category.name
             });
             return {
               ...category,
@@ -149,22 +149,22 @@ export default function JobCategories() {
             Explore opportunities across different wellness and spa roles
           </p>
         </div>
-
-        {/* Categories Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
           {categories.map((category) => {
             const { icon: Icon, color } = getCategoryIcon(category.name);
-            const categorySlug = category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
 
             return (
               <Link
                 key={category.id}
-                href={`/jobs/category/${categorySlug}`}
+                href={`/jobs?job_category=${encodeURIComponent(category.name)}`}
                 className="group"
               >
                 <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-brand-300 transition-all duration-300 h-full">
+
                   {/* Icon */}
-                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <div
+                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                   </div>
 
@@ -182,6 +182,7 @@ export default function JobCategories() {
             );
           })}
         </div>
+
 
         {/* View All Button */}
         <div className="text-center">

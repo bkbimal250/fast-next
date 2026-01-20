@@ -20,7 +20,8 @@ import {
   FaCog,
   FaArrowRight,
   FaEnvelope,
-  FaMousePointer
+  FaMousePointer,
+  FaWhatsapp
 } from 'react-icons/fa';
 
 interface DashboardStats {
@@ -122,6 +123,13 @@ export default function DashboardPage() {
     if (user.role === 'admin') {
       return [
         {
+          title: 'WhatsApp Leads',
+          description: 'Manage WhatsApp leads',
+          link: '/dashboard/whatsaapLeads',
+          icon: FaWhatsapp,
+          color: 'bg-green-100 text-green-600',
+        },
+        {
           title: 'Applications',
           description: 'View and manage all job applications',
           link: '/dashboard/applications',
@@ -187,6 +195,13 @@ export default function DashboardPage() {
       ];
     } else if (user.role === 'manager') {
       return [
+        {
+          title: 'WhatsApp Leads',
+          description: 'Manage WhatsApp leads',
+          link: '/dashboard/whatsaapLeads',
+          icon: FaWhatsapp,
+          color: 'bg-green-100 text-green-600',
+        },
         {
           title: 'Messages',
           description: 'View job inquiry messages',
