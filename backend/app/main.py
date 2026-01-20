@@ -24,6 +24,7 @@ from app.modules.seo.routes import router as seo_router
 from app.modules.subscribe.routes import router as subscribe_router
 from app.modules.chatbot.routes import router as chatbot_router
 from app.modules.contact.routes import router as contact_router
+from app.modules.whatsaapLeads.routes import router as whatsaap_leads_router
 
 
 app = FastAPI(
@@ -96,6 +97,7 @@ app.include_router(seo_router)
 app.include_router(subscribe_router)
 app.include_router(chatbot_router)
 app.include_router(contact_router)
+app.include_router(whatsaap_leads_router)
 
 
 @app.get("/")

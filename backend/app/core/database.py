@@ -74,6 +74,7 @@ def init_db():
     import app.modules.analytics.models
     import app.modules.subscribe.models
     import app.modules.contact.models
+    import app.modules.whatsaapLeads.models
     
     Base.metadata.create_all(bind=engine)
 
