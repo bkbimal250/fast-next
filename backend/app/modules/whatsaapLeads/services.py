@@ -202,3 +202,15 @@ def get_daily_leads(db: Session):
         .order_by(func.date_trunc("day", WhatsaapLeads.created_at))
         .all()
     )
+
+
+
+def delete_lead(db: Session, lead_id: int):
+    lead = get_lead_by_id(db, lead_id)
+
+    if not lead:
+        return None
+
+    db.delete(lead)
+    db.commit()
+    return lead

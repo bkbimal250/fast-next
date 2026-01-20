@@ -66,6 +66,18 @@ def get_lead(
     return lead
 
 
+@router.delete("/{lead_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_lead(
+    lead_id: int,
+    current_user=Depends(require_role([UserRole.ADMIN])),
+    db: Session = Depends(get_db),
+):
+    lead = services.delete_lead(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    return None
+
+
 @router.put("/{lead_id}", response_model=schemas.WhatsaapLeadResponse)
 def update_lead(
     lead_id: int,
