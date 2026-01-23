@@ -1,207 +1,193 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe, FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
-import { useAuth } from '@/contexts/AuthContext';
-import Image from 'next/image';
+import Link from 'next/link'
+import Image from 'next/image'
+import {
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+  FaGlobe,
+  FaFacebook,
+  FaTwitter,
+  FaLinkedin,
+  FaInstagram
+} from 'react-icons/fa'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Footer() {
-  const { user } = useAuth();
-  const currentYear = new Date().getFullYear();
-  
-  // Check if user can post jobs (admin, manager, or recruiter)
-  const canPostJobs = user && (user.role === 'admin' || user.role === 'manager' || user.role === 'recruiter');
+  const { user } = useAuth()
+  const currentYear = new Date().getFullYear()
+
+  const canPostJobs =
+    user && ['admin', 'manager', 'recruiter'].includes(user.role)
 
   return (
     <footer className="bg-brand-800 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
-          {/* Company Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12">
+
+          {/* ================= Company Info ================= */}
           <div className="space-y-4">
-            <div className="flex items-center mb-4">
-              <Link href="/" className="flex items-center">
-                <div className="h-12 w-auto flex items-center">
-                  <Image 
-                    src="/uploads/navbar.png" 
-                    alt="Workspa Logo" 
-                    width={160} 
-                    height={48} 
-                    className="h-full w-auto object-contain" 
-                  />
-                </div>
-              </Link>
-            </div>
+            <Link href="/" className="inline-flex items-center">
+              <Image
+                src="/uploads/navbar.png"
+                alt="Workspa Logo"
+                width={160}
+                height={48}
+                className="h-12 w-auto object-contain"
+                priority
+              />
+            </Link>
+
             <p className="text-white/80 text-sm leading-relaxed">
-              India's leading platform for spa job opportunities. Connect with verified spas and find your dream career in wellness.
+              India&apos;s leading platform for spa job opportunities.
+              Connect with verified spas and build your career in wellness.
             </p>
-            {/* Social Media Links */}
+
+            {/* Social Media */}
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61587204471016"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Facebook"
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
               >
-                <FaFacebook size={16} color="white" />
+                <FaFacebook size={16} />
               </a>
+
               <a
-                href="#"
+                href="https://x.com/workspa123"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Twitter"
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
               >
-                <FaTwitter size={16} color="white" />
+                <FaTwitter size={16} />
               </a>
+
               <a
-                href="#"
+                href="https://www.linkedin.com/in/work-india-6154303a7/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="LinkedIn"
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
               >
-                <FaLinkedin size={16} color="white" />
+                <FaLinkedin size={16} />
               </a>
+
               <a
-                href="#"
+                href="https://www.instagram.com/work__spa/?hl=en"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Instagram"
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
               >
-                <FaInstagram size={16} color="white" />
+                <FaInstagram size={16} />
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* ================= Quick Links ================= */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-            <ul className="space-y-2.5">
-              <li>
-                <Link href="/jobs" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Browse Jobs
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs?is_featured=true" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Featured Jobs
-                </Link>
-              </li>
-              <li>
-                <Link href="/spa-near-me" className="text-white/80 hover:text-white transition-colors text-sm">
-                  SPAs Near Me
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs?job_type=full-time" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Full Time Jobs
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs?job_type=part-time" className="text-white/80 hover:text-white transition-colors text-sm">
-                  Part Time Jobs
-                </Link>
-              </li>
+            <h3 className="text-lg font-semibold mb-4 tracking-wide">
+              Quick Links
+            </h3>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link href="/jobs" className="text-white/80 hover:text-white">Browse Jobs</Link></li>
+              <li><Link href="/jobs?is_featured=true" className="text-white/80 hover:text-white">Featured Jobs</Link></li>
+              <li><Link href="/spa-near-me" className="text-white/80 hover:text-white">SPAs Near Me</Link></li>
+              <li><Link href="/jobs?job_type=full-time" className="text-white/80 hover:text-white">Full Time Jobs</Link></li>
+              <li><Link href="/jobs?job_type=part-time" className="text-white/80 hover:text-white">Part Time Jobs</Link></li>
             </ul>
           </div>
 
-          {/* For Employers */}
+          {/* ================= For Employers ================= */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">For Employers</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-lg font-semibold mb-4 tracking-wide">
+              For Employers
+            </h3>
+
+            <ul className="space-y-2.5 text-sm">
               {user ? (
                 <>
                   {canPostJobs && (
                     <>
-                      <li>
-                        <Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white transition-colors text-sm">
-                          Post a Job
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/dashboard/jobs" className="text-white/80 hover:text-white transition-colors text-sm">
-                          Manage Jobs
-                        </Link>
-                      </li>
+                      <li><Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white">Post a Job</Link></li>
+                      <li><Link href="/dashboard/jobs" className="text-white/80 hover:text-white">Manage Jobs</Link></li>
                     </>
                   )}
+
                   <li>
-                    <Link href="/dashboard" className="text-white/80 hover:text-white transition-colors text-sm">
-                      {user.role === 'admin' ? 'Admin Dashboard' : user.role === 'manager' ? 'Manager Dashboard' : user.role === 'recruiter' ? 'Recruiter Dashboard' : 'My Dashboard'}
+                    <Link href="/dashboard" className="text-white/80 hover:text-white">
+                      {user.role === 'admin'
+                        ? 'Admin Dashboard'
+                        : user.role === 'manager'
+                        ? 'Manager Dashboard'
+                        : user.role === 'recruiter'
+                        ? 'Recruiter Dashboard'
+                        : 'My Dashboard'}
                     </Link>
                   </li>
-                  {user.role === 'admin' || user.role === 'manager' ? (
-                    <li>
-                      <Link href="/dashboard/spas" className="text-white/80 hover:text-white transition-colors text-sm">
-                        Manage SPAs
-                      </Link>
-                    </li>
-                  ) : null}
-                  {user.role === 'admin' ? (
-                    <li>
-                      <Link href="/dashboard/analytics" className="text-white/80 hover:text-white transition-colors text-sm">
-                        Analytics
-                      </Link>
-                    </li>
-                  ) : null}
+
+                  {(user.role === 'admin' || user.role === 'manager') && (
+                    <li><Link href="/dashboard/spas" className="text-white/80 hover:text-white">Manage SPAs</Link></li>
+                  )}
+
+                  {user.role === 'admin' && (
+                    <li><Link href="/dashboard/analytics" className="text-white/80 hover:text-white">Analytics</Link></li>
+                  )}
                 </>
               ) : (
                 <>
-                  <li>
-                    <Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white transition-colors text-sm">
-                      Post a Job
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/register" className="text-white/80 hover:text-white transition-colors text-sm">
-                      Create Account
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/login" className="text-white/80 hover:text-white transition-colors text-sm">
-                      Login
-                    </Link>
-                  </li>
+                  <li><Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white">Post a Job</Link></li>
+                  <li><Link href="/register" className="text-white/80 hover:text-white">Create Account</Link></li>
+                  <li><Link href="/login" className="text-white/80 hover:text-white">Login</Link></li>
                 </>
               )}
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* ================= Contact Info ================= */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Contact Us</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2.5">
-                <div className="mt-0.5 flex-shrink-0">
-                  <FaMapMarkerAlt size={16} color="#7dd3fc" />
-                </div>
-                <span className="text-white/80 text-sm leading-relaxed">
-                  India
-                </span>
+            <h3 className="text-lg font-semibold mb-4 tracking-wide">
+              Contact Us
+            </h3>
+
+            <ul className="space-y-3 text-sm">
+              <li className="flex gap-3">
+                <FaMapMarkerAlt className="mt-1 text-sky-300" />
+                <span className="text-white/80">India</span>
               </li>
-              <li className="flex items-center gap-2.5">
-                <div className="flex-shrink-0">
-                  <FaPhone size={16} color="#7dd3fc" />
+
+              <li className="flex gap-3">
+                <FaPhone className="text-sky-300" />
+                <div className="flex flex-col">
+                  <a href="tel:+919152120246" className="text-white/80 hover:text-white">+91 91521 20246</a>
+                  <a href="tel:+919876543210" className="text-white/80 hover:text-white">+91 98765 43210</a>
                 </div>
-                <a href="tel:+911234567890" className="text-white/80 hover:text-white transition-colors text-sm">
-                  +91 9152120246
-                </a>
               </li>
-              <li className="flex items-center gap-2.5">
-                <div className="flex-shrink-0">
-                  <FaEnvelope size={16} color="#7dd3fc" />
+
+              <li className="flex gap-3">
+                <FaEnvelope className="text-sky-300" />
+                <div className="flex flex-col break-all">
+                  <a href="mailto:contact.workspa@gmail.com" className="text-white/80 hover:text-white">
+                    contact.workspa@gmail.com
+                  </a>
+                  <a href="mailto:sendjob.workspa@gmail.com" className="text-white/80 hover:text-white">
+                    sendjob.workspa@gmail.com
+                  </a>
                 </div>
-                <a href="mailto:info@workspa.in" className="text-white/80 hover:text-white transition-colors text-sm break-all">
-                  info@workspa.in
-                </a>
               </li>
-              <li className="flex items-center gap-2.5">
-                <div className="flex-shrink-0">
-                  <FaGlobe size={16} color="#7dd3fc" />
-                </div>
-                <a href="https://workspa.in" className="text-white/80 hover:text-white transition-colors text-sm">
+
+              <li className="flex gap-3">
+                <FaGlobe className="text-sky-300" />
+                <a
+                  href="https://workspa.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-white"
+                >
                   www.workspa.in
                 </a>
               </li>
@@ -209,30 +195,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-white/20 mt-12 pt-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="text-white/70 text-sm text-center sm:text-left">
-              <p>&copy; {currentYear} Work Spa. All rights reserved.</p>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
-              <Link href="/privacy" className="text-white/70 hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="text-white/70 hover:text-white transition-colors">
-                Terms of Service
-              </Link>
-              <Link href="/about" className="text-white/70 hover:text-white transition-colors">
-                About Us
-              </Link>
-              <Link href="/contact" className="text-white/70 hover:text-white transition-colors">
-                Contact
-              </Link>
+        {/* ================= Bottom Bar ================= */}
+        <div className="border-t border-white/20 mt-12 pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+            <p className="text-white/70 text-center sm:text-left">
+              © {currentYear} Workspa. All rights reserved.
+            </p>
+
+            <div className="flex flex-wrap gap-4 sm:gap-6">
+              <Link href="/privacy" className="text-white/70 hover:text-white">Privacy Policy</Link>
+              <Link href="/terms" className="text-white/70 hover:text-white">Terms of Service</Link>
+              <Link href="/about" className="text-white/70 hover:text-white">About Us</Link>
+              <Link href="/contact" className="text-white/70 hover:text-white">Contact</Link>
             </div>
           </div>
         </div>
       </div>
     </footer>
-  );
+  )
 }
-
