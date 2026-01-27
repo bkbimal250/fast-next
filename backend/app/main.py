@@ -3,16 +3,15 @@ Main FastAPI application entry point
 SPA Job Portal - Backend API
 """
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
-import os
+from fastapi.staticfiles import StaticFiles
 
 from app.core.database import init_db
 from app.core.config import settings
-# Rate limiting commented out - can be uncommented later when needed
-# from app.core.rate_limit import RateLimitMiddleware
+
 from app.modules.users.routes import router as users_router
 from app.modules.locations.routes import router as locations_router
 from app.modules.spas.routes import router as spas_router
@@ -27,71 +26,61 @@ from app.modules.contact.routes import router as contact_router
 from app.modules.whatsaapLeads.routes import router as whatsaap_leads_router
 
 
+# -------------------------------------------------
+# App Initialization
+# -------------------------------------------------
 app = FastAPI(
     title="SPA Job Portal API",
-    description="Location-intelligent, SEO-first SPA Job Portal Backend - Optimized for 1000+ concurrent users",
+    description="Location-intelligent, SEO-first SPA Job Portal Backend",
     version="1.0.0",
-    docs_url="/api/docs" if settings.LOG_LEVEL == "DEBUG" else None,  # Disable docs in production
+    docs_url="/api/docs" if settings.LOG_LEVEL == "DEBUG" else None,
     redoc_url="/api/redoc" if settings.LOG_LEVEL == "DEBUG" else None,
 )
 
 
-# Compression middleware (reduces response size)
+# -------------------------------------------------
+# Middleware
+# -------------------------------------------------
+
+# GZip Compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Rate limiting middleware (must be before CORS)
-# COMMENTED OUT - Can be uncommented later when needed
-# Rate limits are automatically relaxed in DEBUG mode
-# if settings.RATE_LIMIT_ENABLED:
-#     app.add_middleware(RateLimitMiddleware)
-
-# CORS middleware
-# Allow localhost for development, production domain for production
-allowed_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "https://workspa.in",
-    "https://www.workspa.in",
-
-    "https://spatherapist.workspa.in",
-    "https://therapist.workspa.in",
-    "https://spamanagerjobs.workspa.in",
-]
-
-
-# In debug mode, allow all origins for easier development
-if settings.LOG_LEVEL == "DEBUG":
-    allowed_origins = ["*"]
-
+# CORS (ALLOW ALL workspa.in subdomains safely)
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.workspa\.in",
+    allow_origin_regex=r"https://([a-z0-9-]+\.)*workspa\.in",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-
-# Create uploads directory before mounting (synchronous, runs at import time)
+# -------------------------------------------------
+# Static Files (Uploads)
+# -------------------------------------------------
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(settings.UPLOAD_DIR, "spas"), exist_ok=True)
 os.makedirs(os.path.join(settings.UPLOAD_DIR, "profiles"), exist_ok=True)
 os.makedirs(os.path.join(settings.UPLOAD_DIR, "cvs"), exist_ok=True)
 
-# Mount static files for uploaded images
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+app.mount(
+    "/uploads",
+    StaticFiles(directory=settings.UPLOAD_DIR),
+    name="uploads"
+)
 
 
+# -------------------------------------------------
+# Startup Events
+# -------------------------------------------------
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database tables on startup."""
     init_db()
 
 
-# Include routers
+# -------------------------------------------------
+# Routers
+# -------------------------------------------------
 app.include_router(users_router)
 app.include_router(locations_router)
 app.include_router(spas_router)
@@ -106,12 +95,13 @@ app.include_router(contact_router)
 app.include_router(whatsaap_leads_router)
 
 
+# -------------------------------------------------
+# Health & Root
+# -------------------------------------------------
 @app.get("/")
 async def root():
-    return {"message": "SPA Job Portal API"}
-
+    return {"message": "SPA Job Portal API is running"}
 
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-
