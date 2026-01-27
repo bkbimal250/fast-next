@@ -6,17 +6,17 @@ import ChatWidget from '@/components/Chatbot/ChatWidget'
 import ContactPopupTrigger from '@/components/ContactPopupTrigger'
 import { Toaster } from 'sonner'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(siteUrl || 'https://workspa.in'),
   title: {
-    default: 'Work Spa Near Me - Find Work Spa in Your City | Work Spa Portal',
-    template: '%s | Work Spa Portal'
+    default: 'Apply for Spa Jobs in India | Apply Female spa therapist jobs | Apply spa manager jobs | Work Spa Portal',
+    template: '%s | Apply for Spa Jobs in India | Apply Female spa therapist jobs | Apply spa manager jobs | Work Spa Portal'
   },
   description: 'Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience. Search for therapist, masseuse, and spa manager positions.',
   keywords: [
-    'Work Spa', 'Work Spa in india', 'spa job vacancy', 'spa job near me',
+    'Apply for Spa Jobs in India', 'Apply Female spa therapist jobs', 'Apply spa manager jobs', 'Work Spa in india', 'spa job vacancy', 'spa job near me',
     'spa therapist jobs', 'massage therapist jobs', 'spa manager jobs',
     'beauty Work Spa', 'wellness jobs india', 'luxury Work Spa',
     'female therapist jobs', 'male therapist jobs', 'spa hiring today',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: siteUrl,
     siteName: 'Workspa - Work Spa Portal',
-    title: 'Work Spa Near Me - Find Work Spa in Your City',
+    title: 'Apply for Spa Jobs in India | Apply Female spa therapist jobs | Apply spa manager jobs | Work Spa Portal',
     description: 'Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience.',
     images: [
       {
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Work Spa Near Me - Find Work Spa in Your City',
-    description: 'Find the best Work Spa near you. Apply directly to spas without login.',
+    title: 'Apply for Spa Jobs in India | Apply Female spa therapist jobs | Apply spa manager jobs | Work Spa Portal',
+    description: 'Apply for Spa Jobs in India. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience. Search for therapist, masseuse, and spa manager positions.',
     images: [`${siteUrl}/og-image.jpg`],
     creator: '@spajobs',
   },

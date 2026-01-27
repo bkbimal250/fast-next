@@ -6,7 +6,7 @@ export const metadata: Metadata = generatePageMetadata(
   'Discover spas and wellness centers near you. Find the best spas in your area with location-based search. View spa profiles, ratings, and available job openings.',
   {
     keywords: ['spas near me', 'nearby spas', 'local spas', 'spa finder', 'wellness centers near me'],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/spa-near-me`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in'}/spa-near-me`,
   }
 );
 

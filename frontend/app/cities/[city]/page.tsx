@@ -8,7 +8,7 @@ import { jobAPI, Job } from '@/lib/job';
 import axios from 'axios';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in' ;
 
 export default function CityPage({ params }: { params: { city: string } }) {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -102,7 +102,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
     }
   };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in';
   const pageUrl = `${siteUrl}/cities/${params.city}`;
 
   // Helper function to normalize employment type
@@ -121,7 +121,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: `Work Spa in ${cityName}`,
-    description: `Find ${jobCount}+ Work Spa in ${cityName}. Browse therapist, masseuse, and spa manager positions.`,
+    description: `Find ${jobCount}+ Work Spa in ${cityName}. Browse spa therapist, female spa therapist, male therapist, and spa manager positions.`,
     url: pageUrl,
     mainEntity: {
       '@type': 'ItemList',

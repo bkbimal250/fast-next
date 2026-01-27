@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Spa } from '@/lib/spa';
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/axios';
-import { FaGlobe, FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import { FaGlobe, FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar, FaCalendarCheck } from 'react-icons/fa';
 import { capitalizeTitle } from '@/lib/text-utils';
 
 interface SpaCardProps {
@@ -162,19 +162,25 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          {/* Website Button */}
-          {spa.website && (
-            <a
-              href={spa.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
-            >
-              <FaGlobe className="w-5 h-5 text-brand-600" />
-              <span>Website</span>
-            </a>
-          )}
+        {spa.booking_url_website && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const { spaAPI } = await import('@/lib/spa');
+                      await spaAPI.trackBookingClick(spa.id);
+                    } catch {
+                      // Ignore tracking failures
+                    } finally {
+                      window.open(spa.booking_url_website as string, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm sm:text-base"
+                >
+                  <FaCalendarCheck size={18} />
+                  <span>Service booking</span>
+                </button>
+              )}
 
           {/* Directions Button */}
           <a

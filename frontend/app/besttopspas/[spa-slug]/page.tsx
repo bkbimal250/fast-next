@@ -148,7 +148,7 @@ export default function SpaDetailPage() {
 
   // These variables are safe to use here since we've checked spa is not null above
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in';
   const allImages = spa.logo_image
     ? [spa.logo_image, ...(spa.spa_images || [])]
     : spa.spa_images || [];
@@ -171,7 +171,7 @@ export default function SpaDetailPage() {
     '@type': 'LocalBusiness',
     name: spa.name,
     description: spa.description || `${spa.name} - Professional SPA Services`,
-    url: spa.website || `${SITE_URL}/besttopspas/${spa.slug}`,
+    url: spa.booking_url_website || `${SITE_URL}/besttopspas/${spa.slug}`,
     ...(spa.logo_image && {
       image: `${API_URL}${spa.logo_image.startsWith('/') ? spa.logo_image : `/${spa.logo_image}`}`,
     }),
