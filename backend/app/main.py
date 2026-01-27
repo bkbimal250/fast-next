@@ -52,13 +52,14 @@ allowed_origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
-    "https://workspa.in", # Production frontend domain 
-    "https://www.workspa.in", # Production frontend domain 
-    "https://spatherapist.workspa.in" , # Production frontend domain from vercel  
-    "https://therapist.workspa.in", # Production frontend domain from vercel  
-    "https://spamanagerjobs.workspa.in", # Production frontend domain from vercel  
-    "https://spajob.api.spajob.spajobs.co.in",  # Production API domain with HTTPS
+    "https://workspa.in",
+    "https://www.workspa.in",
+
+    "https://spatherapist.workspa.in",
+    "https://therapist.workspa.in",
+    "https://spamanagerjobs.workspa.in",
 ]
+
 
 # In debug mode, allow all origins for easier development
 if settings.LOG_LEVEL == "DEBUG":
@@ -66,11 +67,12 @@ if settings.LOG_LEVEL == "DEBUG":
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.workspa\.in",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # Create uploads directory before mounting (synchronous, runs at import time)
