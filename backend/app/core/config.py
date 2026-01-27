@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     
     # SEO
     SITE_URL: str = "https://workspa.in"
+
+# Frontend domains
+    FRONTEND_URLS: list[str] = [
+    "https://workspa.in",
+    "https://spatherapist.workspa.in",
+    "https://therapist.workspa.in",
+    "https://spamanagerjobs.workspa.in",
+]
+
+
     
     # Email (for password reset - optional)
     SMTP_HOST: Optional[str] = None
