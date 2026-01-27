@@ -128,7 +128,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                   <span className="font-medium">{locationStr}</span>
                 </div>
               )}
-              {spa.phone && (
+              {/* {spa.phone && (
                 <div className="flex items-center gap-1.5">
                   <div className="text-gray-400 flex-shrink-0">
                     <FaPhone size={16} />
@@ -137,7 +137,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                     {spa.phone}
                   </a>
                 </div>
-              )}
+              )} */}
               {spa.email && (
                 <div className="flex items-center gap-1.5">
                   <div className="text-gray-400 flex-shrink-0">
@@ -162,7 +162,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {spa.website && (
+              {/* {spa.website && (
                 <a
                   href={spa.website}
                   target="_blank"
@@ -172,7 +172,9 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                   <FaGlobe size={18} />
                   <span>Visit Website</span>
                 </a>
-              )}
+              )} */}
+
+
               {spa.booking_url_website && (
                 <button
                   type="button"

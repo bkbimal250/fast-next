@@ -31,7 +31,7 @@ export default function SpaContactCard({ spa }: SpaContactCardProps) {
             </div>
           </div>
         )}
-        {spa.phone && (
+        {/* {spa.phone && (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-600">
               <FaPhone size={14} />
@@ -43,7 +43,7 @@ export default function SpaContactCard({ spa }: SpaContactCardProps) {
               </a>
             </div>
           </div>
-        )}
+        )} */}
         {spa.email && (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-600">
