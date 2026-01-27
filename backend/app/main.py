@@ -54,7 +54,9 @@ allowed_origins = [
     "http://127.0.0.1:3001",
     "https://workspa.in", # Production frontend domain 
     "https://www.workspa.in", # Production frontend domain 
-    "https://workspa-jdj2hcj1q-bimal-vishwakarmas-projects.vercel.app"  # Production frontend domain from vercel  
+    "https://spatherapist.workspa.in" , # Production frontend domain from vercel  
+    "https://therapist.workspa.in", # Production frontend domain from vercel  
+    "https://spamanagerjobs.workspa.in", # Production frontend domain from vercel  
     "https://spajob.api.spajob.spajobs.co.in",  # Production API domain with HTTPS
 ]
 
