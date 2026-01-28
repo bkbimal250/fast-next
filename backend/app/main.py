@@ -45,9 +45,15 @@ app = FastAPI(
 # GZip Compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# CORS (ALLOW ALL workspa.in subdomains safely)
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://workspa.in",
+        "https://www.workspa.in",
+    ],
     allow_origin_regex=r"https://([a-z0-9-]+\.)*workspa\.in",
     allow_credentials=True,
     allow_methods=["*"],
@@ -66,7 +72,7 @@ os.makedirs(os.path.join(settings.UPLOAD_DIR, "cvs"), exist_ok=True)
 app.mount(
     "/uploads",
     StaticFiles(directory=settings.UPLOAD_DIR),
-    name="uploads"
+    name="uploads",
 )
 
 
