@@ -12,7 +12,7 @@ export const metadata: Metadata = generatePageMetadata(
       'Work Spa help',
       'job portal contact',
     ],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in'}/contact`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/contact`,
   }
 );
 

@@ -6,7 +6,7 @@ import ChatWidget from '@/components/Chatbot/ChatWidget'
 import ContactPopupTrigger from '@/components/ContactPopupTrigger'
 import { Toaster } from 'sonner'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl || 'https://workspa.in'),

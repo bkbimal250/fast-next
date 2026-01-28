@@ -148,7 +148,7 @@ export default function SpaDetailPage() {
 
   // These variables are safe to use here since we've checked spa is not null above
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spajob.api.spajob.spajobs.co.in';
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in' || 'https://spatherapist.workspa.in' || 'https://therapist.workspa.in' || 'https://spamanagerjobs.workspa.in' || 'https://spajob.api.spajob.spajobs.co.in';
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const allImages = spa.logo_image
     ? [spa.logo_image, ...(spa.spa_images || [])]
     : spa.spa_images || [];

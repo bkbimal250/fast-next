@@ -89,7 +89,7 @@ export default function BusinessPage() {
                   {spa.logo_image && (
                     <div className="mt-4">
                       <img
-                        src={`http://localhost:8010/${spa.logo_image}`}
+                        src={`https://spajob.api.spajob.spajobs.co.in/${spa.logo_image}`}
                         alt={spa.name}
                         className="w-full h-64 object-cover rounded-lg"
                       />
@@ -168,7 +168,7 @@ export default function BusinessPage() {
                     {spa.spa_images.map((image, index) => (
                       <img
                         key={index}
-                        src={`http://localhost:8000/${image}`}
+                        src={`https://spajob.api.spajob.spajobs.co.in/${image}`}
                         alt={`${spa.name} - Image ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg"
                       />
