@@ -16,6 +16,7 @@ export default function RecruiterDashboard() {
     applicationCount: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [hasBusiness, setHasBusiness] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -25,14 +26,18 @@ export default function RecruiterDashboard() {
           jobAPI.getMyJobs().catch(() => []),
           applicationAPI.getMyApplications().catch(() => []),
         ]);
+
+        const businessExists = Boolean(mySpa);
         
         setStats({
-          spaCount: mySpa ? 1 : 0,
+          spaCount: businessExists ? 1 : 0,
           jobCount: myJobs?.length || 0,
           applicationCount: myApplications?.length || 0,
         });
+        setHasBusiness(businessExists);
       } catch (error) {
         console.error('Failed to fetch stats:', error);
+        setHasBusiness(false);
       } finally {
         setLoading(false);
       }
@@ -84,26 +89,34 @@ export default function RecruiterDashboard() {
 
   const actionCards = [
     {
-      title: 'Manage Business',
-      description: 'View and edit your SPA/business details',
+      title: hasBusiness ? 'Manage Business' : 'Add Business',
+      description: hasBusiness
+        ? 'View and edit your SPA/business details'
+        : 'Create your business listing before posting jobs',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      link: '/dashboard/business',
-      color: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
+      link: hasBusiness ? '/dashboard/business' : '/dashboard/spas/create',
+      color: hasBusiness
+        ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+        : 'text-amber-700 bg-amber-50 hover:bg-amber-100',
     },
     {
       title: 'Post New Job',
-      description: 'Create a new job posting for your SPA',
+      description: hasBusiness
+        ? 'Create a new job posting for your SPA'
+        : 'Available after your business listing is created',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       ),
-      link: '/dashboard/jobs/create',
-      color: 'text-green-600 bg-green-50 hover:bg-green-100',
+      link: hasBusiness ? '/dashboard/jobs/create' : '/dashboard/spas/create',
+      color: hasBusiness
+        ? 'text-green-600 bg-green-50 hover:bg-green-100'
+        : 'text-gray-600 bg-gray-50 hover:bg-gray-100',
     },
     {
       title: 'View Applications',
@@ -165,6 +178,14 @@ export default function RecruiterDashboard() {
         {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+          {!hasBusiness && !loading && (
+            <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <h3 className="font-semibold text-amber-900">Add your business first</h3>
+              <p className="mt-1 text-sm text-amber-800">
+                Recruiter accounts use one business listing as the reference for every job post.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {actionCards.map((action, index) => (
               <Link
@@ -184,8 +205,12 @@ export default function RecruiterDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Post Job Card */}
           <Link
-            href="/dashboard/jobs/create"
-            className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg p-8 text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            href={hasBusiness ? '/dashboard/jobs/create' : '/dashboard/spas/create'}
+            className={`rounded-xl shadow-lg p-8 text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
+              hasBusiness
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                : 'bg-gradient-to-r from-amber-500 to-yellow-500'
+            }`}
           >
             <div className="flex items-center space-x-4 mb-4">
               <div className="bg-white/20 p-3 rounded-lg">
@@ -194,12 +219,18 @@ export default function RecruiterDashboard() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-2xl font-bold">Post a New Job</h3>
-                <p className="text-white/90">Create a job listing for your business</p>
+                <h3 className="text-2xl font-bold">
+                  {hasBusiness ? 'Post a New Job' : 'Add Your Business'}
+                </h3>
+                <p className="text-white/90">
+                  {hasBusiness
+                    ? 'Create a job listing for your business'
+                    : 'Create your business listing before posting jobs'}
+                </p>
               </div>
             </div>
             <div className="flex items-center text-white/80 font-medium">
-              Get started
+              {hasBusiness ? 'Get started' : 'Create business'}
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -243,8 +274,8 @@ export default function RecruiterDashboard() {
               <h4 className="font-bold text-blue-900 text-lg mb-2">Recruiter Information</h4>
               <p className="text-blue-800 leading-relaxed">
                 As a recruiter, you can manage one business (SPA) and create multiple job postings for it. 
-                You can view and manage all applications received for jobs posted on your business. 
-                Managers and Admins can post jobs on SPAs they created, not on yours.
+                Every job you post will be linked to that business, so candidates see the correct employer details.
+                You can view and manage all applications received for jobs posted on your business.
               </p>
             </div>
           </div>

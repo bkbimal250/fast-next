@@ -60,12 +60,13 @@ const canManageJobs = (role?: string) =>
   role === 'admin' || role === 'manager' || role === 'recruiter';
 
 export default function CreateJobPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState<JobCreateStep>(1);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [requiresBusiness, setRequiresBusiness] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -81,13 +82,22 @@ export default function CreateJobPage() {
   });
 
   useEffect(() => {
-    if (!user || !canManageJobs(user.role)) {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (!canManageJobs(user.role)) {
       router.push('/dashboard');
       return;
     }
 
     fetchData();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const extractErrorMessage = (err: any): string => {
     if (!err) {
@@ -119,6 +129,7 @@ export default function CreateJobPage() {
   const fetchData = async () => {
     setLoading(true);
     setError(null);
+    setRequiresBusiness(false);
 
     try {
       const [countries, jobTypes, jobCategories] = await Promise.all([
@@ -140,11 +151,12 @@ export default function CreateJobPage() {
           setFormData((prev) => ({ ...prev, spa_id: spa.id.toString() }));
         } catch (spaError: any) {
           setLookupData((prev) => ({ ...prev, countries, jobTypes, jobCategories }));
-          setError(
-            spaError.response?.status === 404
-              ? 'You need to create a business first before posting jobs.'
-              : 'Failed to load your business. Please try again.'
-          );
+          if (spaError.response?.status === 404) {
+            setRequiresBusiness(true);
+            setError('Create your business first. Jobs posted by recruiter accounts must be linked to that business.');
+          } else {
+            setError('Failed to load your business. Please try again.');
+          }
         }
       } else {
         const spas = await spaAPI.getSpas();
@@ -359,12 +371,44 @@ export default function CreateJobPage() {
     }
   };
 
-  if (loading || !user || !canManageJobs(user.role)) {
+  if (authLoading || loading || !user || !canManageJobs(user.role)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
           <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role === 'recruiter' && requiresBusiness) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Navbar />
+        <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-blue-200 bg-white p-8 shadow-sm">
+            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <span className="text-2xl font-bold">1</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Add Your Business First</h1>
+            <p className="mt-3 max-w-2xl text-gray-600">
+              Recruiter job posts are connected to one business listing. Create your spa/business once, then you can post jobs for it.
+            </p>
+            {error && (
+              <div className="mt-6 rounded-lg border-l-4 border-blue-500 bg-blue-50 p-4 text-blue-800">
+                {error}
+              </div>
+            )}
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/dashboard/spas/create" className="btn-primary">
+                Create Business
+              </Link>
+              <Link href="/dashboard/business" className="btn-secondary">
+                Go to My Business
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );

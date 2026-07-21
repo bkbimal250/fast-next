@@ -10,9 +10,18 @@ import HeaderSearchBar from '@/components/HeaderSearchBar';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager';
+  const freeListingHref =
+    isAdminOrManager
+      ? '/dashboard/free-listing-enquiries'
+      : '/free-listing';
+  const freeListingLabel =
+    isAdminOrManager
+      ? 'Free Listing Enquiries'
+      : 'Free Listing';
 
   return (
-    <nav className="bg-brand-800 shadow-lg border-b border-brand-900 sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 border-b border-brand-900 bg-brand-800 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Row: Logo, Search Bar, and Menu */}
         <div className="flex items-center gap-4 h-16">
@@ -40,18 +49,28 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex md:items-center md:space-x-1 flex-shrink-0">
-            <Link href="/jobs" className="text-white/90 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <Link href="/jobs" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
               Search Jobs
             </Link>
-            <Link href="/spa-near-me" className="text-white/90 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <Link href="/spa-near-me" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
               SPAs Near Me
             </Link>
-            <Link href="/blog" className="text-white/90 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-              Blog
+            <Link href="/blog" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
+              Career Guides
+            </Link>
+            <Link
+              href={freeListingHref}
+              className={
+                isAdminOrManager
+                  ? 'rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white'
+                  : 'rounded-md bg-gold-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gold-600'
+              }
+            >
+              {freeListingLabel}
             </Link>
             {user ? (
               <>
-                <Link href="/dashboard" className="text-white/90 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                <Link href="/dashboard" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
                   My Dashboard
                 </Link>
                 <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-white/20">
@@ -129,7 +148,14 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
             >
-              Blog
+              Career Guides
+            </Link>
+            <Link
+              href={freeListingHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
+            >
+              {freeListingLabel}
             </Link>
             {user ? (
               <>

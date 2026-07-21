@@ -99,6 +99,8 @@ export default function Footer() {
               <li><Link href="/spa-near-me" className="text-white/80 hover:text-white">SPAs Near Me</Link></li>
               <li><Link href="/spa-jobs-near-me" className="text-white/80 hover:text-white">Spa Jobs Near Me</Link></li>
               <li><Link href="/blog" className="text-white/80 hover:text-white">Career Blog</Link></li>
+              <li><Link href="/blog/how-to-apply-for-spa-jobs" className="text-white/80 hover:text-white">How to Apply</Link></li>
+              <li><Link href="/blog/spa-job-salary-in-india" className="text-white/80 hover:text-white">Salary Guide</Link></li>
               <li><Link href="/jobs?job_type=full-time" className="text-white/80 hover:text-white">Full Time Jobs</Link></li>
               <li><Link href="/jobs?job_type=part-time" className="text-white/80 hover:text-white">Part Time Jobs</Link></li>
             </ul>
@@ -118,6 +120,14 @@ export default function Footer() {
                       <li><Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white">Post a Job</Link></li>
                       <li><Link href="/dashboard/jobs" className="text-white/80 hover:text-white">Manage Jobs</Link></li>
                     </>
+                  )}
+
+                  {(user.role === 'admin' || user.role === 'manager') && (
+                    <li>
+                      <Link href="/dashboard/free-listing-enquiries" className="text-white/80 hover:text-white">
+                        Free Listing Enquiries
+                      </Link>
+                    </li>
                   )}
 
                   <li>
@@ -142,7 +152,9 @@ export default function Footer() {
                 </>
               ) : (
                 <>
-                  <li><Link href="/dashboard/jobs/create" className="text-white/80 hover:text-white">Post a Job</Link></li>
+                  <li><Link href="/free-listing" className="text-white/80 hover:text-white">Free Listing Enquiry</Link></li>
+                  <li><Link href="/blog/free-listing-for-spa-businesses" className="text-white/80 hover:text-white">Free Listing Guide</Link></li>
+                  <li><Link href="/jobs" className="text-white/80 hover:text-white">Browse Candidates&apos; Jobs</Link></li>
                   <li><Link href="/register" className="text-white/80 hover:text-white">Create Account</Link></li>
                   <li><Link href="/login" className="text-white/80 hover:text-white">Login</Link></li>
                 </>
@@ -165,7 +177,7 @@ export default function Footer() {
               <li className="flex gap-3">
                 <FaPhone className="text-sky-300" />
                 <div className="flex flex-col">
-                  <a href="tel:+919152120246" className="text-white/80 hover:text-white">+91 91521 20246</a>
+                  <a href="tel:+919116458453" className="text-white/80 hover:text-white">+91 91164 58453</a>
                   <a href="tel:+919876543210" className="text-white/80 hover:text-white">+91 98765 43210</a>
                 </div>
               </li>
@@ -208,6 +220,8 @@ export default function Footer() {
               <Link href="/privacy" className="text-white/70 hover:text-white">Privacy Policy</Link>
               <Link href="/terms" className="text-white/70 hover:text-white">Terms of Service</Link>
               <Link href="/about" className="text-white/70 hover:text-white">About Us</Link>
+              <Link href="/free-listing" className="text-white/70 hover:text-white">Free Listing</Link>
+              <Link href="/blog" className="text-white/70 hover:text-white">Blog</Link>
               <Link href="/contact" className="text-white/70 hover:text-white">Contact</Link>
               <Link href="/sitemap" className="text-white/70 hover:text-white">Sitemap</Link>
             </div>

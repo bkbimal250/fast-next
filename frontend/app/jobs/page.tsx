@@ -32,6 +32,7 @@ function JobsPageContent() {
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary'>('recent');
   const [filters, setFilters] = useState<FilterState>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const itemsPerPage = 15;
   const [jobTypes, setJobTypes] = useState<any[]>([]);
   const [jobCategories, setJobCategories] = useState<any[]>([]);
@@ -438,7 +439,7 @@ function JobsPageContent() {
   }), []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-light">
       {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
@@ -456,8 +457,8 @@ function JobsPageContent() {
 
       {/* Hero Section - Naukri Style */}
       <div className="bg-brand-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
+        <div className="page-shell py-6 sm:py-8">
+          <h1 className="text-2xl font-bold sm:text-3xl md:text-4xl">
             {searchQuery ? (
               effectiveLocation ? (
                 `${searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Jobs in ${effectiveLocation}`
@@ -467,10 +468,10 @@ function JobsPageContent() {
             ) : effectiveLocation ? (
               `Work Spa in ${effectiveLocation}`
             ) : (
-              'Find Your Dream SPA Job'
+              'Find Your Next Spa Job'
             )}
           </h1>
-          <p className="text-white/90 text-base sm:text-lg">
+          <p className="mt-2 text-sm text-white/85 sm:text-base">
             {totalJobs > 0 ? `${totalJobs} jobs available` : 'Discover thousands of opportunities'}
             {effectiveLocation && !locationQuery && (
               <span className="ml-2 text-white/70 text-sm">📍 {effectiveLocation}</span>
@@ -479,10 +480,56 @@ function JobsPageContent() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="page-shell py-4 sm:py-6">
+        <div className="mb-4 flex items-center justify-between gap-3 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters(true)}
+            className="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm"
+          >
+            Filters
+          </button>
+          <select
+            value={sortBy}
+            onChange={(event) => handleSortChange(event.target.value as 'recent' | 'popular' | 'salary')}
+            className="input-field flex-1 text-sm"
+            aria-label="Sort jobs"
+          >
+            <option value="recent">Recent</option>
+            <option value="popular">Popular</option>
+            <option value="salary">Salary</option>
+          </select>
+        </div>
+
+        {showMobileFilters && (
+          <div className="fixed inset-0 z-[70] lg:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              aria-label="Close filters"
+              onClick={() => setShowMobileFilters(false)}
+            />
+            <div className="absolute inset-y-0 left-0 flex w-full max-w-sm flex-col bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileFilters(false)}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700"
+                >
+                  Done
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                <JobFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-4">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="hidden lg:col-span-1 lg:block">
             <div className="sticky top-20 space-y-4 z-30">
               <JobFilters
                 onFilterChange={handleFilterChange}
@@ -494,7 +541,7 @@ function JobsPageContent() {
           {/* Job Listings */}
           <div className="lg:col-span-3">
             {/* Sort and View Options - Naukri Style */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sticky top-20 z-40">
+            <div className="sticky top-20 z-40 mb-4 hidden rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4 lg:block">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs sm:text-sm text-gray-600 font-medium">

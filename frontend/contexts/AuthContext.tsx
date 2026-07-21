@@ -20,6 +20,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const clearSession = () => {
+    tokenManager.removeToken();
+    setToken(null);
+    setUser(null);
+  };
+
   useEffect(() => {
     // Check for existing token on mount
     const savedToken = tokenManager.getToken();
@@ -32,9 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userData);
         })
         .catch(() => {
-          // Invalid token, remove it
-          tokenManager.removeToken();
-          setToken(null);
+          clearSession();
         })
         .finally(() => {
           setLoading(false);
@@ -45,14 +49,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await authAPI.login(email, password);
-    console.log('Login response:', response);
-    console.log('Saving token:', response.access_token?.substring(0, 20) + '...');
-    tokenManager.setToken(response.access_token);
-    const savedToken = tokenManager.getToken();
-    console.log('Token saved, verifying:', savedToken?.substring(0, 20) + '...');
-    setToken(response.access_token);
-    setUser(response.user);
+    setLoading(true);
+
+    try {
+      const response = await authAPI.login(email, password);
+      tokenManager.setToken(response.access_token);
+      setToken(response.access_token);
+
+      const authenticatedUser = response.user ?? (await authAPI.getCurrentUser());
+      setUser(authenticatedUser);
+    } catch (error) {
+      clearSession();
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const register = async (data: { name: string; email: string; phone: string; password: string }) => {
@@ -62,9 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    tokenManager.removeToken();
-    setToken(null);
-    setUser(null);
+    clearSession();
   };
 
   const updateUser = (updatedUser: User) => {

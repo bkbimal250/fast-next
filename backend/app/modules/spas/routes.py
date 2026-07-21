@@ -9,7 +9,7 @@ import json
 
 from app.core.database import get_db
 from app.modules.spas import schemas, services
-from app.modules.users.routes import get_current_user
+from app.modules.users.routes import get_current_user, get_current_user_optional
 from app.modules.users.models import User, UserRole
 from app.modules.uploads.image_storage import save_image_file
 from app.modules.analytics import trackers
@@ -104,11 +104,23 @@ def get_my_spa(
 
 
 @router.get("/{spa_id}", response_model=schemas.SpaResponse)
-def get_spa_by_id(spa_id: int, db: Session = Depends(get_db)):
+def get_spa_by_id(
+    spa_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     """Get SPA by ID"""
     spa = services.get_spa_by_id(db, spa_id)
     if not spa:
         raise HTTPException(status_code=404, detail="SPA not found")
+
+    if current_user and current_user.role == UserRole.RECRUITER:
+        if current_user.managed_spa_id != spa_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Recruiters can only access their own free listing",
+            )
+
     return spa
 
 
@@ -322,6 +334,7 @@ async def update_spa(
     if current_user.role == UserRole.RECRUITER:
         if current_user.managed_spa_id != spa_id:
             raise HTTPException(status_code=403, detail="You can only update your own SPA")
+        is_verified = None
     
     # Handle logo image upload
     logo_image_path = spa.logo_image  # Keep existing if not updated

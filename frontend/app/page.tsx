@@ -287,18 +287,16 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero Section with Search */}
-      <div className="bg-brand-800 text-white relative overflow-hidden">
-        {/* Decorative background elements - fixed dimensions to prevent CLS */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" style={{ aspectRatio: '1/1' }}></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2" style={{ aspectRatio: '1/1' }}></div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 relative z-10">
+      <div className="relative overflow-hidden bg-brand-800 text-white">
+        <div className="page-shell py-12 sm:py-16 md:py-20">
           <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 leading-tight px-2">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-gold-200">
+              Verified spa hiring across Mumbai region
+            </p>
+            <h1 className="mx-auto max-w-5xl px-2 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
               Find Spa Jobs in Mumbai & Navi Mumbai
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 sm:mb-10 px-4">
+            <p className="mx-auto mt-4 max-w-4xl px-4 text-base leading-7 text-white/90 sm:text-lg md:text-xl">
               Verified spa jobs in Mumbai, Navi Mumbai, Thane, Vashi, Bandra, Panvel, Airoli, Sanpada, Kharghar, Belapur, Mulund, Dadar, Kurla & more
             </p>
           </div>
@@ -308,30 +306,42 @@ export default function HomePage() {
             <SearchBar />
           </div>
 
+          <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/jobs" className="btn-primary w-full sm:w-auto">
+              Browse Jobs
+            </Link>
+            <Link
+              href="/free-listing"
+              className="inline-flex w-full items-center justify-center rounded-lg border border-white/25 bg-white/10 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/15 sm:w-auto"
+            >
+              Free Listing for Employers
+            </Link>
+          </div>
+
           {/* Quick Links */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 sm:mt-10 text-xs sm:text-sm md:text-base px-4">
+          <div className="flex flex-wrap justify-center gap-2 text-xs sm:gap-3 sm:text-sm md:text-base px-4">
             {quickLinkCategories.length > 0 ? (
               quickLinkCategories.map((category) => (
                 <Link
                   key={category.id || category.name}
                   href={`/jobs?job_category=${encodeURIComponent(category.name)}`}
-                  className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1"
+                  className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white"
                 >
                   {category.name} Jobs
                 </Link>
               ))
             ) : (
               <>
-                <Link href="/jobs?job_category=Spa Therapist" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
+                <Link href="/jobs?job_category=Spa Therapist" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
                   Spa Therapist Jobs
                 </Link>
-                <Link href="/jobs?job_category=Spa Receptionist" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
+                <Link href="/jobs?job_category=Spa Receptionist" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
                   Spa Receptionist Jobs
                 </Link>
-                <Link href="/jobs?job_category=Spa Manager" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
+                <Link href="/jobs?job_category=Spa Manager" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
                   Spa Manager Jobs
                 </Link>
-                <Link href="/jobs?job_category=Beautician" className="text-white/80 hover:text-white underline transition-colors font-medium px-2 py-1">
+                <Link href="/jobs?job_category=Beautician" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
                   Beautician Jobs
                 </Link>
               </>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { jobAPI, Job, JobType, JobCategory } from '@/lib/job';
 import { locationAPI } from '@/lib/location';
+import { spaAPI } from '@/lib/spa';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { showToast, showErrorToast } from '@/lib/toast';
@@ -15,11 +16,12 @@ import SearchableSelect from '../spas/components/SearchableSelect';
 type TabType = 'jobs' | 'types' | 'categories';
 
 function ManageJobsContent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>('jobs');
   const [loading, setLoading] = useState(true);
+  const [recruiterHasBusiness, setRecruiterHasBusiness] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -88,7 +90,16 @@ function ManageJobsContent() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter') {
       router.push('/dashboard');
     } else {
       fetchData();
@@ -96,7 +107,7 @@ function ManageJobsContent() {
         loadLocations();
       }
     }
-  }, [user, router, activeTab]);
+  }, [user, authLoading, router, activeTab]);
 
   // Load locations for filters
   const loadLocations = async () => {
@@ -352,7 +363,29 @@ function ManageJobsContent() {
         case 'jobs':
           // For recruiters, use recruiter-specific endpoint
           if (user?.role === 'recruiter') {
-            setJobs(await jobAPI.getMyJobs());
+            const mySpa = await spaAPI.getMySpa().catch((spaError: any) => {
+              if (spaError.response?.status === 404) {
+                return null;
+              }
+              throw spaError;
+            });
+
+            setRecruiterHasBusiness(Boolean(mySpa));
+
+            if (!mySpa) {
+              setJobs([]);
+              break;
+            }
+
+            try {
+              setJobs(await jobAPI.getMyJobs());
+            } catch (jobsError: any) {
+              if (jobsError.response?.status === 404) {
+                setJobs(await jobAPI.getAllJobs({ spa_id: mySpa.id, limit: 1000 }));
+              } else {
+                throw jobsError;
+              }
+            }
           } else {
             // Fetch all jobs (with high limit for client-side pagination and filtering)
             setJobs(await jobAPI.getAllJobs({ limit: 1000 }));
@@ -514,7 +547,7 @@ function ManageJobsContent() {
     }
   };
 
-  if (loading || !user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
+  if (authLoading || loading || !user || (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'recruiter')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-light">
         <div className="text-center">
@@ -535,11 +568,21 @@ function ManageJobsContent() {
             <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage jobs, job types, and categories</p>
           </div>
           {activeTab === 'jobs' && (
-            <Link href="/dashboard/jobs/create" className="px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-lg transition-colors shadow-md text-sm sm:text-base">
-              Post New Job
+            <Link
+              href={user.role === 'recruiter' && !recruiterHasBusiness ? '/dashboard/spas/create' : '/dashboard/jobs/create'}
+              className="px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-lg transition-colors shadow-md text-sm sm:text-base"
+            >
+              {user.role === 'recruiter' && !recruiterHasBusiness ? 'Add Business' : 'Post New Job'}
             </Link>
           )}
         </div>
+
+        {user.role === 'recruiter' && !recruiterHasBusiness && (
+          <div className="bg-amber-50 border-l-4 border-amber-500 text-amber-800 p-4 rounded-lg mb-4">
+            <p className="font-medium">Add your business before posting jobs.</p>
+            <p className="mt-1 text-sm">Recruiter job posts must be linked to your own spa/business listing.</p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">

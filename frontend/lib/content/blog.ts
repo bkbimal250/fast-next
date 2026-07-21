@@ -23,7 +23,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: '2026-01-20',
     readTime: '5 min read',
     relatedLinks: [
-      { label: 'Spa therapist jobs', href: '/jobs/spa-therapist' },
+      { label: 'Spa therapist jobs', href: '/jobs?q=spa%20therapist' },
       { label: 'Jobs in Mumbai', href: '/spa-jobs-in-mumbai' },
       { label: 'Apply for latest jobs', href: '/jobs' },
     ],
@@ -89,9 +89,9 @@ export const blogPosts: BlogPost[] = [
     publishedAt: '2026-01-24',
     readTime: '5 min read',
     relatedLinks: [
-      { label: 'Spa manager jobs', href: '/jobs/spa-manager' },
-      { label: 'Receptionist jobs', href: '/jobs/receptionist' },
-      { label: 'Beautician jobs', href: '/jobs/beautician' },
+      { label: 'Spa manager jobs', href: '/jobs?q=spa%20manager' },
+      { label: 'Receptionist jobs', href: '/jobs?q=receptionist' },
+      { label: 'Beautician jobs', href: '/jobs?q=beautician' },
     ],
     sections: [
       {
@@ -108,6 +108,105 @@ export const blogPosts: BlogPost[] = [
         heading: 'Growth path',
         body:
           'Candidates can grow from therapist or receptionist roles into senior therapist, trainer, supervisor, and spa manager positions.',
+      },
+    ],
+  },
+  {
+    slug: 'spa-receptionist-job-responsibilities',
+    title: 'Spa Receptionist Job Responsibilities: Skills, Salary, and Interview Tips',
+    description:
+      'Learn what spa receptionist jobs require, how to prepare for interviews, and what employers check before hiring.',
+    category: 'Role Guide',
+    tags: ['Receptionist', 'Front Desk', 'Interview'],
+    author: 'Workspa Editorial',
+    publishedAt: '2026-01-26',
+    readTime: '4 min read',
+    relatedLinks: [
+      { label: 'Receptionist jobs', href: '/jobs?q=receptionist' },
+      { label: 'Jobs near me', href: '/spa-jobs-near-me' },
+      { label: 'Apply now', href: '/jobs' },
+    ],
+    sections: [
+      {
+        heading: 'Main duties',
+        body:
+          'Receptionists handle calls, bookings, walk-in customers, billing coordination, appointment reminders, and daily front desk communication.',
+      },
+      {
+        heading: 'Skills employers prefer',
+        body:
+          'Clear speaking, basic computer use, polite customer handling, timing discipline, and confidence with WhatsApp or phone follow-ups are useful in most spas.',
+      },
+      {
+        heading: 'Interview preparation',
+        body:
+          'Prepare answers about customer handling, shift timing, previous front desk experience, languages known, and how quickly you can join.',
+      },
+    ],
+  },
+  {
+    slug: 'part-time-spa-jobs-near-me',
+    title: 'Part-Time Spa Jobs Near Me: How to Find Flexible Spa Work',
+    description:
+      'A simple guide for finding part-time spa jobs near your location with practical filters, timing tips, and application advice.',
+    category: 'Job Search',
+    tags: ['Part Time', 'Near Me', 'Flexible Jobs'],
+    author: 'Workspa Editorial',
+    publishedAt: '2026-01-28',
+    readTime: '4 min read',
+    relatedLinks: [
+      { label: 'Part-time jobs', href: '/jobs?job_type=part-time' },
+      { label: 'Jobs near me', href: '/spa-jobs-near-me' },
+      { label: 'All jobs', href: '/jobs' },
+    ],
+    sections: [
+      {
+        heading: 'Use location first',
+        body:
+          'Part-time work is easier when travel is short. Search by city, area, or near-me filters before comparing salary or incentives.',
+      },
+      {
+        heading: 'Mention available hours',
+        body:
+          'Employers shortlist faster when candidates mention morning, evening, weekend, or fixed-hour availability clearly.',
+      },
+      {
+        heading: 'Check payment details',
+        body:
+          'Ask whether payment is hourly, per shift, fixed monthly, commission-based, or a mix of salary and incentives.',
+      },
+    ],
+  },
+  {
+    slug: 'free-listing-for-spa-businesses',
+    title: 'Free Listing for Spa Businesses: How Workspa Follow-Up Works',
+    description:
+      'For spa owners and recruiters: learn how free listing enquiries are verified before business credentials are shared.',
+    category: 'For Employers',
+    tags: ['Free Listing', 'Recruiters', 'Spa Business'],
+    author: 'Workspa Editorial',
+    publishedAt: '2026-01-30',
+    readTime: '3 min read',
+    relatedLinks: [
+      { label: 'Send free listing enquiry', href: '/free-listing' },
+      { label: 'Login', href: '/login' },
+      { label: 'Contact Workspa', href: '/contact' },
+    ],
+    sections: [
+      {
+        heading: 'Send business details',
+        body:
+          'Share the contact name, phone, email, spa or shop name, city, address, and any website or social profile that helps verify the business.',
+      },
+      {
+        heading: 'Verification and follow-up',
+        body:
+          'The Workspa team reviews the enquiry, contacts the business, confirms listing details, and checks whether the business is suitable for recruiter access.',
+      },
+      {
+        heading: 'Credentials after verification',
+        body:
+          'After successful verification, credentials can be shared so the recruiter can manage their own business listing and post jobs against that business.',
       },
     ],
   },

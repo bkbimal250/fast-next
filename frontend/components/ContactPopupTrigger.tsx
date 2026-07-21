@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import ContactPopup from '@/app/Popup/ContactPopup';
 
+const POPUP_SESSION_KEY = 'workspa_contact_popup_seen';
+
 /**
  * Triggers contact popup after 10 seconds
  * Disabled on job details, dashboard & WhatsApp forms
@@ -37,8 +39,10 @@ export default function ContactPopupTrigger() {
 
   useEffect(() => {
     if (isPopupDisabled()) return;
+    if (sessionStorage.getItem(POPUP_SESSION_KEY) === 'true') return;
 
     const timer = setTimeout(() => {
+      sessionStorage.setItem(POPUP_SESSION_KEY, 'true');
       setShowPopup(true);
     }, 10000);
 
@@ -50,7 +54,10 @@ export default function ContactPopupTrigger() {
   return (
     <ContactPopup
       open={showPopup}
-      onClose={() => setShowPopup(false)}
+      onClose={() => {
+        sessionStorage.setItem(POPUP_SESSION_KEY, 'true');
+        setShowPopup(false);
+      }}
     />
   );
 }

@@ -8,21 +8,28 @@ import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
 export default function BusinessPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [spa, setSpa] = useState<Spa | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+      return;
+    }
+
     if (user && user.role !== 'recruiter') {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
-    loadMySpa();
-  }, []);
+    if (user?.role === 'recruiter') {
+      loadMySpa();
+    }
+  }, [user]);
 
   const loadMySpa = async () => {
     setLoading(true);
@@ -42,7 +49,7 @@ export default function BusinessPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />

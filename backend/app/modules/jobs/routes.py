@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.modules.jobs import schemas, services
 from app.modules.jobs.models import Job, JobCategory, JobType
 from app.modules.locations.models import City, State, Area
-from app.modules.users.routes import get_current_user, require_role
+from app.modules.users.routes import get_current_user, get_current_user_optional, require_role
 from app.modules.users.models import User, UserRole
 from app.modules.subscribe.notification_service import send_notifications_for_jobs
 from app.modules.subscribe.models import SubscriptionFrequency
@@ -480,11 +480,23 @@ def get_job_counts_by_location(
 
 
 @router.get("/id/{job_id}", response_model=schemas.JobResponse)
-def get_job_by_id(job_id: int, db: Session = Depends(get_db)):
+def get_job_by_id(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     """Get job by ID"""
     job = services.get_job_by_id(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+
+    if current_user and current_user.role == UserRole.RECRUITER:
+        if current_user.managed_spa_id != job.spa_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Recruiters can only access jobs from their own free listing",
+            )
+
     return job
 
 
@@ -717,6 +729,23 @@ def get_popular_jobs(
     return [schemas.JobResponse.model_validate(job) for job in jobs]
 
 
+@router.get("/recruiter/my-jobs", response_model=list[schemas.JobResponse])
+def get_my_recruiter_jobs(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get jobs for the current recruiter's own free listing."""
+    if current_user.role != UserRole.RECRUITER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only recruiters can access free listing jobs",
+        )
+
+    return services.get_recruiter_jobs(db, current_user.id, skip=skip, limit=limit)
+
+
 @router.post("/", response_model=schemas.JobResponse, status_code=status.HTTP_201_CREATED)
 def create_job(
     job: schemas.JobCreate,
@@ -730,7 +759,13 @@ def create_job(
     Only authenticated users can create jobs.
     Sends email notifications to subscribers with instant frequency.
     """
-    created_job = services.create_job(db, job, current_user.id)
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin, manager, or free listing users can create jobs",
+        )
+
+    created_job = services.create_job(db, job, current_user.id, current_user.role)
     
     # Send instant notifications to subscribers (in background)
     if created_job and created_job.id:
@@ -770,7 +805,14 @@ def update_job(
         raise HTTPException(status_code=404, detail="Job not found")
     
     # Check permissions
-    if job.created_by != current_user.id and current_user.role != UserRole.ADMIN:
+    is_admin_or_manager = current_user.role in [UserRole.ADMIN, UserRole.MANAGER]
+    is_creator = job.created_by == current_user.id
+    is_recruiter_own_listing = (
+        current_user.role == UserRole.RECRUITER
+        and current_user.managed_spa_id == job.spa_id
+    )
+
+    if not is_admin_or_manager and not is_creator and not is_recruiter_own_listing:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this job"
@@ -812,8 +854,13 @@ def delete_job(
     # Check permissions
     is_creator = job.created_by == current_user.id
     is_admin = current_user.role == UserRole.ADMIN
+    is_manager = current_user.role == UserRole.MANAGER
+    is_recruiter_own_listing = (
+        current_user.role == UserRole.RECRUITER
+        and current_user.managed_spa_id == job.spa_id
+    )
     
-    if not is_creator and not is_admin:
+    if not is_creator and not is_admin and not is_manager and not is_recruiter_own_listing:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this job"

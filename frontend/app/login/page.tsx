@@ -1,120 +1,84 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { FormEvent, useState } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { AuthAlert, AuthPageShell, PasswordField } from '@/components/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.detail || 'Login failed. Please check your email and password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      <div className="flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          {/* Logo/Brand */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-brand-600 mb-2">Work Spa</h1>
-            <p className="text-lg text-gray-600">Log in to your account</p>
-          </div>
+    <AuthPageShell
+      title="Welcome back"
+      subtitle="Log in to manage applications, jobs, free listings, and your profile."
+      footer={
+        <>
+          New to Workspa?{' '}
+          <Link href="/register" className="font-semibold text-brand-700 hover:text-brand-800">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && <AuthAlert type="error">{error}</AuthAlert>}
 
-        {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="email"
-                placeholder="Email address"
-                autoComplete="email"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
-                autoComplete="current-password"
-                required
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-              </button>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Logging in...' : 'Log In'}
-              </button>
-            </div>
-
-            <div className="text-center pt-2">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Forgotten password?
-              </Link>
-            </div>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-            <Link
-              href="/register"
-              className="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-6 rounded-md text-base transition-colors"
-            >
-              Create New Account
-            </Link>
-          </div>
+        <div>
+          <label htmlFor="email" className="mb-2 block text-sm font-semibold text-gray-700">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            className="input-field"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
         </div>
-      </div>
-      </div>
-    </div>
+
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          placeholder="Enter your password"
+        />
+
+        <div className="flex items-center justify-end">
+          <Link href="/forgot-password" className="text-sm font-semibold text-brand-700 hover:text-brand-800">
+            Forgot password?
+          </Link>
+        </div>
+
+        <button type="submit" disabled={loading} className="btn-primary w-full">
+          {loading ? 'Logging in...' : 'Log In'}
+        </button>
+      </form>
+    </AuthPageShell>
   );
 }
-

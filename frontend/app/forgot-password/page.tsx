@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { authAPI } from '@/lib/auth';
+import { FormEvent, useState } from 'react';
 import Link from 'next/link';
+import { AuthAlert, AuthPageShell } from '@/components/auth';
+import { authAPI } from '@/lib/auth';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -10,15 +11,15 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError('');
     setMessage('');
     setLoading(true);
 
     try {
-      const response = await authAPI.forgotPassword(email);
-      setMessage(response.message || 'Password reset link sent to your email');
+      const response = await authAPI.forgotPassword(email.trim());
+      setMessage(response.message || 'Password reset link sent to your email.');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to send reset email. Please try again.');
     } finally {
@@ -27,62 +28,42 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <AuthPageShell
+      title="Reset your password"
+      subtitle="Enter your account email and we will send instructions to reset your password."
+      footer={
+        <>
+          Remembered it?{' '}
+          <Link href="/login" className="font-semibold text-brand-700 hover:text-brand-800">
+            Back to login
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && <AuthAlert type="error">{error}</AuthAlert>}
+        {message && <AuthAlert type="success">{message}</AuthAlert>}
+
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Forgot your password?
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your email and we'll send you a reset link
-          </p>
+          <label htmlFor="email" className="mb-2 block text-sm font-semibold text-gray-700">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            className="input-field"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-          {message && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-              {message}
-            </div>
-          )}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="input-field"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending...' : 'Send reset link'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <Link href="/login" className="text-sm font-medium text-primary-600 hover:text-primary-500">
-              Back to login
-            </Link>
-          </div>
-        </form>
-      </div>
-    </div>
+        <button type="submit" disabled={loading} className="btn-primary w-full">
+          {loading ? 'Sending...' : 'Send Reset Link'}
+        </button>
+      </form>
+    </AuthPageShell>
   );
 }
-

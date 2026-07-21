@@ -49,6 +49,10 @@ export default function JobFilters({ onFilterChange, initialFilters = {} }: JobF
   }, []);
 
   useEffect(() => {
+    setFilters(initialFilters);
+  }, [initialFilters]);
+
+  useEffect(() => {
     if (filters.countryId) {
       locationAPI.getStates(filters.countryId, 0, 1000).then(setStates).catch(console.error);
       setFilters((prev) => ({ ...prev, stateId: undefined, cityId: undefined, areaId: undefined }));

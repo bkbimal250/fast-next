@@ -209,7 +209,8 @@ def login(
     return {
         "message": "Login successful",
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user": user
     }
 
 

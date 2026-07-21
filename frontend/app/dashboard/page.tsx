@@ -21,7 +21,8 @@ import {
   FaArrowRight,
   FaEnvelope,
   FaMousePointer,
-  FaWhatsapp
+  FaWhatsapp,
+  FaClipboardList
 } from 'react-icons/fa';
 
 interface DashboardStats {
@@ -41,6 +42,7 @@ export default function DashboardPage() {
     totalSPAs: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [recruiterHasBusiness, setRecruiterHasBusiness] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -52,16 +54,34 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     if (!user) return;
+    const userRole = user.role;
     
     setLoadingStats(true);
     try {
+      if (userRole === 'recruiter') {
+        const [mySpa, myJobs, applicationsData] = await Promise.all([
+          spaAPI.getMySpa().catch(() => null),
+          jobAPI.getMyJobs().catch(() => []),
+          applicationAPI.getAllApplications({ skip: 0, limit: 1000 }).catch(() => []),
+        ]);
+
+        setRecruiterHasBusiness(Boolean(mySpa));
+        setStats({
+          totalJobs: Array.isArray(myJobs) ? myJobs.length : 0,
+          totalUsers: 0,
+          totalSPAs: mySpa ? 1 : 0,
+          totalApplications: Array.isArray(applicationsData) ? applicationsData.length : 0,
+        });
+        return;
+      }
+
       const [jobCountData, usersData, spasData, applicationsData] = await Promise.all([
         jobAPI.getJobCount().catch(() => ({ count: 0 })),
-        user.role === 'admin' ? userAPI.getAllUsers(0, 1000).catch(() => []) : Promise.resolve([]),
-        user.role === 'admin' || user.role === 'manager' 
+        userRole === 'admin' ? userAPI.getAllUsers(0, 1000).catch(() => []) : Promise.resolve([]),
+        userRole === 'admin' || userRole === 'manager' 
           ? spaAPI.getSpas({ skip: 0, limit: 1000 }).catch(() => [])
           : Promise.resolve([]),
-        user.role === 'admin' || user.role === 'manager' || user.role === 'recruiter'
+        userRole === 'admin' || userRole === 'manager'
           ? applicationAPI.getAllApplications({ skip: 0, limit: 1000 }).catch(() => [])
           : Promise.resolve([]),
       ]);
@@ -74,6 +94,9 @@ export default function DashboardPage() {
       });
     } catch (err) {
       console.error('Failed to fetch stats:', err);
+      if (userRole === 'recruiter') {
+        setRecruiterHasBusiness(false);
+      }
     } finally {
       setLoadingStats(false);
     }
@@ -158,6 +181,13 @@ export default function DashboardPage() {
           color: 'bg-pink-100 text-pink-600',
         },
         {
+          title: 'Free Listing Enquiries',
+          description: 'Follow up and verify business enquiries',
+          link: '/dashboard/free-listing-enquiries',
+          icon: FaClipboardList,
+          color: 'bg-amber-100 text-amber-700',
+        },
+        {
           title: 'Manage Jobs',
           description: 'Oversee all job postings',
           link: '/dashboard/jobs',
@@ -224,6 +254,13 @@ export default function DashboardPage() {
           color: 'bg-brand-100 text-brand-600',
         },
         {
+          title: 'Free Listing Enquiries',
+          description: 'Follow up and verify businesses',
+          link: '/dashboard/free-listing-enquiries',
+          icon: FaClipboardList,
+          color: 'bg-amber-100 text-amber-700',
+        },
+        {
           title: 'Applications',
           description: 'View job applications',
           link: '/dashboard/applications',
@@ -241,9 +278,20 @@ export default function DashboardPage() {
     } else if (user.role === 'recruiter') {
       return [
         {
+          title: recruiterHasBusiness ? 'My Business' : 'Add Business',
+          description: recruiterHasBusiness
+            ? 'View and edit your business listing'
+            : 'Create your business before posting jobs',
+          link: recruiterHasBusiness ? '/dashboard/business' : '/dashboard/spas/create',
+          icon: FaBuilding,
+          color: recruiterHasBusiness ? 'bg-blue-100 text-blue-600' : 'bg-gold-100 text-gold-700',
+        },
+        {
           title: 'My Jobs',
-          description: 'Manage your job postings',
-          link: '/dashboard/jobs',
+          description: recruiterHasBusiness
+            ? 'Manage your job postings'
+            : 'Available after adding your business',
+          link: recruiterHasBusiness ? '/dashboard/jobs' : '/dashboard/spas/create',
           icon: FaBriefcase,
           color: 'bg-brand-100 text-brand-600',
         },
@@ -466,16 +514,34 @@ export default function DashboardPage() {
         {user.role === 'recruiter' && (
           <div className="bg-gradient-to-r from-brand-50 to-gold-50 border border-brand-200 rounded-xl p-5 sm:p-6">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Recruiter Quick Actions</h3>
+            {!recruiterHasBusiness && (
+              <div className="mb-4 rounded-lg border border-gold-200 bg-white p-4">
+                <h4 className="font-semibold text-gray-900">Create your business listing first</h4>
+                <p className="mt-1 text-sm text-gray-600">
+                  Your job posts will use this business as their reference, so candidates see the correct employer details.
+                </p>
+              </div>
+            )}
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/dashboard/jobs/create"
-                className="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-lg transition-colors text-sm"
+                href={recruiterHasBusiness ? '/dashboard/business' : '/dashboard/spas/create'}
+                className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors text-sm"
+              >
+                {recruiterHasBusiness ? 'Manage Business' : 'Add Business'}
+              </Link>
+              <Link
+                href={recruiterHasBusiness ? '/dashboard/jobs/create' : '/dashboard/spas/create'}
+                className={`px-4 py-2 font-semibold rounded-lg transition-colors text-sm ${
+                  recruiterHasBusiness
+                    ? 'bg-gold-500 hover:bg-gold-600 text-white'
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300'
+                }`}
               >
                 Post New Job
               </Link>
               <Link
                 href="/dashboard/applications"
-                className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors text-sm"
+                className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold rounded-lg transition-colors text-sm"
               >
                 View Applications
               </Link>

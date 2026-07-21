@@ -216,7 +216,7 @@ export default function JobCard({
 
   return (
     <Link href={`/jobs/${slug}`} className="block">
-      <div className={`bg-white rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden min-h-[200px] sm:min-h-[220px] ${
+      <div className={`bg-white rounded-lg p-4 sm:p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden ${
         isNew ? 'border-2 border-green-400 shadow-md' : 'border border-gray-300'
       }`}>
         {/* Featured Badge - Top Right */}
@@ -327,7 +327,7 @@ export default function JobCard({
               </div>
 
               {/* Apply Button - Right Side */}
-              <div className="flex flex-row sm:flex-col items-stretch sm:items-end gap-2 flex-shrink-0 w-full sm:w-auto">
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-col sm:items-end">
                 
                 {hr_contact_phone && (
                   <>
@@ -344,7 +344,7 @@ export default function JobCard({
                             longitude: userLocation?.longitude,
                           }).catch(() => {});
                         }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none flex items-center justify-center gap-1.5"
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-blue-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-blue-600 hover:shadow-md sm:px-4 sm:py-2.5 sm:text-sm"
                         title="Call HR"
                       >
                         <FaPhone size={12} />
@@ -366,7 +366,7 @@ export default function JobCard({
                             longitude: userLocation?.longitude,
                           }).catch(() => {});
                         }}
-                        className="bg-green-500 hover:bg-green-600 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none flex items-center justify-center gap-1.5"
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-green-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-green-600 hover:shadow-md sm:px-4 sm:py-2.5 sm:text-sm"
                         title="WhatsApp HR"
                       >
                         <FaWhatsapp size={14} />
@@ -377,7 +377,7 @@ export default function JobCard({
                 )}
                 <div 
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-1 sm:flex-none"
+                  className="min-w-0"
                 >
                   <ShareButton
                     url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/jobs/${slug}`}
@@ -400,7 +400,7 @@ export default function JobCard({
                 <button
                   onClick={handleApplyClick}
                   disabled={applying}
-                  className="bg-gold-500 hover:bg-gold-600 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap text-xs sm:text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-gold-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-gold-600 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-2.5 sm:text-sm"
                 >
                   {applying ? 'Applying...' : user ? 'Apply Now' : 'Quick Apply'}
                 </button>

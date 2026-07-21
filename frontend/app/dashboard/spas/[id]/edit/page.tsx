@@ -41,7 +41,8 @@ const initialFormData: SpaFormData = {
   is_verified: false,
 };
 
-const canEditSpas = (role?: string) => role === 'admin' || role === 'manager';
+const canEditSpas = (role?: string) =>
+  role === 'admin' || role === 'manager' || role === 'recruiter';
 
 export default function EditSpaPage() {
   const { user } = useAuth();
@@ -124,7 +125,7 @@ export default function EditSpaPage() {
         rating: spa.rating?.toString() || '',
         reviews: spa.reviews?.toString() || '',
         is_active: spa.is_active ?? true,
-        is_verified: spa.is_verified ?? false,
+        is_verified: user?.role === 'recruiter' ? undefined : spa.is_verified ?? false,
       });
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to fetch SPA');
@@ -303,7 +304,7 @@ export default function EditSpaPage() {
       setSuccess('SPA updated successfully!');
 
       setTimeout(() => {
-        router.push(`/dashboard/spas/${spaId}`);
+        router.push(user?.role === 'recruiter' ? '/dashboard/business' : `/dashboard/spas/${spaId}`);
       }, 1500);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to update SPA');
@@ -330,7 +331,10 @@ export default function EditSpaPage() {
             <h1 className="text-3xl font-bold text-gray-900">Edit SPA</h1>
             <p className="mt-2 text-gray-600">Step {step} of 3</p>
           </div>
-          <Link href={`/dashboard/spas/${spaId}`} className="btn-secondary">
+          <Link
+            href={user.role === 'recruiter' ? '/dashboard/business' : `/dashboard/spas/${spaId}`}
+            className="btn-secondary"
+          >
             Back to View
           </Link>
         </div>

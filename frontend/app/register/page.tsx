@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { FormEvent, useState } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { AuthAlert, AuthPageShell, PasswordField } from '@/components/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -15,30 +14,32 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const updateField = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Password must be at least 6 characters.');
       return;
     }
 
     if (!acceptedTerms) {
-      setError('Please accept the Terms of Service and Privacy Policy to continue');
+      setError('Please accept the Terms of Service and Privacy Policy to continue.');
       return;
     }
 
@@ -46,9 +47,9 @@ export default function RegisterPage() {
 
     try {
       await register({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
       });
       router.push('/dashboard');
@@ -60,147 +61,113 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      <div className="flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          {/* Logo/Brand */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-brand-600 mb-2">Workspa</h1>
-            <p className="text-lg text-gray-600">Create a new account</p>
-          </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                placeholder="Full name"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <input
-                type="email"
-                placeholder="Email address"
-                autoComplete="email"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <input
-                type="tel"
-                placeholder="Phone number"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="New password"
-                autoComplete="new-password"
-                required
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-              </button>
-            </div>
-
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                autoComplete="new-password"
-                required
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              >
-                {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-              </button>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading || !acceptedTerms}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Creating account...' : 'Sign Up'}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-start">
-              <input
-                id="accept-terms"
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                required
-              />
-              <label htmlFor="accept-terms" className="ml-2 text-xs text-gray-600">
-                By clicking Sign Up, you agree to our{' '}
-                <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">
-                  Terms
-                </Link>
-                {' '}and{' '}
-                <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
-                  Privacy Policy
-                </Link>
-                .
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Sign In Link */}
-        <div className="mt-6 text-center">
-          <Link
-            href="/login"
-            className="text-blue-600 hover:underline font-semibold text-base"
-          >
-            Already have an account? Sign in
+    <AuthPageShell
+      title="Create your account"
+      subtitle="Apply for jobs, manage your profile, or start your employer free-listing journey."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link href="/login" className="font-semibold text-brand-700 hover:text-brand-800">
+            Log in
           </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && <AuthAlert type="error">{error}</AuthAlert>}
+
+        <div>
+          <label htmlFor="name" className="mb-2 block text-sm font-semibold text-gray-700">
+            Full name
+          </label>
+          <input
+            id="name"
+            type="text"
+            autoComplete="name"
+            required
+            className="input-field"
+            placeholder="Your full name"
+            value={formData.name}
+            onChange={(event) => updateField('name', event.target.value)}
+          />
         </div>
-      </div>
-      </div>
-    </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="email" className="mb-2 block text-sm font-semibold text-gray-700">
+              Email address
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              className="input-field"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={(event) => updateField('email', event.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="mb-2 block text-sm font-semibold text-gray-700">
+              Phone
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              className="input-field"
+              placeholder="Phone number"
+              value={formData.phone}
+              onChange={(event) => updateField('phone', event.target.value)}
+            />
+          </div>
+        </div>
+
+        <PasswordField
+          id="password"
+          label="Password"
+          value={formData.password}
+          onChange={(value) => updateField('password', value)}
+          autoComplete="new-password"
+          placeholder="At least 6 characters"
+        />
+
+        <PasswordField
+          id="confirmPassword"
+          label="Confirm password"
+          value={formData.confirmPassword}
+          onChange={(value) => updateField('confirmPassword', value)}
+          autoComplete="new-password"
+          placeholder="Re-enter your password"
+        />
+
+        <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(event) => setAcceptedTerms(event.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+          />
+          <span>
+            I agree to the{' '}
+            <Link href="/terms" target="_blank" className="font-semibold text-brand-700 hover:text-brand-800">
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" target="_blank" className="font-semibold text-brand-700 hover:text-brand-800">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+
+        <button type="submit" disabled={loading || !acceptedTerms} className="btn-primary w-full">
+          {loading ? 'Creating account...' : 'Sign Up'}
+        </button>
+      </form>
+    </AuthPageShell>
   );
 }
-

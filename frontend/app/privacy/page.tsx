@@ -253,7 +253,7 @@ export default function PrivacyPolicyPage() {
                 <strong>Email:</strong> <a href="mailto:privacy@workspa.in" className="text-brand-600 hover:underline">privacy@workspa.in</a>
               </p>
               <p className="text-gray-700">
-                <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91 9152120246</a>
+                <strong>Phone:</strong> <a href="tel:+911234567890" className="text-brand-600 hover:underline">+91 9116458453</a>
               </p>
               <p className="text-gray-700">
                 <strong>Address:</strong> India

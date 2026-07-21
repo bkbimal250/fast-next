@@ -9,6 +9,7 @@ from app.modules.jobs.models import Job
 from app.modules.spas import services as spa_services
 from app.modules.spas.models import Spa
 from app.modules.chatbot.ai_client import extract_filters
+from app.modules.chatbot.matcher import find_text_matches
 
 
 def format_job_for_chatbot(job: Job) -> dict:
@@ -85,7 +86,7 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
         if filters["city"]:
             city = filters["city"]
             suggestions = [
-                f"Find all Work Spa in {city}",
+                f"Find all spa jobs in {city}",
                 f"Part-time jobs in {city}",
                 f"Full-time therapist jobs in {city}",
                 f"Spa manager jobs in {city}",
@@ -95,7 +96,7 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
                 "Find all jobs near me",
                 "Part-time jobs nearby",
                 "Therapist jobs near me",
-                "Work Spa nearby",
+                "Spa jobs nearby",
             ]
         else:
             suggestions = [
@@ -129,10 +130,10 @@ def get_suggested_queries(filters: dict, has_location: bool = False) -> List[str
             ]
     else:
         suggestions = [
-            "Find Work Spa in Mumbai",
+            "Find spa jobs in Mumbai",
             "Show spas near me",
             "Therapist jobs in Delhi",
-            "Part-time Work Spa",
+            "Part-time spa jobs",
         ]
     
     return suggestions[:4]  # Return max 4 suggestions
@@ -157,7 +158,7 @@ async def chatbot_search(
     if filters["intent"] == "greeting":
         suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
         return {
-            "message": "Hello! I can help you find Work Spa and spas. What are you looking for?",
+            "message": "Hello! I can help you find spa jobs and listed spas. What are you looking for?",
             "jobs": [],
             "spas": [],
             "suggestions": suggestions,
@@ -167,7 +168,7 @@ async def chatbot_search(
     if filters["intent"] == "unknown":
         suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
         return {
-            "message": "I can help you find Work Spa and spas. Try asking like 'I need therapist jobs in Mumbai' or 'Show me spas near me'.",
+            "message": "I can help you find spa jobs and listed spas. Try asking like 'I need therapist jobs in Mumbai' or 'Show me spas near me'.",
             "jobs": [],
             "spas": [],
             "suggestions": suggestions,
@@ -187,32 +188,14 @@ async def chatbot_search(
             job_category=None,  # We'll filter by role name
         )
         
-        import re
-        message_lower = message.lower()
-        
         # Advanced Dynamic Detection: dynamically check if any job's area, city, or role is mentioned
-        mentioned_areas = set()
-        mentioned_cities = set()
-        mentioned_roles = set()
-        
-        for job in all_jobs:
-            if job.area and job.area.name:
-                area_name = job.area.name.lower()
-                if len(area_name) >= 3 and re.search(r'\b' + re.escape(area_name) + r'\b', message_lower):
-                    mentioned_areas.add(area_name)
-                    
-            if job.city and job.city.name:
-                city_name = job.city.name.lower()
-                if len(city_name) >= 3 and re.search(r'\b' + re.escape(city_name) + r'\b', message_lower):
-                    mentioned_cities.add(city_name)
-                    
-            if job.job_category and job.job_category.name:
-                role_name = job.job_category.name.lower()
-                # Split category names if they have spaces to match partials (e.g., "Spa Therapist" -> "Therapist")
-                role_parts = [r.strip() for r in role_name.split(' ')] + [role_name]
-                for part in role_parts:
-                    if len(part) >= 3 and re.search(r'\b' + re.escape(part) + r'\b', message_lower):
-                        mentioned_roles.add(role_name)
+        mentioned_areas = find_text_matches(message, (job.area.name for job in all_jobs if job.area), score_cutoff=86)
+        mentioned_cities = find_text_matches(message, (job.city.name for job in all_jobs if job.city), score_cutoff=84)
+        mentioned_roles = find_text_matches(
+            message,
+            (job.job_category.name for job in all_jobs if job.job_category),
+            score_cutoff=78,
+        )
 
         # Filter jobs based on extracted criteria
         filtered_jobs = []
@@ -274,23 +257,11 @@ async def chatbot_search(
     
     # STRICT SEPARATION: Search for SPAs ONLY if intent is spa_search
     elif filters["intent"] == "spa_search":
-        import re
-        message_lower = message.lower()
         all_spas_to_check = spa_services.get_spas(db, skip=0, limit=500, is_active=True)
         
         # Advanced Detection for SPAs
-        mentioned_areas = set()
-        mentioned_cities = set()
-        for spa in all_spas_to_check:
-            if spa.area and spa.area.name:
-                area_name = spa.area.name.lower()
-                if len(area_name) >= 3 and re.search(r'\b' + re.escape(area_name) + r'\b', message_lower):
-                    mentioned_areas.add(area_name)
-                    
-            if spa.city and spa.city.name:
-                city_name = spa.city.name.lower()
-                if len(city_name) >= 3 and re.search(r'\b' + re.escape(city_name) + r'\b', message_lower):
-                    mentioned_cities.add(city_name)
+        mentioned_areas = find_text_matches(message, (spa.area.name for spa in all_spas_to_check if spa.area), score_cutoff=86)
+        mentioned_cities = find_text_matches(message, (spa.city.name for spa in all_spas_to_check if spa.city), score_cutoff=84)
                     
         if filters["near_me"] and latitude and longitude:
             # Get SPAs near location
@@ -339,7 +310,7 @@ async def chatbot_search(
     # Fallback (should not reach here, but just in case)
     suggestions = get_suggested_queries(filters, has_location=bool(latitude and longitude))
     return {
-        "message": "I can help you find Work Spa and spas. Please specify what you're looking for.",
+        "message": "I can help you find spa jobs and listed spas. Please specify what you're looking for.",
         "jobs": [],
         "spas": [],
         "suggestions": suggestions,

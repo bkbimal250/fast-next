@@ -45,6 +45,51 @@ const ASSISTANT_NAMES = [
   'Muskan',
 ];
 
+function shuffleSuggestions(suggestions: string[]) {
+  return [...suggestions].sort(() => Math.random() - 0.5).slice(0, 4);
+}
+
+function buildLocalSuggestions(city?: string, hasLocation = false) {
+  const localCity = city?.trim();
+
+  if (localCity) {
+    return shuffleSuggestions([
+      `Spa therapist jobs in ${localCity}`,
+      `Receptionist jobs in ${localCity}`,
+      `Part-time spa jobs in ${localCity}`,
+      `Spa manager jobs in ${localCity}`,
+      `Beautician jobs in ${localCity}`,
+      `Housekeeping spa jobs in ${localCity}`,
+      `Massage therapist jobs near me`,
+      `Show me spas near me`,
+    ]);
+  }
+
+  if (hasLocation) {
+    return shuffleSuggestions([
+      'Spa therapist jobs near me',
+      'Receptionist jobs near me',
+      'Part-time spa jobs near me',
+      'Spa manager jobs near me',
+      'Beautician jobs near me',
+      'Show me spas near me',
+      'Massage therapist jobs nearby',
+      'Housekeeping spa jobs nearby',
+    ]);
+  }
+
+  return shuffleSuggestions([
+    'Find spa therapist jobs in Mumbai',
+    'Massage therapist jobs in Delhi',
+    'Part-time jobs near me',
+    'Receptionist jobs in Navi Mumbai',
+    'Spa manager jobs in Pune',
+    'Show me spas near me',
+    'Beautician jobs in Bangalore',
+    'Housekeeping spa jobs in Mumbai',
+  ]);
+}
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasTrackedOpen, setHasTrackedOpen] = useState(false);
@@ -53,16 +98,27 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { location } = useLocation(true); // Auto-detect location
+  const detectedCity = location?.city?.trim();
+  const hasDetectedLocation = Boolean(location?.latitude && location?.longitude);
   
   // Rotating hints for chat button
-  const hints = [
-    "therapist",
-    "receptionist",
-    "spa manager",
-    "Beautician",
-    "House Keeping",
-    "Best spa near",
-  ];
+  const hints = detectedCity
+    ? [
+        `jobs in ${detectedCity}`,
+        `therapist in ${detectedCity}`,
+        `spas near ${detectedCity}`,
+        `part-time in ${detectedCity}`,
+        `manager in ${detectedCity}`,
+        `beautician in ${detectedCity}`,
+      ]
+    : [
+        "therapist jobs",
+        "receptionist jobs",
+        "spa manager jobs",
+        "beautician jobs",
+        "housekeeping jobs",
+        "spas near me",
+      ];
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [typingDots, setTypingDots] = useState('');
   const [isHintVisible, setIsHintVisible] = useState(true);
@@ -76,17 +132,35 @@ export default function ChatWidget() {
     // Set initial welcome message with the selected name
     setMessages([
       {
-        text: `Hello! I'm ${randomName}, Workspa assistant. I can help you find Work Spa and spas. What are you looking for?`,
+        text: `Hello! I'm ${randomName}, Workspa assistant. I can help you find spa jobs and listed spas. What are you looking for?`,
         isUser: false,
-        suggestions: [
-          "Find spa therapist jobs in Mumbai",
-          "Show me spas near me",
-          "Part-time jobs near me",
-          "Massage therapist jobs in Delhi",
-        ],
+        suggestions: buildLocalSuggestions(),
       },
     ]);
   }, []);
+
+  useEffect(() => {
+    if (!assistantName) return;
+    if (!detectedCity && !hasDetectedLocation) return;
+
+    const localText = detectedCity
+      ? `Hello! I'm ${assistantName}, Workspa assistant. I can help you find spa jobs and listed spas around ${detectedCity}. What are you looking for?`
+      : `Hello! I'm ${assistantName}, Workspa assistant. I can help you find spa jobs and listed spas near your current location. What are you looking for?`;
+
+    setMessages((prev) => {
+      if (prev.length !== 1 || prev[0].isUser) {
+        return prev;
+      }
+
+      return [
+        {
+          ...prev[0],
+          text: localText,
+          suggestions: buildLocalSuggestions(detectedCity, hasDetectedLocation),
+        },
+      ];
+    });
+  }, [assistantName, detectedCity, hasDetectedLocation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -179,7 +253,7 @@ export default function ChatWidget() {
     <>
       {/* Chat Button with Rotating Hints */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6">
           {/* Hint Text Bubble */}
           <div className="bg-white rounded-xl shadow-2xl px-4 py-3 border-2 border-brand-200 relative">
             {/* Arrow pointing down */}
@@ -224,7 +298,7 @@ export default function ChatWidget() {
 
       {/* Chat Widget */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-full max-w-md h-[600px] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200">
+        <div className="fixed inset-x-3 bottom-3 z-50 flex h-[80vh] max-h-[640px] flex-col rounded-lg border border-gray-200 bg-white shadow-2xl sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[600px] sm:w-full sm:max-w-md">
           {/* Header */}
           <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white p-4 rounded-t-lg flex items-center justify-between relative overflow-hidden">
             {/* Background Image */}
@@ -312,7 +386,7 @@ export default function ChatWidget() {
                 <div className="animate-spin">
                   <FaSpinner size={14} />
                 </div>
-                <span>Searching jobs...</span>
+                <span>Searching...</span>
               </div>
             )}
             <div ref={messagesEndRef} />

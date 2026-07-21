@@ -30,7 +30,8 @@ export interface User {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
-  user: User;
+  user?: User;
+  message?: string;
 }
 
 // Auth API functions

@@ -43,7 +43,7 @@ const canManageSpas = (role?: string) =>
   role === 'admin' || role === 'manager' || role === 'recruiter';
 
 export default function CreateSpaPage() {
-  const { user } = useAuth();
+  const { user, updateUser, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<SpaCreateStep>(1);
@@ -63,7 +63,16 @@ export default function CreateSpaPage() {
   });
 
   useEffect(() => {
-    if (!user || !canManageSpas(user.role)) {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (!canManageSpas(user.role)) {
       router.push('/dashboard');
       return;
     }
@@ -72,7 +81,7 @@ export default function CreateSpaPage() {
       .getCountries()
       .then((countries) => setLocationOptions((prev) => ({ ...prev, countries })))
       .catch(console.error);
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (!formData.country_id) {
@@ -252,8 +261,12 @@ export default function CreateSpaPage() {
       const createdSpa = await spaAPI.createSpa(buildSpaPayload());
       setSuccess('SPA created successfully!');
 
+      if (user?.role === 'recruiter') {
+        updateUser({ ...user, managed_spa_id: createdSpa.id });
+      }
+
       setTimeout(() => {
-        router.push(`/dashboard/spas/${createdSpa.id}`);
+        router.push(user?.role === 'recruiter' ? '/dashboard/business' : `/dashboard/spas/${createdSpa.id}`);
       }, 1500);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to create SPA');
@@ -262,8 +275,15 @@ export default function CreateSpaPage() {
     }
   };
 
-  if (!user || !canManageSpas(user.role)) {
-    return null;
+  if (authLoading || !user || !canManageSpas(user.role)) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center py-16">
+          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -275,8 +295,8 @@ export default function CreateSpaPage() {
             <h1 className="text-3xl font-bold text-gray-900">Create New SPA</h1>
             <p className="mt-2 text-gray-600">Step {step} of 3</p>
           </div>
-          <Link href="/dashboard/spas" className="btn-secondary">
-            Back to SPAs
+          <Link href={user?.role === 'recruiter' ? '/dashboard/business' : '/dashboard/spas'} className="btn-secondary">
+            {user?.role === 'recruiter' ? 'Back to Business' : 'Back to SPAs'}
           </Link>
         </div>
 
