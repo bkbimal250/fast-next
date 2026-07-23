@@ -87,7 +87,7 @@ export default function ContactPage() {
       '@type': 'Organization',
       name: 'Workspa - Work Spa Portal',
       email: 'info@workspa.in',
-      telephone: '+919116458453',
+      telephone: '+919126458453',
       address: {
         '@type': 'PostalAddress',
         addressCountry: 'IN',
@@ -164,8 +164,8 @@ export default function ContactPage() {
                 <FaPhone className="text-white" size={24} />
               </div>
               <h3 className="font-bold text-gray-900 mb-2 text-lg">Call Us</h3>
-              <a href="tel:+919116458453" className="text-brand-600 hover:text-brand-700 font-medium transition-colors">
-                +91 9116458453
+              <a href="tel:+919126458453" className="text-brand-600 hover:text-brand-700 font-medium transition-colors">
+                +91 9126458453
               </a>
             </div>
             
@@ -207,8 +207,8 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-1">Phone Number</h3>
-                        <a href="tel:+919116458453" className="text-brand-600 hover:text-brand-700 font-medium">
-                          +91 9116458453
+                        <a href="tel:+919126458453" className="text-brand-600 hover:text-brand-700 font-medium">
+                          +91 9126458453
                         </a>
                       </div>
                     </div>
