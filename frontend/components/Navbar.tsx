@@ -3,13 +3,15 @@
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { FaBars, FaBriefcase, FaBuilding, FaTimes, FaUserCircle } from 'react-icons/fa';
 import HeaderSearchBar from '@/components/HeaderSearchBar';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
   const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager';
   const freeListingHref =
     isAdminOrManager
@@ -19,16 +21,43 @@ export default function Navbar() {
     isAdminOrManager
       ? 'Free Listing Enquiries'
       : 'Free Listing';
+  const navLinks = [
+    { href: '/jobs', label: 'Search Jobs' },
+    { href: '/spa-near-me', label: 'SPAs Near Me' },
+    { href: '/blog', label: 'Career Guides' },
+    { href: freeListingHref, label: freeListingLabel, highlight: !isAdminOrManager },
+  ];
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname?.startsWith(`${href}/`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-brand-900 bg-brand-800 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
         {/* Top Row: Logo, Search Bar, and Menu */}
-        <div className="flex items-center gap-4 h-16">
+        <div className="flex h-14 items-center gap-3 sm:h-16 lg:gap-4">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center h-full">
-              <div className="h-14 w-auto flex items-center">
+          <div className="flex min-w-0 flex-shrink-0 items-center">
+            <Link href="/" className="flex h-full items-center" aria-label="Workspa home">
+              <div className="flex h-10 w-auto items-center sm:h-12">
                 <Image
                   src="/uploads/navbar.png"
                   alt="Workspa Logo"
@@ -43,59 +72,64 @@ export default function Navbar() {
           </div>
 
           {/* Search Bar - Inline in navbar */}
-          <div className="flex-1 max-w-xl hidden md:block">
+          <div className="hidden min-w-[220px] flex-1 lg:block lg:max-w-xl">
             <HeaderSearchBar />
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex md:items-center md:space-x-1 flex-shrink-0">
-            <Link href="/jobs" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
-              Search Jobs
-            </Link>
-            <Link href="/spa-near-me" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
-              SPAs Near Me
-            </Link>
-            <Link href="/blog" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
-              Career Guides
-            </Link>
-            <Link
-              href={freeListingHref}
-              className={
-                isAdminOrManager
-                  ? 'rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white'
-                  : 'rounded-md bg-gold-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gold-600'
-              }
-            >
-              {freeListingLabel}
-            </Link>
+          <div className="hidden flex-shrink-0 items-center gap-1 lg:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={
+                  link.highlight
+                    ? 'rounded-md bg-gold-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-gold-600'
+                    : `rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                        isActive(link.href)
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/90 hover:bg-white/10 hover:text-white'
+                      }`
+                }
+              >
+                {link.label}
+              </Link>
+            ))}
             {user ? (
               <>
-                <Link href="/dashboard" className="rounded-md px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
+                <Link
+                  href="/dashboard"
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                    isActive('/dashboard')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/90 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
                   My Dashboard
                 </Link>
-                <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-white/20">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
-                      <span className="text-brand-700 font-semibold text-sm">
+                <div className="ml-3 flex items-center gap-3 border-l border-white/20 pl-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100">
+                      <span className="text-sm font-bold text-brand-700">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <span className="text-sm text-white font-medium">{user.name}</span>
+                    <span className="max-w-[120px] truncate text-sm font-semibold text-white">{user.name}</span>
                   </div>
                   <button
-                    onClick={logout}
-                    className="text-white/80 hover:text-white px-3 py-1 text-sm font-medium"
+                    onClick={handleLogout}
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                   >
                     Logout
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-2 ml-4">
-                <Link href="/login" className="text-white/90 hover:text-white px-4 py-2 text-sm font-medium">
+              <div className="ml-3 flex items-center gap-2">
+                <Link href="/login" className="rounded-md px-4 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-white">
                   Login
                 </Link>
-                <Link href="/register" className="bg-gold-500 hover:bg-gold-600 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-md">
+                <Link href="/register" className="rounded-md bg-gold-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-gold-600">
                   Register
                 </Link>
               </div>
@@ -103,105 +137,93 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="ml-auto lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-white hover:text-white/80 p-2"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white transition hover:bg-white/10 hover:text-white"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
-                <div className="text-white">
-                  <FaTimes size={24} />
-                </div>
+                <FaTimes size={22} />
               ) : (
-                <div className="text-white">
-                  <FaBars size={24} />
-                </div>
+                <FaBars size={22} />
               )}
             </button>
           </div>
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="md:hidden pb-3 pt-2">
+        <div className="pb-3 pt-1 lg:hidden">
           <HeaderSearchBar />
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-white/20 space-y-1 animate-in slide-in-from-top duration-200">
-            <Link 
-              href="/jobs" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
-            >
-              Search Jobs
-            </Link>
-            <Link 
-              href="/spa-near-me" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
-            >
-              SPAs Near Me
-            </Link>
-            <Link
-              href="/blog"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
-            >
-              Career Guides
-            </Link>
-            <Link
-              href={freeListingHref}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
-            >
-              {freeListingLabel}
-            </Link>
-            {user ? (
-              <>
-                <Link 
-                  href="/dashboard" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-md font-medium transition-colors active:bg-white/20"
+          <div className="absolute left-0 right-0 top-full max-h-[calc(100vh-104px)] overflow-y-auto border-t border-white/15 bg-brand-800 px-3 py-4 shadow-2xl lg:hidden">
+            <div className="space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold transition ${
+                    link.highlight
+                      ? 'bg-gold-500 text-white shadow-sm hover:bg-gold-600'
+                      : isActive(link.href)
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/90 hover:bg-white/10 hover:text-white'
+                  }`}
                 >
+                  {link.href === '/jobs' ? <FaBriefcase size={15} /> : <FaBuilding size={15} />}
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {user ? (
+              <div className="mt-4 border-t border-white/15 pt-4">
+                <Link
+                  href="/dashboard"
+                  className={`mb-3 flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold transition ${
+                    isActive('/dashboard')
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/90 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <FaUserCircle size={16} />
                   My Dashboard
                 </Link>
-                <div className="px-4 py-3 border-t border-white/20 mt-2">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
-                      <span className="text-brand-700 font-semibold text-base">
+                <div className="rounded-xl bg-white/10 p-4">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100">
+                      <span className="text-base font-bold text-brand-700">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-white font-medium">{user.name}</p>
-                      <p className="text-xs text-white/70">{user.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-white">{user.name}</p>
+                      <p className="truncate text-xs text-white/70">{user.email}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }} 
-                    className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm"
+                  <button
+                    onClick={handleLogout}
+                    className="w-full rounded-lg bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/20"
                   >
                     Logout
                   </button>
                 </div>
-              </>
+              </div>
             ) : (
-              <div className="px-4 py-3 border-t border-white/20 mt-2 space-y-2">
-                <Link 
-                  href="/login" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full text-center text-white/90 hover:bg-white/10 py-3 rounded-lg font-medium transition-colors active:bg-white/20 border border-white/20"
+              <div className="mt-4 grid gap-2 border-t border-white/15 pt-4">
+                <Link
+                  href="/login"
+                  className="block w-full rounded-lg border border-white/20 py-3 text-center text-sm font-bold text-white/90 transition hover:bg-white/10"
                 >
                   Login
                 </Link>
-                <Link 
-                  href="/register" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full text-center bg-gold-500 hover:bg-gold-600 text-white py-3 rounded-lg font-semibold transition-colors active:bg-gold-600 shadow-md"
+                <Link
+                  href="/register"
+                  className="block w-full rounded-lg bg-gold-500 py-3 text-center text-sm font-bold text-white shadow-sm transition hover:bg-gold-600"
                 >
                   Register
                 </Link>

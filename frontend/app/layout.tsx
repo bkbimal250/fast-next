@@ -2,9 +2,7 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
-import Footer from '@/components/Footer'
-import ChatWidget from '@/components/Chatbot/ChatWidget'
-import ContactPopupTrigger from '@/components/ContactPopupTrigger'
+import AppLayoutShell from '@/components/AppLayoutShell'
 import { Toaster } from 'sonner'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
@@ -162,7 +160,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#115e59" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
-      <body>
+      <body className="min-h-screen bg-surface-light text-slate-900 antialiased">
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-TRM88503RP"
@@ -178,14 +176,7 @@ export default function RootLayout({
           `}
         </Script>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <ChatWidget />
-          <ContactPopupTrigger />
+          <AppLayoutShell>{children}</AppLayoutShell>
           <Toaster
             position="top-right"
             richColors

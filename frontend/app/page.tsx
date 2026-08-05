@@ -235,6 +235,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-surface-light">
+      <Navbar />
       <SEOHead
         title="Spa Jobs in Mumbai, Navi Mumbai, Thane & Pune | Workspa"
         description="Find verified spa therapist, receptionist, beautician, massage therapist, and spa manager jobs. Search by role, salary, experience, city, and area."
@@ -258,7 +259,6 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
-      <Navbar />
 
       <section className="relative overflow-hidden bg-brand-900 text-white">
         <Image
