@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Spa } from '@/lib/spa';
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/axios';
-import { FaGlobe, FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar, FaCalendarCheck } from 'react-icons/fa';
+import { FaDirections, FaBriefcase, FaShareAlt, FaCheckCircle, FaStar, FaStarHalfAlt, FaRegStar, FaCalendarCheck, FaMapMarkerAlt } from 'react-icons/fa';
 import { capitalizeTitle } from '@/lib/text-utils';
 
 interface SpaCardProps {
@@ -35,6 +35,12 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
     return `${dist.toFixed(1)} km`;
   };
 
+  const getImageUrl = (image?: string) => {
+    if (!image) return null;
+    if (image.startsWith('http')) return image;
+    return `${apiClient.defaults.baseURL}/${image.replace(/^\//, '')}`;
+  };
+
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -42,11 +48,11 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
       navigator.share({
         title: spa.name,
         text: spa.description || `Check out ${spa.name}`,
-        url: `${window.location.origin}/spas/${spa.slug}`,
+        url: `${window.location.origin}/besttopspas/${spa.slug}`,
       }).catch(() => {});
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`${window.location.origin}/spas/${spa.slug}`);
+      navigator.clipboard.writeText(`${window.location.origin}/besttopspas/${spa.slug}`);
     }
   };
 
@@ -84,71 +90,78 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200">
-      {/* Image Section */}
-      <div className="relative h-48 sm:h-56 bg-gray-200">
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg">
+      <Link href={`/besttopspas/${spa.slug}`} className="block">
+        <div className="relative h-44 bg-slate-200 sm:h-52">
         {spa.spa_images && spa.spa_images.length > 0 ? (
           <img
-            src={spa.spa_images[0].startsWith('http') ? spa.spa_images[0] : apiClient.defaults.baseURL + '/' + spa.spa_images[0].replace(/^\//, '')}
+            src={getImageUrl(spa.spa_images[0]) || ''}
             alt={spa.name}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
-          <div className="h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-            <div className="text-white text-4xl sm:text-5xl font-bold">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-600 to-slate-800">
+            <div className="text-5xl font-bold text-white">
               {spa.name.charAt(0).toUpperCase()}
             </div>
           </div>
         )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-90" />
         
-        {/* Distance Badge - Bottom Left */}
-        {showDistance && distance !== undefined && (
-          <div className="absolute bottom-2 left-2 bg-white px-3 py-1 rounded-md shadow-md">
-            <span className="text-sm font-semibold text-gray-900">{formatDistance(distance)}</span>
-          </div>
-        )}
+          {showDistance && distance !== undefined && (
+            <div className="absolute bottom-3 left-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-900 shadow-md">
+              {formatDistance(distance)} away
+            </div>
+          )}
 
-        {/* Verified Badge - Top Right */}
-        {spa.is_verified && (
-          <div 
-            className="absolute top-2 right-2 bg-brand-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg cursor-help"
-            title="Verified by WorkSpa - Business details checked"
-          >
-            <FaCheckCircle className="w-4 h-4" />
-            <span>Verified</span>
+          {jobCount !== null && jobCount > 0 && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-white shadow-md">
+              <FaBriefcase size={11} />
+              {jobCount} {jobCount === 1 ? 'job' : 'jobs'}
+            </div>
+          )}
+
+          {spa.is_verified && (
+            <div
+              className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand-700 px-2.5 py-1 text-xs font-bold text-white shadow-md"
+              title="Verified by WorkSpa - Business details checked"
+            >
+              <FaCheckCircle className="h-3.5 w-3.5" />
+              Verified
+            </div>
+          )}
           </div>
-        )}
-      </div>
+      </Link>
 
       {/* Content Section */}
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         {/* Business Name */}
         <Link href={`/besttopspas/${spa.slug}`}>
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 hover:text-brand-600 transition-colors">
+          <h3 className="line-clamp-2 text-lg font-bold leading-snug text-slate-950 transition-colors group-hover:text-brand-700 sm:text-xl">
             {capitalizeTitle(spa.name)}
           </h3>
         </Link>
 
         {/* Category */}
-        <p className="text-sm text-gray-500 mb-3">Spa & Massage</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">Spa & Massage</p>
 
         {/* Rating - Only show if verified (to avoid fake reviews) */}
         {spa.is_verified && spa.rating !== undefined && spa.rating > 0 && (
-          <div className="flex items-center gap-2 mb-3">
+          <div className="mt-3 flex items-center gap-2">
             {renderStars(spa.rating)}
-            <span className="text-sm font-semibold text-gray-900">{spa.rating.toFixed(1)}</span>
+            <span className="text-sm font-bold text-slate-900">{spa.rating.toFixed(1)}</span>
             {spa.reviews !== undefined && spa.reviews > 0 && (
-              <span className="text-sm text-gray-600">({spa.reviews} reviews)</span>
+              <span className="text-sm text-slate-500">({spa.reviews} reviews)</span>
             )}
           </div>
         )}
         {/* Show verified badge instead of fake reviews */}
         {!spa.is_verified && (
-          <div className="flex items-center gap-2 mb-3">
-            <div className="bg-brand-50 text-brand-700 px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 border border-brand-200">
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-md border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-700">
               <FaCheckCircle className="w-3.5 h-3.5" />
               <span>Verified Spa</span>
             </div>
@@ -157,11 +170,14 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
 
         {/* Address */}
         {spa.address && (
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{spa.address}</p>
+          <p className="mt-3 flex gap-2 text-sm leading-5 text-slate-600">
+            <FaMapMarkerAlt className="mt-1 shrink-0 text-brand-600" size={13} />
+            <span className="line-clamp-2">{spa.address}</span>
+          </p>
         )}
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
         {spa.booking_url_website && (
                 <button
                   type="button"
@@ -175,9 +191,9 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
                       window.open(spa.booking_url_website as string, '_blank', 'noopener,noreferrer');
                     }
                   }}
-                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm sm:text-base"
+                  className="col-span-2 flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-700"
                 >
-                  <FaCalendarCheck size={18} />
+                  <FaCalendarCheck size={15} />
                   <span>Service booking</span>
                 </button>
               )}
@@ -188,9 +204,9 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
           >
-            <FaDirections className="w-5 h-5 text-green-600" />
+            <FaDirections className="h-4 w-4 text-green-600" />
             <span>Directions</span>
           </a>
 
@@ -199,23 +215,23 @@ export default function SpaCard({ spa, distance, showDistance = true, jobCount: 
             <Link
               href={`/besttopspas/${spa.slug}`}
               onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
             >
-              <FaBriefcase className="w-5 h-5 text-purple-600" />
-              <span>{jobCount} {jobCount === 1 ? 'Job' : 'Jobs'} open</span>
+              <FaBriefcase className="h-4 w-4 text-brand-600" />
+              <span>Jobs</span>
             </Link>
           )}
 
           {/* Share Button */}
           <button
             onClick={handleShare}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 flex-1 sm:flex-none min-w-[100px]"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
           >
-            <FaShareAlt className="w-5 h-5 text-gray-600" />
+            <FaShareAlt className="h-4 w-4 text-slate-500" />
             <span>Share</span>
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

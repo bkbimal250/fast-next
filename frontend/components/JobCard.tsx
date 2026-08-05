@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -79,7 +78,9 @@ export default function JobCard({
   const [applying, setApplying] = useState(false);
 
   const logoUrl = logoImage
-    ? `${API_URL}${logoImage.startsWith('/') ? logoImage : `/${logoImage}`}`
+    ? logoImage.startsWith('http')
+      ? logoImage
+      : `${API_URL}${logoImage.startsWith('/') ? logoImage : `/${logoImage}`}`
     : null;
 
   const getInitials = (name?: string) => {
@@ -162,18 +163,27 @@ export default function JobCard({
     }
   };
 
+  const handleCardClick = () => {
+    router.push(`/jobs/${slug}`);
+  };
+
   return (
     <article
+      onClick={handleCardClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleCardClick();
+        }
+      }}
       className={`group relative flex h-full flex-col rounded-lg border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg ${
         isNew ? 'border-green-400' : 'border-slate-200'
-      }`}
+      } cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2`}
     >
       <div className="mb-4 flex items-start gap-3">
-        <Link
-          href={`/jobs/${slug}`}
-          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-brand-50"
-          aria-label={`View ${title}`}
-        >
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-brand-50">
           {logoUrl ? (
             <Image
               src={logoUrl}
@@ -188,7 +198,7 @@ export default function JobCard({
               {getInitials(spaName)}
             </div>
           )}
-        </Link>
+        </div>
 
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap gap-1.5">
@@ -203,11 +213,9 @@ export default function JobCard({
               </span>
             )}
           </div>
-          <Link href={`/jobs/${slug}`} className="block">
-            <h3 className="line-clamp-2 min-h-[44px] text-base font-bold leading-snug text-slate-950 transition group-hover:text-brand-700">
-              {capitalizeTitle(title)}
-            </h3>
-          </Link>
+          <h3 className="line-clamp-2 min-h-[44px] text-base font-bold leading-snug text-slate-950 transition group-hover:text-brand-700">
+            {capitalizeTitle(title)}
+          </h3>
           <p className="mt-1 truncate text-sm font-medium text-slate-600">
             {capitalizeTitle(spaName || 'Workspa employer')}
           </p>
@@ -282,7 +290,10 @@ export default function JobCard({
 
         <button
           type="button"
-          onClick={handleApplyClick}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleApplyClick();
+          }}
           disabled={applying}
           className="flex w-full items-center justify-center rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
         >

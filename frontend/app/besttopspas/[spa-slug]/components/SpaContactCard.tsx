@@ -9,7 +9,7 @@ interface SpaContactCardProps {
 
 export default function SpaContactCard({ spa }: SpaContactCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200 sticky top-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2 pb-3 border-b border-gray-200">
         <div className="text-brand-600">
           <FaAddressCard size={16} />

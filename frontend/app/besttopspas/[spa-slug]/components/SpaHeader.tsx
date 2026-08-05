@@ -1,7 +1,7 @@
 'use client';
 
 import { Spa } from '@/lib/spa';
-import { FaCheckCircle, FaStar, FaRegStar, FaStarHalfAlt, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaGlobe, FaCalendarCheck, FaDirections } from 'react-icons/fa';
+import { FaCheckCircle, FaStar, FaRegStar, FaStarHalfAlt, FaMapMarkerAlt, FaEnvelope, FaClock, FaCalendarCheck, FaDirections, FaBriefcase } from 'react-icons/fa';
 import { capitalizeTitle } from '@/lib/text-utils';
 
 interface SpaHeaderProps {
@@ -47,6 +47,12 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
     );
   };
 
+  const getImageUrl = (image?: string) => {
+    if (!image) return '';
+    if (image.startsWith('http')) return image;
+    return `${apiUrl}/${image.replace(/^\//, '')}`;
+  };
+
   const getDirectionsUrl = () => {
     if (spa.latitude && spa.longitude) {
       return `https://www.google.com/maps/dir/?api=1&destination=${spa.latitude},${spa.longitude}`;
@@ -61,24 +67,24 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
   };
 
   return (
-    <div className="bg-white border-b shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="flex flex-col md:flex-row md:items-start gap-6">
+    <section className="border-b border-slate-200 bg-white shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start">
           {/* Logo/Image */}
           <div className="flex-shrink-0">
             {allImages.length > 0 ? (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-xl -mt-12 sm:-mt-16">
+              <div className="-mt-12 h-24 w-24 overflow-hidden rounded-2xl border-4 border-white bg-slate-100 shadow-xl sm:-mt-16 sm:h-32 sm:w-32">
                 <img
-                  src={`${apiUrl}/${allImages[0]}`}
+                  src={getImageUrl(allImages[0])}
                   alt={capitalizeTitle(spa.name)}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               </div>
             ) : (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold text-4xl sm:text-5xl shadow-xl -mt-12 sm:-mt-16 border-4 border-white">
+              <div className="-mt-12 flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-brand-600 to-slate-800 text-4xl font-bold text-white shadow-xl sm:-mt-16 sm:h-32 sm:w-32 sm:text-5xl">
                 {capitalizeTitle(spa.name).charAt(0)}
               </div>
             )}
@@ -86,11 +92,13 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
 
           {/* Title and Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{capitalizeTitle(spa.name)}</h1>
+            <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-2xl font-bold leading-tight text-slate-950 sm:text-3xl md:text-4xl">
+                {capitalizeTitle(spa.name)}
+              </h1>
               {spa.is_verified && (
                 <span 
-                  className="bg-brand-600 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md cursor-help"
+                  className="flex items-center gap-1.5 rounded-full bg-brand-700 px-2.5 py-1 text-xs font-bold text-white shadow-sm sm:px-3 sm:py-1.5 sm:text-sm"
                   title="Verified by WorkSpa - Business details checked"
                 >
                   <FaCheckCircle size={14} />
@@ -101,33 +109,53 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
               {spa.is_verified && spa.rating !== undefined && spa.reviews !== undefined && spa.rating > 0 && (
                 <div className="flex items-center gap-2">
                   {renderStars(spa.rating)}
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-bold text-slate-900">
                     {spa.rating.toFixed(1)}
                   </span>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-slate-500">
                     ({spa.reviews} {spa.reviews === 1 ? 'Review' : 'Reviews'})
                   </span>
                 </div>
               )}
               {/* Show verified badge instead of fake reviews */}
               {!spa.is_verified && (
-                <div className="bg-brand-50 text-brand-700 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 border border-brand-200">
+                <div className="flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-bold text-brand-700 sm:text-sm">
                   <FaCheckCircle size={14} />
                   <span>Verified Spa</span>
                 </div>
               )}
             </div>
 
-            {/* Location & Contact Info */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 mb-4">
+            <div className="mb-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <span className="block text-xs font-bold uppercase tracking-wide text-slate-500">Category</span>
+                <span className="mt-0.5 flex items-center gap-2 font-semibold text-slate-900">
+                  <FaBriefcase className="text-brand-600" size={13} />
+                  Spa & Massage
+                </span>
+              </div>
               {locationStr && (
-                <div className="flex items-center gap-1.5">
-                  <div className="text-gray-400 flex-shrink-0">
-                    <FaMapMarkerAlt size={16} />
-                  </div>
-                  <span className="font-medium">{locationStr}</span>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <span className="block text-xs font-bold uppercase tracking-wide text-slate-500">Location</span>
+                  <span className="mt-0.5 flex items-center gap-2 font-semibold text-slate-900">
+                    <FaMapMarkerAlt className="text-brand-600" size={13} />
+                    {locationStr}
+                  </span>
                 </div>
               )}
+              {(spa.opening_hours || spa.closing_hours) && (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <span className="block text-xs font-bold uppercase tracking-wide text-slate-500">Hours</span>
+                  <span className="mt-0.5 flex items-center gap-2 font-semibold text-slate-900">
+                    <FaClock className="text-brand-600" size={13} />
+                    {spa.opening_hours} - {spa.closing_hours}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Location & Contact Info */}
+            <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-slate-600 sm:gap-4">
               {/* {spa.phone && (
                 <div className="flex items-center gap-1.5">
                   <div className="text-gray-400 flex-shrink-0">
@@ -140,22 +168,12 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
               )} */}
               {spa.email && (
                 <div className="flex items-center gap-1.5">
-                  <div className="text-gray-400 flex-shrink-0">
+                  <div className="flex-shrink-0 text-slate-400">
                     <FaEnvelope size={16} />
                   </div>
                   <a href={`mailto:${spa.email}`} className="hover:text-brand-600 font-medium transition-colors break-all">
                     {spa.email}
                   </a>
-                </div>
-              )}
-              {(spa.opening_hours || spa.closing_hours) && (
-                <div className="flex items-center gap-1.5">
-                  <div className="text-gray-400 flex-shrink-0">
-                    <FaClock size={16} />
-                  </div>
-                  <span className="font-medium">
-                    {spa.opening_hours} - {spa.closing_hours}
-                  </span>
                 </div>
               )}
             </div>
@@ -188,9 +206,9 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                       window.open(spa.booking_url_website as string, '_blank', 'noopener,noreferrer');
                     }
                   }}
-                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm sm:text-base"
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-700 sm:px-5"
                 >
-                  <FaCalendarCheck size={18} />
+                  <FaCalendarCheck size={16} />
                   <span>Book Appointment</span>
                 </button>
               )}
@@ -199,9 +217,9 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
                   href={getDirectionsUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-gray-700 hover:bg-gray-800 text-white font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm sm:text-base"
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 sm:px-5"
                 >
-                  <FaDirections size={18} />
+                  <FaDirections size={16} />
                   <span>Get Directions</span>
                 </a>
               )}
@@ -209,7 +227,7 @@ export default function SpaHeader({ spa, allImages, locationNames, apiUrl }: Spa
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

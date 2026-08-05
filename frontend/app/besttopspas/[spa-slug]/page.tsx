@@ -334,10 +334,10 @@ export default function SpaDetailPage() {
       />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px] lg:gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="space-y-5">
             <SpaDescription description={spa.description || ''} />
 
             <SpaGallery
@@ -356,27 +356,27 @@ export default function SpaDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-5">
+          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
             <SpaContactCard spa={spa} />
             <SpaOperatingHours spa={spa} />
             <SpaLocationMap spa={spa} />
 
             {/* Employer CTA */}
-            <div className="bg-gradient-to-br from-brand-50 to-gold-50 rounded-xl border-2 border-brand-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Own this SPA?</h3>
-              <p className="text-sm text-gray-700 mb-4">
+            <div className="rounded-xl border border-brand-200 bg-brand-50 p-5 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-950">Own this SPA?</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-700">
                 Claim your profile to manage jobs, update information, and get more visibility.
               </p>
               <Link
                 href="/login?redirect=/dashboard/spas"
-                className="block w-full text-center px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors shadow-sm"
+                className="mt-4 block w-full rounded-lg bg-brand-700 px-4 py-2.5 text-center text-sm font-bold text-white shadow-sm transition hover:bg-brand-800"
               >
                 Claim Profile
               </Link>
             </div>
-          </div>
+          </aside>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

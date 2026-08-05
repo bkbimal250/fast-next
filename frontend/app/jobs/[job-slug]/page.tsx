@@ -31,6 +31,7 @@ import {
   parseResponsibilities,
   getLogoUrl,
 } from '@/components/job-detail';
+import { FaArrowLeft, FaBriefcase, FaCheckCircle } from 'react-icons/fa';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -406,6 +407,19 @@ export default function JobDetailPage() {
     <div className="min-h-screen bg-surface-light">
       <Navbar />
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
       {/* Message Form Popup */}
       {showMessagePopup && job && (
         <MessageForm
@@ -419,36 +433,35 @@ export default function JobDetailPage() {
         />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content - Left Panel */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Job Header */}
+      <main className="page-shell py-5 sm:py-8">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/jobs"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+          >
+            <FaArrowLeft size={12} />
+            Back to jobs
+          </Link>
+          <div className="flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-bold text-brand-700">
+            <FaCheckCircle size={12} />
+            Verified job details
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px] lg:gap-6">
+          <div className="space-y-5">
             <JobHeader job={job} />
 
-            {/* Job Header Card - Contains Details and Actions */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <JobDetailsCard job={job} applicationCount={applicationCount} />
-              <div className="px-6 pb-6">
-                <JobActions
-                  job={job}
-                  user={user}
-                  applying={applying}
-                  onApply={handleDirectApply}
-                />
-              </div>
             </div>
 
-            {/* Job Description */}
             {job.description && <JobDescription description={job.description} />}
 
-            {/* Responsibilities */}
             <JobResponsibilities responsibilities={responsibilities} />
 
-            {/* Requirements */}
             {job.requirements && <JobRequirements requirements={job.requirements} />}
 
-            {/* Job Details & Skills Combined */}
             <JobDetailsAndSkills
               jobCategory={job.job_category}
               industryType={job.Industry_type}
@@ -461,33 +474,51 @@ export default function JobDetailPage() {
             />
           </div>
 
-          {/* Right Sidebar */}
-          <div className="space-y-5">
-            {/* Popular Jobs */}
-            <PopularJobsList jobs={popularJobs} currentJobId={job.id} />
+          <aside className="space-y-5">
+            <div className="sticky top-20 space-y-5">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-4 flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                    <FaBriefcase size={17} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-950">Apply for this job</h2>
+                    <p className="mt-1 text-sm leading-5 text-slate-600">
+                      Review the details and apply directly. Contact options appear when the employer has shared them.
+                    </p>
+                  </div>
+                </div>
+                <JobActions
+                  job={job}
+                  user={user}
+                  applying={applying}
+                  onApply={handleDirectApply}
+                />
+              </div>
 
-            {/* Similar Jobs */}
-            <RelatedJobsList jobs={relatedJobs} currentJobId={job.id} />
+              <CompanyInfo job={job} />
 
-            {/* Company Info */}
-            <CompanyInfo job={job} />
-
-            {/* Employer CTA */}
-            <div className="bg-gradient-to-br from-brand-50 to-gold-50 rounded-xl border-2 border-brand-200 p-5">
-              <h3 className="text-base font-bold text-gray-900 mb-2">Post a Job in 2 Minutes</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Looking to hire? Post your job opening and reach thousands of qualified candidates.
-              </p>
-              <Link
-                href="/login?redirect=/dashboard/jobs/create"
-                className="block w-full text-center px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors shadow-sm text-sm"
-              >
-                Post a Job
-              </Link>
+              <div className="rounded-xl border border-brand-200 bg-brand-50 p-5">
+                <h3 className="text-base font-bold text-slate-950">Hiring for your spa?</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  Add your business first, then post jobs linked to your spa profile.
+                </p>
+                <Link
+                  href="/free-listing"
+                  className="mt-4 block rounded-lg bg-brand-700 px-4 py-2.5 text-center text-sm font-bold text-white transition hover:bg-brand-800"
+                >
+                  Create free listing
+                </Link>
+              </div>
             </div>
-          </div>
+          </aside>
         </div>
-      </div>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <RelatedJobsList jobs={relatedJobs} currentJobId={job.id} />
+          <PopularJobsList jobs={popularJobs} currentJobId={job.id} />
+        </div>
+      </main>
     </div>
   );
 }
