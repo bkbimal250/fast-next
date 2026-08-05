@@ -1,91 +1,218 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  FaArrowRight,
+  FaBriefcase,
+  FaBuilding,
+  FaCheckCircle,
+  FaMapMarkerAlt,
+  FaSearch,
+  FaShieldAlt,
+  FaUserTie,
+  FaUsers,
+} from 'react-icons/fa';
+import JobCard from '@/components/JobCard';
 import Navbar from '@/components/Navbar';
 import SearchBar from '@/components/SearchBar';
-import Link from 'next/link';
-import { useEffect, useState, useMemo } from 'react';
-import Features from './Features/page';
-import ProcessPage from './Process/Page';
 import SEOHead from '@/components/SEOHead';
-import { jobAPI } from '@/lib/job';
-import { StatsSection } from '@/components/StatsSection';
-import Areasjobs from '@/components/Areasjobs';
-import Featuresjobs from '@/components/Featuresjobs';
-import Popularjobs from '@/components/Popularjobs';
-import JobCategories from '@/components/JobCategories';
+import { jobAPI, Job, JobCategory } from '@/lib/job';
+
+const cityLinks = [
+  { label: 'Mumbai', href: '/spa-jobs-in-mumbai' },
+  { label: 'Navi Mumbai', href: '/spa-jobs-in-navi-mumbai' },
+  { label: 'Thane', href: '/spa-jobs-in-thane' },
+  { label: 'Pune', href: '/spa-jobs-in-pune' },
+  { label: 'Nashik', href: '/spa-jobs-in-nashik' },
+  { label: 'Nagpur', href: '/spa-jobs-in-nagpur' },
+];
+
+const roleFallbacks = [
+  { name: 'Spa Therapist', href: '/jobs?q=Spa%20Therapist', icon: FaUserTie },
+  { name: 'Receptionist', href: '/jobs?q=Receptionist', icon: FaUsers },
+  { name: 'Spa Manager', href: '/jobs?q=Spa%20Manager', icon: FaBriefcase },
+  { name: 'Beautician', href: '/jobs?q=Beautician', icon: FaShieldAlt },
+];
+
+const stats = [
+  { label: 'Active jobs', value: '1000+', icon: FaBriefcase },
+  { label: 'Verified spas', value: '500+', icon: FaBuilding },
+  { label: 'Hiring cities', value: '50+', icon: FaMapMarkerAlt },
+  { label: 'Direct apply', value: 'Fast', icon: FaCheckCircle },
+];
+
+const steps = [
+  {
+    title: 'Search by role and area',
+    text: 'Find nearby openings for therapist, receptionist, beautician, manager, and support roles.',
+  },
+  {
+    title: 'Compare real job details',
+    text: 'Scan salary, experience, timing, openings, location, and employer name before applying.',
+  },
+  {
+    title: 'Apply quickly',
+    text: 'Use Quick Apply from the card or open full job details when you need more context.',
+  },
+];
+
+function getLocation(job: Job) {
+  return [job.area?.name, job.city?.name].filter(Boolean).join(', ') || 'Location not specified';
+}
+
+function JobSection({
+  title,
+  eyebrow,
+  jobs,
+  loading,
+  emptyText,
+  href,
+}: {
+  title: string;
+  eyebrow: string;
+  jobs: Job[];
+  loading: boolean;
+  emptyText: string;
+  href: string;
+}) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase text-brand-700">{eyebrow}</p>
+          <h2 className="mt-1 text-2xl font-bold text-slate-950">{title}</h2>
+        </div>
+        <Link href={href} className="inline-flex items-center gap-2 text-sm font-bold text-brand-700 hover:text-brand-800">
+          View all
+          <FaArrowRight size={12} />
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex gap-3">
+                <div className="h-12 w-12 animate-pulse rounded-lg bg-slate-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-20 animate-pulse rounded bg-slate-200" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200" />
+                </div>
+              </div>
+              <div className="mt-5 space-y-2">
+                <div className="h-3 w-full animate-pulse rounded bg-slate-200" />
+                <div className="h-3 w-4/5 animate-pulse rounded bg-slate-200" />
+                <div className="h-10 w-full animate-pulse rounded-lg bg-slate-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm font-medium text-slate-600">
+          {emptyText}
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-3">
+          {jobs.slice(0, 3).map((job) => (
+            <JobCard
+              key={job.id}
+              id={job.id}
+              title={job.title}
+              spaName={job.spa?.name}
+              spaAddress={job.spa?.address}
+              location={getLocation(job)}
+              salaryMin={job.salary_min}
+              salaryMax={job.salary_max}
+              salaryCurrency={job.salary_currency}
+              experienceMin={job.experience_years_min}
+              experienceMax={job.experience_years_max}
+              jobOpeningCount={job.job_opening_count}
+              jobType={typeof job.job_type === 'string' ? job.job_type : job.job_type?.name}
+              jobCategory={typeof job.job_category === 'string' ? job.job_category : job.job_category?.name}
+              slug={job.slug}
+              isFeatured={job.is_featured}
+              viewCount={job.view_count}
+              created_at={job.created_at}
+              description={job.description}
+              logoImage={job.spa?.logo_image}
+              postedBy={job.created_by_user ? {
+                id: job.created_by_user.id,
+                name: job.created_by_user.name,
+                profile_photo: job.created_by_user.profile_photo,
+              } : undefined}
+              hr_contact_phone={job.hr_contact_phone}
+              required_gender={job.required_gender}
+              job_timing={job.job_timing}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 export default function HomePage() {
-  const [featuredJobs, setFeaturedJobs] = useState<any[]>([]);
-  const [popularJobs, setPopularJobs] = useState<any[]>([]);
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
+  const [popularJobs, setPopularJobs] = useState<Job[]>([]);
+  const [categories, setCategories] = useState<JobCategory[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingPopular, setLoadingPopular] = useState(true);
-  const [quickLinkCategories, setQuickLinkCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fetch featured jobs
-    const fetchFeaturedJobs = async () => {
-      try {
-        setLoadingFeatured(true);
-        const data = await jobAPI.getAllJobs({ is_featured: true, limit: 6 });
-        setFeaturedJobs(data || []);
-      } catch (error) {
-        console.error('Error fetching featured jobs:', error);
-        setFeaturedJobs([]);
-      } finally {
-        setLoadingFeatured(false);
-      }
-    };
-
-    // Fetch popular jobs
-    const fetchPopularJobs = async () => {
-      try {
-        setLoadingPopular(true);
-        const data = await jobAPI.getPopularJobs(6);
-        setPopularJobs(data || []);
-      } catch (error) {
-        console.error('Error fetching popular jobs:', error);
-        setPopularJobs([]);
-      } finally {
-        setLoadingPopular(false);
-      }
-    };
-
-    fetchFeaturedJobs();
-    fetchPopularJobs();
-    fetchQuickLinkCategories();
+    fetchHomepageData();
   }, []);
 
-  // Fetch categories for quick links
-  const fetchQuickLinkCategories = async () => {
+  const fetchHomepageData = async () => {
     try {
-      const categories = await jobAPI.getJobCategories();
-      // Filter for the specific categories we want to show
-      const targetCategoryNames = ['Spa Therapist', 'Spa Receptionist', 'Spa Manager', 'Beautician'];
-      const filtered = categories.filter(cat =>
-        targetCategoryNames.some(name =>
-          cat.name.toLowerCase().includes(name.toLowerCase()) ||
-          name.toLowerCase().includes(cat.name.toLowerCase())
-        )
-      );
-      setQuickLinkCategories(filtered);
-    } catch (error) {
-      console.error('Error fetching categories for quick links:', error);
-      // Fallback to default categories if API fails
-      setQuickLinkCategories([
-        { name: 'Spa Therapist', slug: 'spa-therapist' },
-        { name: 'Spa Receptionist', slug: 'spa-receptionist' },
-        { name: 'Spa Manager', slug: 'spa-manager' },
-        { name: 'Beautician', slug: 'beautician' },
+      setLoadingFeatured(true);
+      setLoadingPopular(true);
+
+      const [featured, popular, jobCategories] = await Promise.all([
+        jobAPI.getAllJobs({ is_featured: true, limit: 6 }),
+        jobAPI.getPopularJobs(6),
+        jobAPI.getJobCategories(0, 100),
       ]);
+
+      setFeaturedJobs(featured || []);
+      setPopularJobs(popular || []);
+      setCategories(jobCategories || []);
+    } catch (error) {
+      console.error('Error fetching homepage data:', error);
+      setFeaturedJobs([]);
+      setPopularJobs([]);
+      setCategories([]);
+    } finally {
+      setLoadingFeatured(false);
+      setLoadingPopular(false);
     }
   };
 
-  // Generate structured data for homepage
+  const roleLinks = useMemo(() => {
+    const preferredNames = ['Spa Therapist', 'Spa Receptionist', 'Spa Manager', 'Beautician'];
+    const matched = preferredNames
+      .map((name) => categories.find((category) =>
+        category.name.toLowerCase().includes(name.toLowerCase()) ||
+        name.toLowerCase().includes(category.name.toLowerCase())
+      ))
+      .filter(Boolean) as JobCategory[];
+
+    if (matched.length === 0) return roleFallbacks;
+
+    return matched.slice(0, 4).map((category, index) => ({
+      name: category.name,
+      href: `/jobs?job_category=${encodeURIComponent(category.name)}`,
+      icon: roleFallbacks[index]?.icon || FaBriefcase,
+    }));
+  }, [categories]);
+
   const homepageSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Work Spa Portal',
-    description: 'Find the best Work Spa near you. Apply directly to spas without login.',
+    name: 'Workspa',
+    description: 'Find verified spa jobs and spa hiring opportunities across India.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
     potentialAction: {
       '@type': 'SearchAction',
@@ -97,181 +224,31 @@ export default function HomePage() {
     },
   };
 
-  // LocalBusiness schema for Mumbai Metropolitan Region
-  const localBusinessSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    name: 'Work Spa Portal - Mumbai & Navi Mumbai',
-    description: 'Leading platform for spa jobs in Mumbai, Navi Mumbai, Thane, Vashi, Bandra, Panvel, Airoli, Sanpada, Kharghar, Belapur, Mulund, Dadar, Kurla and surrounding areas.',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
-    areaServed: [
-      {
-        '@type': 'City',
-        name: 'Mumbai',
-      },
-      {
-        '@type': 'City',
-        name: 'Navi Mumbai',
-      },
-      {
-        '@type': 'City',
-        name: 'Thane',
-      },
-      {
-        '@type': 'Place',
-        name: 'Vashi',
-      },
-      {
-        '@type': 'Place',
-        name: 'Bandra',
-      },
-      {
-        '@type': 'Place',
-        name: 'Panvel',
-      },
-      {
-        '@type': 'Place',
-        name: 'Airoli',
-      },
-      {
-        '@type': 'Place',
-        name: 'Sanpada',
-      },
-      {
-        '@type': 'Place',
-        name: 'Kharghar',
-      },
-      {
-        '@type': 'Place',
-        name: 'Belapur',
-      },
-      {
-        '@type': 'Place',
-        name: 'Mulund',
-      },
-      {
-        '@type': 'Place',
-        name: 'Dadar',
-      },
-      {
-        '@type': 'Place',
-        name: 'Kurla',
-      },
-    ],
-    serviceType: 'Job Portal',
-    offers: {
-      '@type': 'Offer',
-      description: 'Free job listings for spa professionals in Mumbai Metropolitan Region',
-    },
-  };
-
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Workspa - Work Spa India',
+    name: 'Workspa',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
-    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/logo.png`,
-    description: 'India\'s leading platform for spa job opportunities',
-    sameAs: [
-      // Add social media links here when available
-    ],
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/uploads/navbar.png`,
+    description: 'India leading platform for spa job opportunities.',
   };
 
-  // Generate enhanced meta description with job examples
-  const enhancedDescription = useMemo(() => {
-    const baseDescription = "Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience.";
-
-    // Get jobs for examples (combine featured and popular, take first 3-4 unique ones)
-    const allJobs = [...featuredJobs, ...popularJobs];
-    const uniqueJobs = Array.from(
-      new Map(allJobs.map(job => [job.id, job])).values()
-    ).slice(0, 4);
-
-    if (uniqueJobs.length > 0 && !loadingFeatured && !loadingPopular) {
-      const jobExamples = uniqueJobs.map(job => {
-        const jobTitle = job.title || 'Spa Job';
-        let salaryText = '';
-
-        if (job.salary_min && job.salary_max) {
-          const minK = Math.round(job.salary_min / 1000);
-          const maxK = Math.round(job.salary_max / 1000);
-          salaryText = ` · ₹${minK}k - ₹${maxK}k`;
-        } else if (job.salary_min) {
-          const minK = Math.round(job.salary_min / 1000);
-          salaryText = ` · ₹${minK}k+`;
-        }
-
-        return `${jobTitle}${salaryText}`;
-      }).join('; ');
-
-      return `${baseDescription} ${jobExamples}. Search for therapist, receptionist, and spa manager positions.`;
-    }
-
-    return `${baseDescription} Search for therapist, receptionist, and spa manager positions.`;
-  }, [featuredJobs, popularJobs, loadingFeatured, loadingPopular]);
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* SEO Metadata */}
+    <div className="min-h-screen bg-surface-light">
       <SEOHead
-        title="Spa Jobs in Mumbai & Navi Mumbai - Therapist Jobs in Bandra, Thane, Vashi, Panvel"
-        description="Find spa therapist jobs in Mumbai, Navi Mumbai, Thane, Vashi, Bandra, Panvel, Airoli, Sanpada, Kharghar, Belapur, Mulund, Dadar, Kurla. Apply directly to verified spas without login. 1000+ active spa jobs across Mumbai Metropolitan Region."
+        title="Spa Jobs in Mumbai, Navi Mumbai, Thane & Pune | Workspa"
+        description="Find verified spa therapist, receptionist, beautician, massage therapist, and spa manager jobs. Search by role, salary, experience, city, and area."
         keywords={[
           'spa jobs in mumbai',
-          'spa therapist jobs in mumbai',
-          'spa jobs in navi mumbai',
-          'spa jobs in thane',
-          'spa jobs in vashi',
-          'spa jobs in bandra',
-          'spa jobs in panvel',
-          'spa jobs in airoli',
-          'spa jobs in sanpada',
-          'spa jobs in kharghar',
-          'spa jobs in belapur',
-          'spa jobs in mulund',
-          'spa jobs in dadar',
-          'spa jobs in kurla',
-          'massage therapist jobs in mumbai',
-          'massage therapist jobs in navi mumbai',
-          'massage therapist jobs in thane',
-          'massage therapist jobs in bandra',
-          'spa manager jobs in mumbai',
-          'spa manager jobs in navi mumbai',
-          'spa manager jobs in thane',
-          'beauty therapist jobs in mumbai',
-          'beauty therapist jobs in navi mumbai',
-          'wellness jobs in mumbai',
-          'wellness jobs in navi mumbai',
-          'therapist jobs in mumbai',
-          'therapist jobs in navi mumbai',
-          'therapist jobs in thane',
-          'therapist jobs in vashi',
-          'therapist jobs in bandra',
-          'therapist jobs in malad',
-          'therapist jobs in borivali',
-          'therapist jobs in kandivali',
-          'therapist jobs in mira road',
-          'therapist jobs in mira road',
-          'female therapist jobs in mumbai',
-          'female therapist jobs in navi mumbai',
-          'female therapist jobs in thane',
-          'female therapist jobs in vashi',
-          'female therapist jobs in bandra',
-          'female receptionist jobs in mumbai',
-          'female receptionist jobs in navi mumbai',
-          'female receptionist jobs in thane',
-          'female receptionist jobs in vashi',
-          'female receptionist jobs in bandra',
-          'spa jobs hiring in thane',
-          'work spa mumbai',
-          'work spa navi mumbai',
-          'work spa thane',
-          'work spa bandra',
-          'work spa vashi',
-          'work spa panvel',
+          'spa therapist jobs',
+          'spa jobs near me',
+          'massage therapist jobs',
+          'spa manager jobs',
+          'beautician jobs',
+          'spa receptionist jobs',
+          'free spa listing',
         ]}
       />
-      {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
@@ -280,102 +257,213 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
+
       <Navbar />
 
-      {/* Hero Section with Search */}
-      <div className="relative overflow-hidden bg-brand-800 text-white">
-        <div className="page-shell py-12 sm:py-16 md:py-20">
-          <div className="text-center mb-8 sm:mb-10">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-gold-200">
-              Verified spa hiring across Mumbai region
-            </p>
-            <h1 className="mx-auto max-w-5xl px-2 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
-              Find Spa Jobs in Mumbai & Navi Mumbai
+      <section className="relative overflow-hidden bg-brand-900 text-white">
+        <Image
+          src="/uploads/about-hero.jpg"
+          alt=""
+          fill
+          priority
+          className="object-cover opacity-30"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-brand-900/75" />
+        <div className="page-shell relative py-12 sm:py-16 lg:py-20">
+          <div className="max-w-5xl">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white">
+                <FaShieldAlt size={13} />
+                Verified spa hiring
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white">
+                <FaMapMarkerAlt size={13} />
+                Mumbai, Navi Mumbai, Thane, Pune
+              </span>
+            </div>
+            <h1 className="max-w-4xl text-3xl font-bold leading-tight sm:text-4xl lg:text-6xl">
+              Find spa jobs that match your role, city, and salary
             </h1>
-            <p className="mx-auto mt-4 max-w-4xl px-4 text-base leading-7 text-white/90 sm:text-lg md:text-xl">
-              Verified spa jobs in Mumbai, Navi Mumbai, Thane, Vashi, Bandra, Panvel, Airoli, Sanpada, Kharghar, Belapur, Mulund, Dadar, Kurla & more
+            <p className="mt-4 max-w-3xl text-base leading-7 text-white/85 sm:text-lg">
+              Search verified spa therapist, receptionist, beautician, massage therapist, and manager jobs from trusted spa businesses.
             </p>
           </div>
 
-          {/* Search Bar - removed hover scale to prevent CLS */}
-          <div className="max-w-5xl mx-auto mb-6 sm:mb-8">
+          <div className="mt-8 max-w-5xl">
             <SearchBar />
           </div>
 
-          <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/jobs" className="btn-primary w-full sm:w-auto">
-              Browse Jobs
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/jobs" className="btn-primary">
+              Browse all jobs
             </Link>
             <Link
               href="/free-listing"
-              className="inline-flex w-full items-center justify-center rounded-lg border border-white/25 bg-white/10 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/15 sm:w-auto"
+              className="inline-flex items-center justify-center rounded-lg border border-white/25 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/15"
             >
-              Free Listing for Employers
+              Add free listing
             </Link>
           </div>
-
-          {/* Quick Links */}
-          <div className="flex flex-wrap justify-center gap-2 text-xs sm:gap-3 sm:text-sm md:text-base px-4">
-            {quickLinkCategories.length > 0 ? (
-              quickLinkCategories.map((category) => (
-                <Link
-                  key={category.id || category.name}
-                  href={`/jobs?job_category=${encodeURIComponent(category.name)}`}
-                  className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white"
-                >
-                  {category.name} Jobs
-                </Link>
-              ))
-            ) : (
-              <>
-                <Link href="/jobs?job_category=Spa Therapist" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
-                  Spa Therapist Jobs
-                </Link>
-                <Link href="/jobs?job_category=Spa Receptionist" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
-                  Spa Receptionist Jobs
-                </Link>
-                <Link href="/jobs?job_category=Spa Manager" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
-                  Spa Manager Jobs
-                </Link>
-                <Link href="/jobs?job_category=Beautician" className="rounded-full border border-white/20 px-3 py-1.5 font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white">
-                  Beautician Jobs
-                </Link>
-              </>
-            )}
-          </div>
-
         </div>
-      </div>
+      </section>
 
-      <StatsSection />
+      <main>
+        <section className="border-b border-slate-200 bg-white">
+          <div className="page-shell py-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {stats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                      <Icon size={17} />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-slate-950">{stat.value}</p>
+                      <p className="text-sm font-semibold text-slate-600">{stat.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
-        {/* Featured Jobs Section */}
-        <Featuresjobs featuredJobs={featuredJobs} loadingFeatured={loadingFeatured} />
+        <section className="page-shell py-8 sm:py-10">
+          <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase text-brand-700">Popular roles</p>
+                  <h2 className="mt-1 text-2xl font-bold text-slate-950">Browse by job category</h2>
+                </div>
+                <Link href="/jobs" className="text-sm font-bold text-brand-700 hover:text-brand-800">
+                  View all categories
+                </Link>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {roleLinks.map((role) => {
+                  const Icon = role.icon;
+                  return (
+                    <Link
+                      key={role.name}
+                      href={role.href}
+                      className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-brand-300 hover:bg-brand-50"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                        <Icon size={17} />
+                      </div>
+                      <h3 className="mt-3 font-bold text-slate-950">{role.name}</h3>
+                      <p className="mt-1 text-sm text-slate-600">Open verified jobs</p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* Popular Jobs Section */}
-        <Popularjobs popularJobs={popularJobs} loadingPopular={loadingPopular} />
+            <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-sm font-semibold uppercase text-brand-700">Top cities</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-950">Maharashtra hiring hubs</h2>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {cityLinks.map((city) => (
+                  <Link
+                    key={city.href}
+                    href={city.href}
+                    className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
+                  >
+                    {city.label}
+                  </Link>
+                ))}
+              </div>
+            </aside>
+          </div>
+        </section>
 
-        <JobCategories />
+        <section className="page-shell space-y-6 pb-8 sm:pb-10">
+          <JobSection
+            title="Featured spa jobs"
+            eyebrow="Recommended"
+            jobs={featuredJobs}
+            loading={loadingFeatured}
+            emptyText="Featured jobs are being updated. Browse all jobs for the latest openings."
+            href="/jobs?is_featured=true"
+          />
 
+          <JobSection
+            title="Popular jobs right now"
+            eyebrow="Trending"
+            jobs={popularJobs}
+            loading={loadingPopular}
+            emptyText="Popular jobs are being updated. Check all jobs for fresh openings."
+            href="/jobs/popular"
+          />
+        </section>
 
-        {/* Features Section */}
+        <section className="bg-white">
+          <div className="page-shell py-8 sm:py-10">
+            <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+              <div className="rounded-lg border border-slate-200 bg-brand-800 p-5 text-white shadow-sm">
+                <FaBuilding size={24} />
+                <h2 className="mt-4 text-2xl font-bold">Recruiters can start with one business listing</h2>
+                <p className="mt-3 text-sm leading-6 text-white/80">
+                  Add your spa or shop, verify details, then post jobs attached to your business profile.
+                </p>
+                <Link
+                  href="/free-listing"
+                  className="mt-5 inline-flex rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-brand-800 transition hover:bg-brand-50"
+                >
+                  Create free listing
+                </Link>
+              </div>
 
-        <Features />
+              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <p className="text-sm font-semibold uppercase text-brand-700">How Workspa helps candidates</p>
+                <h2 className="mt-1 text-2xl font-bold text-slate-950">A faster way to compare spa jobs</h2>
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  {steps.map((step, index) => (
+                    <div key={step.title} className="rounded-lg bg-slate-50 p-4">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">
+                        {index + 1}
+                      </span>
+                      <h3 className="mt-4 font-bold text-slate-950">{step.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{step.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        <ProcessPage />
-
-        <Areasjobs />
-
-      </div>
-
-
-
+        <section className="page-shell py-8 sm:py-10">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold uppercase text-brand-700">Candidate safety</p>
+                <h2 className="mt-1 text-2xl font-bold text-slate-950">Apply with clearer job information</h2>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                  Workspa job cards are designed for quick comparison: salary range, location, experience, gender requirement when listed, timing, openings, and employer name.
+                </p>
+              </div>
+              <div className="grid gap-2 text-sm font-semibold text-slate-700">
+                <p className="flex items-center gap-2">
+                  <FaCheckCircle className="text-brand-700" />
+                  Do not pay money for interviews
+                </p>
+                <p className="flex items-center gap-2">
+                  <FaCheckCircle className="text-brand-700" />
+                  Meet at official business addresses
+                </p>
+                <p className="flex items-center gap-2">
+                  <FaCheckCircle className="text-brand-700" />
+                  Check salary and timing before applying
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
-

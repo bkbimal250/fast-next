@@ -104,16 +104,21 @@ function PopularJobsContent() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
-                  <div className="flex-1">
-                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                  </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="h-12 w-12 animate-pulse rounded-lg bg-gray-200" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                </div>
+              </div>
+                <div className="mt-5 space-y-2">
+                  <div className="h-3 w-full animate-pulse rounded bg-gray-200" />
+                  <div className="h-3 w-4/5 animate-pulse rounded bg-gray-200" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-gray-200" />
                 </div>
               </div>
             ))}
@@ -134,7 +139,7 @@ function PopularJobsContent() {
           </div>
         ) : (
           <>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {paginatedJobs.map((job) => (
                 <JobCard
                   key={job.id}

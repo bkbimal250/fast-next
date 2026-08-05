@@ -21,6 +21,31 @@ export default function Footer() {
   const canPostJobs =
     user && ['admin', 'manager', 'recruiter'].includes(user.role)
 
+  const maharashtraCityLinks = [
+    { label: 'Spa Jobs in Mumbai', href: '/spa-jobs-in-mumbai' },
+    { label: 'Spa Jobs in Thane', href: '/spa-jobs-in-thane' },
+    { label: 'Spa Jobs in Navi Mumbai', href: '/spa-jobs-in-navi-mumbai' },
+    { label: 'Spa Jobs in Pune', href: '/spa-jobs-in-pune' },
+    { label: 'Spa Jobs in Nashik', href: '/spa-jobs-in-nashik' },
+    { label: 'Spa Jobs in Nagpur', href: '/spa-jobs-in-nagpur' },
+    { label: 'Spa Jobs in Pimpri Chinchwad', href: '/spa-jobs-in-pimpri-chinchwad' },
+    { label: 'Spa Jobs in Kalyan', href: '/spa-jobs-in-kalyan' },
+  ]
+
+  const jobCategoryLinks = [
+    { label: 'Spa Therapist Jobs', href: '/jobs?q=Spa%20Therapist' },
+    { label: 'Female Spa Therapist Jobs', href: '/jobs?q=Female%20Spa%20Therapist' },
+    { label: 'Massage Therapist Jobs', href: '/jobs?q=Massage%20Therapist' },
+    { label: 'Ayurvedic Therapist Jobs', href: '/jobs?q=Ayurvedic%20Therapist' },
+    { label: 'Beautician Jobs', href: '/jobs?q=Beautician' },
+    { label: 'Spa Manager Jobs', href: '/jobs?q=Spa%20Manager' },
+    { label: 'Fresher Spa Jobs', href: '/jobs?q=Fresher%20Spa' },
+    { label: 'Part Time Spa Jobs', href: '/jobs?job_type=part-time' },
+  ]
+
+  const footerPillClass =
+    'inline-flex rounded-md bg-white/10 px-3 py-1.5 text-xs font-medium text-white/75 transition hover:bg-white/15 hover:text-white'
+
   return (
     <footer className="bg-brand-800 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -206,6 +231,37 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* ================= SEO Job Links ================= */}
+        <div className="mt-10 border-t border-white/15 pt-8">
+          <div className="grid gap-8 lg:grid-cols-2">
+            <section>
+              <h3 className="mb-4 text-sm font-bold text-white">
+                Spa Jobs by City
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {maharashtraCityLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className={footerPillClass}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-4 text-sm font-bold text-white">
+                Top Job Categories
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {jobCategoryLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className={footerPillClass}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
 

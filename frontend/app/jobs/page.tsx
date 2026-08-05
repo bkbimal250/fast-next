@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { FaFilter } from 'react-icons/fa';
 import JobCard from '@/components/JobCard';
 import JobFilters from '@/components/JobFilters';
 import Navbar from '@/components/Navbar';
-import Pagination from '@/components/Pagination';
 import { jobAPI, Job } from '@/lib/job';
 import { analyticsAPI } from '@/lib/analytics';
 import { useLocation } from '@/hooks/useLocation';
@@ -28,12 +28,16 @@ function JobsPageContent() {
   const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [totalJobs, setTotalJobs] = useState(0);
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary'>('recent');
   const [filters, setFilters] = useState<FilterState>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showDesktopFilters, setShowDesktopFilters] = useState(true);
   const itemsPerPage = 15;
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const pendingResetRef = useRef(false);
   const [jobTypes, setJobTypes] = useState<any[]>([]);
   const [jobCategories, setJobCategories] = useState<any[]>([]);
 
@@ -97,14 +101,15 @@ function JobsPageContent() {
   }, []);
 
 
-  useEffect(() => {
-    // Fetch jobs - if filters use jobTypeId or jobCategoryId, we need the arrays loaded
-    // But we can still fetch if arrays aren't loaded yet (they'll be empty filters)
-    fetchJobs();
-  }, [searchParams, sortBy, filters, useNearMe, userLocation, jobCategoryParam, jobTypes, jobCategories, currentPage]);
-
   const fetchJobs = async () => {
-    setLoading(true);
+    const isFirstPage = currentPage === 1;
+
+    if (isFirstPage) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
       const params: any = {
         skip: (currentPage - 1) * itemsPerPage,
@@ -188,14 +193,23 @@ function JobsPageContent() {
         }).catch(() => { }); // Silently fail - analytics should not break the app
       }
 
-      setJobs(jobsData);
+      setJobs((previousJobs) => {
+        if (isFirstPage) return jobsData;
+
+        const seen = new Set(previousJobs.map((job) => job.id));
+        const newJobs = jobsData.filter((job) => !seen.has(job.id));
+        return [...previousJobs, ...newJobs];
+      });
       setTotalJobs(countData.count);
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      // Fallback: use jobs length if count API fails
-      setTotalJobs(jobs.length);
+      if (isFirstPage) {
+        setJobs([]);
+        setTotalJobs(0);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -211,15 +225,47 @@ function JobsPageContent() {
     return jobs;
   }, [jobs]);
 
-  // Paginate sorted jobs
-  const paginatedJobs = useMemo(() => {
+  const visibleJobs = useMemo(() => {
     return sortedJobs;
   }, [sortedJobs]);
 
   // Reset to page 1 when filters or sort changes
   useEffect(() => {
+    pendingResetRef.current = true;
+    setJobs([]);
+    setTotalJobs(0);
     setCurrentPage(1);
-  }, [sortBy, filters, searchQuery, locationQuery]);
+  }, [sortBy, filters, searchQuery, locationQuery, jobCategoryParam, experienceMinParam, experienceMaxParam, useNearMe]);
+
+  useEffect(() => {
+    if (pendingResetRef.current && currentPage !== 1) return;
+
+    if (pendingResetRef.current && currentPage === 1) {
+      pendingResetRef.current = false;
+    }
+
+    fetchJobs();
+  }, [searchParams, sortBy, filters, useNearMe, userLocation, jobCategoryParam, jobTypes, jobCategories, currentPage]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    const hasMoreJobs = totalJobs > 0 && jobs.length < totalJobs;
+
+    if (!target || loading || loadingMore || !hasMoreJobs) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setCurrentPage((page) => page + 1);
+        }
+      },
+      { rootMargin: '500px 0px 500px 0px' }
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [jobs.length, totalJobs, loading, loadingMore]);
 
   // Check if a job is newly posted (within last 7 days)
   const isNewJob = (createdAt?: string): boolean => {
@@ -521,29 +567,48 @@ function JobsPageContent() {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4">
-                <JobFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+                <JobFilters
+                  onFilterChange={handleFilterChange}
+                  initialFilters={filters}
+                  onClose={() => setShowMobileFilters(false)}
+                  compact
+                />
               </div>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-4">
+        <div className={`grid grid-cols-1 gap-4 sm:gap-6 ${showDesktopFilters ? 'lg:grid-cols-[240px_1fr]' : 'lg:grid-cols-1'}`}>
           {/* Filters Sidebar */}
-          <div className="hidden lg:col-span-1 lg:block">
-            <div className="sticky top-20 space-y-4 z-30">
+          {showDesktopFilters && (
+          <div className="hidden lg:block">
+            <div className="sticky top-20 z-30">
               <JobFilters
                 onFilterChange={handleFilterChange}
                 initialFilters={filters}
+                onClose={() => setShowDesktopFilters(false)}
+                compact
               />
             </div>
           </div>
+          )}
 
           {/* Job Listings */}
-          <div className="lg:col-span-3">
+          <div>
             {/* Sort and View Options - Naukri Style */}
             <div className="sticky top-20 z-40 mb-4 hidden rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4 lg:block">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {!showDesktopFilters && (
+                    <button
+                      type="button"
+                      onClick={() => setShowDesktopFilters(true)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-bold text-brand-700 transition hover:bg-brand-100"
+                    >
+                      <FaFilter size={12} />
+                      Show filters
+                    </button>
+                  )}
                   <span className="text-xs sm:text-sm text-gray-600 font-medium">
                     {loading ? 'Loading...' : `${totalJobs} Jobs Found`}
                   </span>
@@ -565,16 +630,21 @@ function JobsPageContent() {
 
             {/* Job Listings */}
             {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
-                    <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
-                      <div className="flex-1">
-                        <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                      </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="h-12 w-12 animate-pulse rounded-lg bg-gray-200" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+                        <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                        <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                    </div>
+                  </div>
+                    <div className="mt-5 space-y-2">
+                      <div className="h-3 w-full animate-pulse rounded bg-gray-200" />
+                      <div className="h-3 w-4/5 animate-pulse rounded bg-gray-200" />
+                      <div className="h-10 w-full animate-pulse rounded-lg bg-gray-200" />
                     </div>
                   </div>
                 ))}
@@ -598,8 +668,8 @@ function JobsPageContent() {
               </div>
             ) : (
               <>
-                <div className="space-y-4">
-                  {paginatedJobs.map((job) => (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                  {visibleJobs.map((job) => (
                     <JobCard
                       key={job.id}
                       id={job.id}
@@ -641,17 +711,18 @@ function JobsPageContent() {
                   ))}
                 </div>
 
-                {/* Pagination */}
-                {totalJobs > itemsPerPage && (
-                  <div className="mt-6">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalItems={totalJobs}
-                      itemsPerPage={itemsPerPage}
-                      onPageChange={setCurrentPage}
-                    />
-                  </div>
-                )}
+                <div ref={loadMoreRef} className="mt-8 flex min-h-14 items-center justify-center">
+                  {loadingMore ? (
+                    <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-700 border-t-transparent" />
+                      Loading more jobs
+                    </div>
+                  ) : visibleJobs.length < totalJobs ? (
+                    <span className="text-sm font-medium text-slate-500">Scroll to load more jobs</span>
+                  ) : (
+                    <span className="text-sm font-medium text-slate-500">You have reached the end</span>
+                  )}
+                </div>
               </>
             )}
           </div>

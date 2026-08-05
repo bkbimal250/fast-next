@@ -60,17 +60,34 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=2000)
 
 # CORS (optimized)
+# -------------------------------------------------
+# CORS
+# -------------------------------------------------
+ALLOWED_ORIGINS = [
+    # Local development
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+
+    # WorkSpa frontend
+    "https://workspa.in",
+    "https://www.workspa.in",
+
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://workspa.in",
-        "https://www.workspa.in",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type",],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "X-Site-Key",
+    ],
 )
 
 
