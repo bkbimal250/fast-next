@@ -7,8 +7,27 @@ import { jobAPI, Job } from '@/lib/job';
 import { parseLocationSlugSmart } from '@/lib/location-utils';
 import axios from 'axios';
 import Link from 'next/link';
+import {
+    FaArrowRight,
+    FaBriefcase,
+    FaBuilding,
+    FaChartLine,
+    FaCheckCircle,
+    FaClock,
+    FaMapMarkerAlt,
+    FaSearch,
+    FaShieldAlt,
+    FaUsers,
+} from 'react-icons/fa';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+const roleLinks = [
+    { label: 'Spa Therapist', slug: 'spa-therapist', icon: FaUsers },
+    { label: 'Receptionist', slug: 'receptionist', icon: FaBuilding },
+    { label: 'Spa Manager', slug: 'spa-manager', icon: FaBriefcase },
+    { label: 'Beautician', slug: 'beautician', icon: FaCheckCircle },
+];
 
 export default function CityClient({ params }: { params: { city: string } }) {
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -39,11 +58,13 @@ export default function CityClient({ params }: { params: { city: string } }) {
         setLoading(true);
         try {
             const parsed = await parseLocationSlugSmart(params.city);
-            const params_query: any = { limit: 20 };
+            const params_query: any = { limit: 24 };
             if (parsed.cityId) params_query.city_id = parsed.cityId;
 
             const data = await jobAPI.getAllJobs(params_query);
-            setJobs(data.filter((job: Job) => job.is_active));
+            const activeJobs = data.filter((job: Job) => job.is_active);
+            setJobs(activeJobs);
+            setCategories(buildCategories(activeJobs));
         } catch (error) {
             console.error('Error fetching jobs:', error);
         } finally {
@@ -70,16 +91,61 @@ export default function CityClient({ params }: { params: { city: string } }) {
             const cityData = response.data.find((item: any) => item.city_slug === params.city);
 
             if (cityData) {
-                setCategories([
-                    { name: 'Therapist', slug: 'therapist', count: cityData.job_count },
-                    { name: 'receptionist', slug: 'receptionist', count: cityData.job_count },
+                setCategories((current) => current.length > 0 ? current : [
+                    { name: 'Spa Therapist', slug: 'spa-therapist', count: cityData.job_count },
+                    { name: 'Receptionist', slug: 'receptionist', count: cityData.job_count },
                     { name: 'Spa Manager', slug: 'spa-manager', count: cityData.job_count },
+                    { name: 'Beautician', slug: 'beautician', count: cityData.job_count },
                 ]);
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
     };
+
+    const buildCategories = (jobList: Job[]) => {
+        const counts = new Map<string, { name: string; slug: string; count: number }>();
+
+        jobList.forEach((job) => {
+            const categoryName =
+                typeof job.job_category === 'string'
+                    ? job.job_category
+                    : job.job_category?.name;
+            if (!categoryName) return;
+            const slug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const existing = counts.get(slug);
+            counts.set(slug, {
+                name: categoryName,
+                slug,
+                count: (existing?.count || 0) + 1,
+            });
+        });
+
+        const categoryList = Array.from(counts.values())
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 6);
+
+        return categoryList.length > 0 ? categoryList : [];
+    };
+
+    const displayCityName = cityName || params.city.replace(/-/g, ' ');
+    const featuredJobs = jobs.filter((job) => job.is_featured).length;
+    const hiringSpas = new Set(jobs.map((job) => job.spa_id).filter(Boolean)).size;
+    const roleCount = new Set(
+        jobs
+            .map((job) => typeof job.job_category === 'string' ? job.job_category : job.job_category?.name)
+            .filter(Boolean)
+    ).size;
+    const topAreas = Array.from(
+        jobs.reduce((map, job) => {
+            const areaName = job.area?.name;
+            if (!areaName) return map;
+            map.set(areaName, (map.get(areaName) || 0) + 1);
+            return map;
+        }, new Map<string, number>())
+    )
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
     const pageUrl = `${siteUrl}/cities/${params.city}`;
@@ -99,8 +165,8 @@ export default function CityClient({ params }: { params: { city: string } }) {
     const collectionPageSchema = {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
-        name: `Work Spa in ${cityName}`,
-        description: `Find ${jobCount}+ Work Spa in ${cityName}. Browse spa therapist, female spa therapist, male therapist, and spa manager positions.`,
+        name: `Spa Jobs in ${displayCityName}`,
+        description: `Find ${jobCount}+ spa jobs in ${displayCityName}. Browse spa therapist, receptionist, beautician, and spa manager positions.`,
         url: pageUrl,
         mainEntity: {
             '@type': 'ItemList',
@@ -136,7 +202,7 @@ export default function CityClient({ params }: { params: { city: string } }) {
                             address: {
                                 '@type': 'PostalAddress',
                                 ...(job.spa?.address && { streetAddress: job.spa.address }),
-                                addressLocality: job.city?.name || cityName,
+                                addressLocality: job.city?.name || displayCityName,
                                 ...(job.state?.name && { addressRegion: job.state.name }),
                                 ...(job.postalCode && { postalCode: job.postalCode }),
                                 addressCountry: job.country?.name || 'IN',
@@ -166,18 +232,18 @@ export default function CityClient({ params }: { params: { city: string } }) {
         mainEntity: [
             {
                 "@type": "Question",
-                name: `How can I find spa jobs in ${cityName}?`,
+                name: `How can I find spa jobs in ${displayCityName}?`,
                 acceptedAnswer: {
                     "@type": "Answer",
-                    text: `You can browse the latest spa jobs in ${cityName} on Workspa.in. We offer positions for therapists, receptionists, and managers.`
+                    text: `You can browse the latest spa jobs in ${displayCityName} on Workspa.in. We offer positions for therapists, receptionists, beauticians, and managers.`
                 }
             },
             {
                 "@type": "Question",
-                name: `Are there high paying spa jobs in ${cityName}?`,
+                name: `Are there high paying spa jobs in ${displayCityName}?`,
                 acceptedAnswer: {
                     "@type": "Answer",
-                    text: `Yes, many spas in ${cityName} offer competitive salaries. Check our listings for the latest high-paying opportunities.`
+                    text: `Yes, many spas in ${displayCityName} offer competitive salaries. Check listings by role, area, timing, and experience before applying.`
                 }
             }
         ]
@@ -202,14 +268,14 @@ export default function CityClient({ params }: { params: { city: string } }) {
             {
                 '@type': 'ListItem',
                 position: 3,
-                name: `Jobs in ${cityName}`,
+                name: `Jobs in ${displayCityName}`,
                 item: pageUrl,
             },
         ],
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-surface-light">
             {/* Structured Data for SEO */}
             <script
                 type="application/ld+json"
@@ -226,88 +292,199 @@ export default function CityClient({ params }: { params: { city: string } }) {
             <Navbar />
 
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                        Work Spa in {cityName}
-                    </h1>
-                    <p className="text-xl sm:text-2xl text-blue-100">
-                        {jobCount > 0 ? `${jobCount}+ jobs available` : 'Apply jobs for first call'}
-                    </p>
-                </div>
-            </div>
+            <section className="relative overflow-hidden bg-brand-900 text-white">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(245,158,11,0.22),_transparent_32%),linear-gradient(135deg,_rgba(15,118,110,0.95),_rgba(15,23,42,0.96))]" />
+                <div className="page-shell relative py-10 sm:py-14 lg:py-16">
+                    <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-center">
+                        <div>
+                            <div className="mb-4 flex flex-wrap gap-2">
+                                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white sm:text-sm">
+                                    <FaShieldAlt size={13} />
+                                    Verified spa hiring
+                                </span>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white sm:text-sm">
+                                    <FaMapMarkerAlt size={13} />
+                                    {displayCityName}
+                                </span>
+                            </div>
 
-            {/* Category Links */}
-            {categories.length > 0 && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-wrap gap-4">
-                        {categories.map((category) => (
-                            <Link
-                                key={category.slug}
-                                href={`/jobs/${category.slug}-jobs-in-${params.city}`}
-                                className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:shadow-md transition-shadow"
-                            >
-                                <div className="font-semibold text-gray-900">{category.name} Jobs</div>
-                                <div className="text-sm text-gray-600">{category.count}+ jobs</div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            )}
+                            <h1 className="max-w-4xl text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
+                                Spa jobs in {displayCityName}
+                            </h1>
+                            <p className="mt-4 max-w-3xl text-base leading-7 text-white/85 sm:text-lg">
+                                Browse therapist, receptionist, beautician, housekeeping, and spa manager jobs from active spa businesses in {displayCityName}.
+                            </p>
 
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="bg-white border border-gray-200 rounded-lg p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-3">Spa jobs in {cityName}</h2>
-                        <p className="text-gray-700 leading-relaxed">
-                            Workspa lists active spa therapist, receptionist, beautician, housekeeping, and spa manager jobs in {cityName}.
-                            Use this city page to compare openings by area, salary, timing, experience, and direct contact options before applying.
-                        </p>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">Popular searches</h3>
-                        <div className="space-y-2">
-                            <Link href={`/jobs/spa-therapist-jobs-in-${params.city}`} className="block text-brand-700 hover:text-brand-800 font-medium">
-                                Spa therapist jobs in {cityName}
-                            </Link>
-                            <Link href={`/jobs/receptionist-jobs-in-${params.city}`} className="block text-brand-700 hover:text-brand-800 font-medium">
-                                Receptionist jobs in {cityName}
-                            </Link>
-                            <Link href={`/jobs/spa-manager-jobs-in-${params.city}`} className="block text-brand-700 hover:text-brand-800 font-medium">
-                                Spa manager jobs in {cityName}
-                            </Link>
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <Link href={`/jobs?location=${encodeURIComponent(displayCityName)}`} className="btn-primary">
+                                    Search jobs in {displayCityName}
+                                </Link>
+                                <Link
+                                    href="/free-listing"
+                                    className="inline-flex items-center justify-center rounded-lg border border-white/25 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/15"
+                                >
+                                    Add free listing
+                                </Link>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border border-white/15 bg-white/10 p-4 shadow-xl backdrop-blur">
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { label: 'Open jobs', value: jobCount || jobs.length, icon: FaBriefcase },
+                                    { label: 'Hiring spas', value: hiringSpas || '-', icon: FaBuilding },
+                                    { label: 'Featured jobs', value: featuredJobs, icon: FaChartLine },
+                                    { label: 'Role types', value: roleCount || '-', icon: FaUsers },
+                                ].map((stat) => {
+                                    const Icon = stat.icon;
+                                    return (
+                                        <div key={stat.label} className="rounded-lg bg-white p-4 text-slate-950">
+                                            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                                                <Icon size={16} />
+                                            </div>
+                                            <p className="text-2xl font-bold">{stat.value}</p>
+                                            <p className="text-sm font-semibold text-slate-600">{stat.label}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Job Listings */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {loading ? (
-                    <div className="space-y-4">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
-                                    <div className="flex-1">
-                                        <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            <main>
+                <section className="border-b border-slate-200 bg-white">
+                    <div className="page-shell py-5">
+                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                            {roleLinks.map((role) => {
+                                const Icon = role.icon;
+                                const count = categories.find((category) => category.slug.includes(role.slug) || role.slug.includes(category.slug))?.count;
+                                return (
+                                    <Link
+                                        key={role.slug}
+                                        href={`/jobs/${role.slug}-jobs-in-${params.city}`}
+                                        className="group rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-brand-300 hover:bg-brand-50"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm">
+                                                <Icon size={16} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h2 className="font-bold text-slate-950 group-hover:text-brand-700">
+                                                    {role.label} Jobs
+                                                </h2>
+                                                <p className="mt-1 text-sm text-slate-600">
+                                                    {count ? `${count}+ active openings` : `Search in ${displayCityName}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                <section className="page-shell py-6">
+                    <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+                        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+                                <FaSearch size={12} />
+                                City job guide
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-950">Find spa jobs in {displayCityName}</h2>
+                            <p className="mt-3 leading-7 text-slate-700">
+                                Workspa lists active spa therapist, receptionist, beautician, housekeeping, and spa manager jobs in {displayCityName}.
+                                Compare openings by area, salary, timing, experience, and employer details before applying.
+                            </p>
+                            {topAreas.length > 0 && (
+                                <div className="mt-5">
+                                    <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Top hiring areas</h3>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {topAreas.map(([area, count]) => (
+                                            <Link
+                                                key={area}
+                                                href={`/jobs?location=${encodeURIComponent(`${area} ${displayCityName}`)}`}
+                                                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
+                                            >
+                                                {area} ({count})
+                                            </Link>
+                                        ))}
                                     </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-950">Popular searches</h3>
+                            <div className="mt-4 space-y-2">
+                                {roleLinks.slice(0, 4).map((role) => (
+                                    <Link
+                                        key={role.slug}
+                                        href={`/jobs/${role.slug}-jobs-in-${params.city}`}
+                                        className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
+                                    >
+                                        {role.label} jobs
+                                        <FaArrowRight size={12} />
+                                    </Link>
+                                ))}
+                            </div>
+                        </aside>
+                    </div>
+                </section>
+
+            <section className="page-shell pb-10">
+                <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p className="text-sm font-bold uppercase tracking-wide text-brand-700">Latest openings</p>
+                        <h2 className="mt-1 text-2xl font-bold text-slate-950">
+                            Active spa jobs in {displayCityName}
+                        </h2>
+                    </div>
+                    {jobs.length > 0 && (
+                        <Link href={`/jobs?location=${encodeURIComponent(displayCityName)}`} className="inline-flex items-center gap-2 text-sm font-bold text-brand-700 hover:text-brand-800">
+                            View all city jobs
+                            <FaArrowRight size={12} />
+                        </Link>
+                    )}
+                </div>
+                {loading ? (
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="animate-pulse rounded-lg border border-slate-200 bg-white p-5">
+                                <div className="mb-4 flex items-start gap-3">
+                                    <div className="h-12 w-12 rounded-lg bg-slate-200"></div>
+                                    <div className="flex-1">
+                                        <div className="mb-3 h-5 w-3/4 rounded bg-slate-200"></div>
+                                        <div className="h-4 w-1/2 rounded bg-slate-200"></div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="h-4 rounded bg-slate-200"></div>
+                                    <div className="h-4 w-2/3 rounded bg-slate-200"></div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : jobs.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No jobs found</h3>
-                        <p className="text-gray-600">Try adjusting your search criteria</p>
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+                            <FaBriefcase size={26} />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-950">No jobs found in {displayCityName}</h3>
+                        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+                            Try another nearby city, search all jobs, or add your business so candidates can find you.
+                        </p>
+                        <div className="mt-5 flex flex-wrap justify-center gap-3">
+                            <Link href="/jobs" className="btn-primary">Browse all jobs</Link>
+                            <Link href="/free-listing" className="rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-brand-300 hover:text-brand-700">
+                                Add free listing
+                            </Link>
+                        </div>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {jobs.map((job) => (
                             <JobCard
                                 key={job.id}
@@ -334,7 +511,31 @@ export default function CityClient({ params }: { params: { city: string } }) {
                         ))}
                     </div>
                 )}
-            </div>
+            </section>
+
+            <section className="border-t border-slate-200 bg-white">
+                <div className="page-shell py-8">
+                    <div className="grid gap-4 md:grid-cols-3">
+                        {[
+                            { title: 'Verified employers', text: 'Browse jobs connected with spa business listings and profile details.', icon: FaShieldAlt },
+                            { title: 'Fresh city roles', text: 'Find openings by role, area, salary range, timing, and experience.', icon: FaClock },
+                            { title: 'Quick apply flow', text: 'Open any job card, review details, and apply from the job detail page.', icon: FaCheckCircle },
+                        ].map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <div key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                                        <Icon size={16} />
+                                    </div>
+                                    <h3 className="font-bold text-slate-950">{item.title}</h3>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+            </main>
         </div>
     );
 }
