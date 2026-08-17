@@ -9,6 +9,7 @@ from app.modules.seo import sitemap, robots
 from app.modules.jobs.models import Job, JobCategory
 from app.modules.locations.models import City, Area
 from app.modules.spas.models import Spa
+from slugify import slugify
 
 router = APIRouter(prefix="/api/seo", tags=["seo"])
 
@@ -57,14 +58,12 @@ def get_sitemap_data(db: Session = Depends(get_db)):
         .all()
     )
     cities = (
-        db.query(City.id, City.name, City.slug)
-        .filter(City.slug.isnot(None))
+        db.query(City.id, City.name)
         .limit(1000)
         .all()
     )
     areas = (
-        db.query(Area.id, Area.name, Area.slug, Area.city_id)
-        .filter(Area.slug.isnot(None))
+        db.query(Area.id, Area.name, Area.city_id)
         .limit(5000)
         .all()
     )
@@ -85,12 +84,14 @@ def get_sitemap_data(db: Session = Depends(get_db)):
             for slug, updated_at, created_at in spas
         ],
         "cities": [
-            {"id": id, "name": name, "slug": slug}
-            for id, name, slug in cities
+            {"id": id, "name": name, "slug": slugify(name)}
+            for id, name in cities
+            if name
         ],
         "areas": [
-            {"id": id, "name": name, "slug": slug, "city_id": city_id}
-            for id, name, slug, city_id in areas
+            {"id": id, "name": name, "slug": slugify(name), "city_id": city_id}
+            for id, name, city_id in areas
+            if name
         ],
         "categories": [
             {"name": name, "slug": slug}
