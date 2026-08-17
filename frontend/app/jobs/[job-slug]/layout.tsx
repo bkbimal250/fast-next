@@ -92,7 +92,7 @@ export async function generateMetadata({
   try {
     if (!apiUrl) {
       return {
-        title: 'Work Spa Jobs | Workspa.in',
+        title: 'Spa Jobs | Workspa',
         description: 'View detailed information about this spa job opportunity.',
       };
     }
@@ -128,7 +128,7 @@ export async function generateMetadata({
   } catch (error) {
     console.error('Error generating job metadata:', error);
     return {
-      title: 'Work Spa Jobs | Workspa.in',
+      title: 'Spa Jobs | Workspa',
       description: 'View detailed information about this spa job opportunity.',
     };
   }

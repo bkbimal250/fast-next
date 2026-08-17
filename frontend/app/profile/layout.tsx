@@ -3,7 +3,7 @@ import { generatePageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = generatePageMetadata(
   'My Profile',
-  'Manage your Work Spa profile, view saved jobs, track applications, and update your preferences.',
+  'Manage your Workspa profile, view saved jobs, track applications, and update your preferences.',
   {
     keywords: ['profile', 'my account', 'user profile'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/profile`,

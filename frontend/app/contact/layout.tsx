@@ -2,15 +2,15 @@ import type { Metadata } from 'next';
 import { generatePageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = generatePageMetadata(
-  'Contact Us - Get in Touch | Work Spa Portal',
-  'Contact Work Spa Portal for inquiries, support, or feedback. Reach us via email, phone, or contact form. We typically respond within 24-48 hours.',
+  'Contact Us - Get in Touch | Workspa',
+  'Contact Workspa for job seeker, recruiter, free listing, support, or feedback inquiries. Reach us by email, phone, or contact form.',
   {
     keywords: [
-      'contact Work Spa',
-      'Work Spa support',
+      'contact Workspa',
+      'Workspa support',
       'contact workspa',
-      'Work Spa help',
-      'job portal contact',
+      'Workspa help',
+      'spa job portal contact',
     ],
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/contact`,
   }

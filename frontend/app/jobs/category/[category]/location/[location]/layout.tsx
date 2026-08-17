@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.backend.workspa.in';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 interface CategoryLocationLayoutProps {
@@ -90,8 +90,8 @@ export async function generateMetadata({
     const jobCountText = jobCount > 0 ? `${jobCount.toLocaleString()} ` : '';
     const baseTitle = `${categoryName} Jobs in ${locationName}`;
     const fullTitle = jobCount > 0
-      ? `${baseTitle} - ${jobCountText}${categoryName} Job Vacancies in ${locationName} | Workspa.in`
-      : `${baseTitle} | Workspa.in`;
+      ? `${baseTitle} - ${jobCountText}${categoryName} Job Vacancies in ${locationName} | Workspa`
+      : `${baseTitle} | Workspa`;
 
     const title = fullTitle;
     const description = `Find ${jobCountText}${categoryName.toLowerCase()} jobs in ${locationName}. Browse therapist, receptionist, and spa manager positions. Apply directly to spas without login.`;
@@ -105,7 +105,7 @@ export async function generateMetadata({
         `${categoryName} jobs`,
         `${categoryName} jobs in ${locationName}`,
         `${categoryName} job vacancies in ${locationName}`,
-        `Work Spa ${locationName}`,
+        `spa jobs ${locationName}`,
         `${categoryName.toLowerCase()} jobs near me`,
         `jobs in ${locationName}`,
         locationName,
@@ -116,7 +116,7 @@ export async function generateMetadata({
         url: pageUrl,
         title,
         description,
-        siteName: 'Workspa.in',
+        siteName: 'Workspa - Spa Jobs Portal',
       },
       twitter: {
         card: 'summary_large_image',
@@ -133,7 +133,7 @@ export async function generateMetadata({
     const locationName = params.location.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
     return {
-      title: `${categoryName} Jobs in ${locationName} | Workspa.in`,
+      title: `${categoryName} Jobs in ${locationName} | Workspa`,
       description: `Find ${categoryName.toLowerCase()} jobs in ${locationName}. Browse and apply to spa job vacancies.`,
     };
   }

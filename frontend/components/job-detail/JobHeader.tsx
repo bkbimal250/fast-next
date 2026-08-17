@@ -29,7 +29,6 @@ export default function JobHeader({ job }: JobHeaderProps) {
                   width={64}
                   height={64}
                   className="w-full h-full object-cover"
-                  unoptimized
                 />
               </div>
             ) : (

@@ -8,6 +8,10 @@ const nextConfig = {
 
   poweredByHeader: false,
 
+  experimental: {
+    optimizePackageImports: ['react-icons'],
+  },
+
   images: {
     // ONLY list real production domains
     remotePatterns: [

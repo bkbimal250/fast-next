@@ -299,7 +299,7 @@ export default function Areasjobs() {
         {/* Why Choose Section */}
         <div className="mt-12 bg-brand-50 rounded-lg p-6 sm:p-8 border border-brand-200">
           <h3 className="font-semibold text-xl text-gray-900 mb-4">
-            Why Choose Work Spa Portal?
+            Why Choose Workspa?
           </h3>
 
           <ul className="space-y-3 text-gray-700">

@@ -41,7 +41,6 @@ export default function PopularJobsList({ jobs, currentJobId }: PopularJobsListP
                         width={48}
                         height={48}
                         className="w-full h-full object-cover"
-                        unoptimized
                       />
                     </div>
                   ) : (

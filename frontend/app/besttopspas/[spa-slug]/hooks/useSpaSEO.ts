@@ -176,7 +176,7 @@ export function generateSpaMetadata(
   };
 
   return {
-    title: `${spa.name}${locationStrForTitle ? ` - ${locationStrForTitle}` : ''} | Work Spa Portal`,
+    title: `${spa.name}${locationStrForTitle ? ` - ${locationStrForTitle}` : ''} | Workspa`,
     description,
     canonical,
     ogTitle: `${spa.name}${locationStrForTitle ? ` - ${locationStrForTitle}` : ''}`,

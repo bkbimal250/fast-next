@@ -229,7 +229,7 @@ export default function HomePage() {
     '@type': 'Organization',
     name: 'Workspa',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in',
-    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/uploads/navbar.png`,
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/uploads/navbar.webp`,
     description: 'India leading platform for spa job opportunities.',
   };
 
@@ -262,7 +262,7 @@ export default function HomePage() {
 
       <section className="relative overflow-hidden bg-brand-900 text-white">
         <Image
-          src="/uploads/about-hero.jpg"
+          src="/uploads/about-hero.webp"
           alt=""
           fill
           priority

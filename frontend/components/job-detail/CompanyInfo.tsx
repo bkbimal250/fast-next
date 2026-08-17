@@ -35,7 +35,6 @@ export default function CompanyInfo({ job }: CompanyInfoProps) {
                 width={64}
                 height={64}
                 className="w-full h-full object-cover"
-                unoptimized
               />
             </div>
           ) : (

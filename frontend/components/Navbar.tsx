@@ -59,13 +59,12 @@ export default function Navbar() {
             <Link href="/" className="flex h-full items-center" aria-label="Workspa home">
               <div className="flex h-10 w-auto items-center sm:h-12">
                 <Image
-                  src="/uploads/navbar.png"
+                  src="/uploads/navbar.webp"
                   alt="Workspa Logo"
                   width={200}
                   height={56}
                   className="h-full w-auto object-contain"
                   priority
-                  unoptimized
                 />
               </div>
             </Link>

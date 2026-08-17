@@ -7,7 +7,6 @@ import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaCheckCircle, FaExclamationCircle
 import { contactAPI, ContactSubject } from '@/lib/contact';
 import Navbar from '@/components/Navbar';
 import SubscribeForm from '@/components/SubscribeForm';
-import type { Metadata } from 'next';
 
 // Note: Metadata is defined in layout.tsx (Next.js requires metadata in layout for client components)
 
@@ -80,12 +79,12 @@ export default function ContactPage() {
   const contactPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    name: 'Contact Us - Work Spa Portal',
-    description: 'Contact Work Spa Portal for inquiries, support, or feedback',
+    name: 'Contact Us - Workspa',
+    description: 'Contact Workspa for job seeker, recruiter, free listing, support, or feedback inquiries',
     url: `${siteUrl}/contact`,
     mainEntity: {
       '@type': 'Organization',
-      name: 'Workspa - Work Spa Portal',
+      name: 'Workspa - Spa Jobs Portal',
       email: 'info@workspa.in',
       telephone: '+919126458453',
       address: {
@@ -112,7 +111,7 @@ export default function ContactPage() {
 
     {/* Hero Image */}
     <Image
-      src="/uploads/workspacontact.png"
+      src="/uploads/workspacontact.webp"
       alt="We Are Hiring Spa Jobs"
       fill
       priority

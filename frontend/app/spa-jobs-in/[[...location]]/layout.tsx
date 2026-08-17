@@ -12,8 +12,8 @@ export async function generateMetadata({
 
   if (!locationSlug) {
     return {
-      title: 'Work Spa | Find Work Spa',
-      description: 'Find Work Spa. Browse therapist, receptionist, and spa manager positions.',
+      title: 'Spa Jobs | Workspa',
+      description: 'Find spa jobs near you. Browse therapist, receptionist, beautician, and spa manager positions.',
     };
   }
 
@@ -23,17 +23,17 @@ export async function generateMetadata({
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
-  const title = `Work Spa in ${locationName} | Find Work Spa`;
-  const description = `Find Work Spa in ${locationName}. Browse therapist, receptionist, and spa manager positions. Apply directly without login.`;
+  const title = `Spa Jobs in ${locationName} | Workspa`;
+  const description = `Find spa jobs in ${locationName}. Browse therapist, receptionist, beautician, and spa manager positions. Apply directly without login.`;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
   const pageUrl = `${siteUrl}/spa-jobs-in-${locationSlug}`;
 
   return generatePageMetadata(title, description, {
     keywords: [
-      `Work Spa ${locationName}`,
-      `Work Spa in ${locationName}`,
-      `${locationName} Work Spa`,
+      `spa jobs ${locationName}`,
+      `spa jobs in ${locationName}`,
+      `${locationName} spa jobs`,
       'spa therapist jobs',
       'massage therapist jobs',
     ],

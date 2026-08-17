@@ -14,7 +14,6 @@ import SpaJobsList from './components/SpaJobsList';
 import SpaContactCard from './components/SpaContactCard';
 import SpaOperatingHours from './components/SpaOperatingHours';
 import SpaLocationMap from './components/SpaLocationMap';
-import { useSpaSEO, generateSpaMetadata } from './hooks/useSpaSEO';
 
 export default function SpaDetailPage() {
   const params = useParams();
@@ -25,7 +24,6 @@ export default function SpaDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [metadata, setMetadata] = useState<any>(null);
   const [locationNames, setLocationNames] = useState<{
     country?: string;
     state?: string;
@@ -45,16 +43,6 @@ export default function SpaDetailPage() {
       fetchLocationNames();
     }
   }, [spa]);
-
-  useEffect(() => {
-    if (spa) {
-      const generatedMetadata = generateSpaMetadata(spa, jobs, locationNames);
-      setMetadata(generatedMetadata);
-    }
-  }, [spa, jobs, locationNames]);
-
-  // Use SEO hook
-  useSpaSEO(spa, jobs, locationNames, metadata);
 
   const fetchSpa = async () => {
     setLoading(true);

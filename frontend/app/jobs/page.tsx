@@ -288,7 +288,7 @@ function JobsPageContent() {
       ).join(' ');
       parts.push(`${queryFormatted} Jobs`);
     } else {
-      parts.push('Work Spa');
+      parts.push('Spa Jobs');
     }
 
     if (effectiveLocation) {
@@ -310,9 +310,9 @@ function JobsPageContent() {
     } else if (searchQuery) {
       parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} ${searchQuery.toLowerCase()} jobs across India.`);
     } else if (effectiveLocation) {
-      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} Work Spa in ${effectiveLocation}.`);
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs in ${effectiveLocation}.`);
     } else {
-      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} Work Spa across India.`);
+      parts.push(`Find ${totalJobs > 0 ? totalJobs : ''} spa jobs across India.`);
     }
 
     // Add job examples from current results (top 3-4 jobs with salary info)
@@ -512,7 +512,7 @@ function JobsPageContent() {
                 `${searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Jobs`
               )
             ) : effectiveLocation ? (
-              `Work Spa in ${effectiveLocation}`
+              `Spa Jobs in ${effectiveLocation}`
             ) : (
               'Find Your Next Spa Job'
             )}

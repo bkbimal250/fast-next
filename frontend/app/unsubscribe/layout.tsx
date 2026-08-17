@@ -3,7 +3,7 @@ import { generatePageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = generatePageMetadata(
   'Unsubscribe from Job Alerts',
-  'Unsubscribe from Work Spa email notifications and job alerts.',
+  'Unsubscribe from Workspa email notifications and job alerts.',
   {
     keywords: ['unsubscribe', 'email preferences'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/unsubscribe`,

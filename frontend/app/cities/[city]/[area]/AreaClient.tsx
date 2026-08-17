@@ -110,7 +110,7 @@ export default function AreaClient({
 
     // Generate enhanced meta description with job examples
     const enhancedDescription = useMemo(() => {
-        const baseDescription = `Find ${jobCount > 0 ? jobCount : ''} Work Spa in ${locationDisplayName}.`;
+        const baseDescription = `Find ${jobCount > 0 ? jobCount : 'verified'} spa jobs in ${locationDisplayName}.`;
 
         if (jobs.length > 0 && !loading) {
             const jobExamples = jobs
@@ -159,7 +159,7 @@ export default function AreaClient({
     const collectionPageSchema = {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
-        name: `Work Spa in ${locationDisplayName}`,
+        name: `Spa Jobs in ${locationDisplayName}`,
         description: enhancedDescription,
         url: pageUrl,
         mainEntity: {
@@ -278,12 +278,12 @@ export default function AreaClient({
         <div className="min-h-screen bg-gray-50">
             {/* SEO Metadata */}
             <SEOHead
-                title={`Work Spa in ${locationDisplayName} - ${jobCount > 0 ? `${jobCount} Jobs Available` : 'Find Work Spa'}`}
+                title={`Spa Jobs in ${locationDisplayName} - ${jobCount > 0 ? `${jobCount} Jobs Available` : 'Find Spa Jobs'}`}
                 description={enhancedDescription}
                 keywords={[
-                    `Work Spa ${locationDisplayName}`,
-                    `Work Spa in ${locationDisplayName}`,
-                    `${locationDisplayName} Work Spa`,
+                    `spa jobs ${locationDisplayName}`,
+                    `spa jobs in ${locationDisplayName}`,
+                    `${locationDisplayName} spa jobs`,
                     'spa therapist jobs',
                     'massage therapist jobs',
                     'spa manager jobs',
@@ -311,7 +311,7 @@ export default function AreaClient({
             <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                     <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                        Work Spa in {locationDisplayName}
+                        Spa Jobs in {locationDisplayName}
                     </h1>
                     <p className="text-xl sm:text-2xl text-brand-100">
                         {jobCount > 0 ? `${jobCount}+ jobs available` : 'Find your dream spa job'}

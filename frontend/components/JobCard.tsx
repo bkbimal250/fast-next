@@ -2,21 +2,18 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import {
   FaBriefcase,
   FaCalendarAlt,
   FaClock,
   FaMapMarkerAlt,
+  FaPhoneAlt,
   FaRupeeSign,
   FaUser,
   FaUsers,
+  FaWhatsapp,
 } from 'react-icons/fa';
-import { useAuth } from '@/contexts/AuthContext';
-import { applicationAPI } from '@/lib/application';
-import { showErrorToast, showToast } from '@/lib/toast';
 import { capitalizeTitle } from '@/lib/text-utils';
-import axios from 'axios';
 
 interface JobCardProps {
   id: number;
@@ -69,13 +66,12 @@ export default function JobCard({
   isFeatured,
   created_at,
   description,
+  hr_contact_phone,
   required_gender,
   job_timing,
   isNew = false,
 }: JobCardProps) {
   const router = useRouter();
-  const { user } = useAuth();
-  const [applying, setApplying] = useState(false);
 
   const logoUrl = logoImage
     ? logoImage.startsWith('http')
@@ -139,29 +135,17 @@ export default function JobCard({
   const displayLocation = location && location !== 'Location not specified' ? location : 'Location not specified';
   const postedDate = formatDate(created_at);
   const cleanDescription = stripHtml(description);
-
-  const handleApplyClick = async () => {
-    axios.post(`${API_URL}/api/jobs/${id}/track-apply-click`).catch(() => {});
-
-    if (!user) {
-      router.push(`/apply/${slug}`);
-      return;
-    }
-
-    setApplying(true);
-    try {
-      await applicationAPI.directApply(id);
-      showToast.success('Application submitted successfully!');
-      setTimeout(() => {
-        router.push('/dashboard/applications');
-      }, 1200);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || 'Failed to submit application. Please try again.';
-      showErrorToast(err, errorMessage);
-    } finally {
-      setApplying(false);
-    }
-  };
+  const contactPhone = hr_contact_phone?.replace(/[^\d+]/g, '') || '';
+  const callHref = contactPhone ? `tel:${contactPhone}` : undefined;
+  const whatsappPhone = contactPhone
+    ? contactPhone.startsWith('+')
+      ? contactPhone.replace(/[^\d]/g, '')
+      : `91${contactPhone.replace(/^0+/, '')}`
+    : '';
+  const whatsappMessage = encodeURIComponent(
+    `Hi, I am interested in the ${capitalizeTitle(title)} job${spaName ? ` at ${capitalizeTitle(spaName)}` : ''}.`
+  );
+  const whatsappHref = whatsappPhone ? `https://wa.me/${whatsappPhone}?text=${whatsappMessage}` : undefined;
 
   const handleCardClick = () => {
     router.push(`/jobs/${slug}`);
@@ -191,7 +175,6 @@ export default function JobCard({
               fill
               className="object-cover"
               sizes="48px"
-              unoptimized
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-brand-700 text-sm font-bold text-white">
@@ -288,17 +271,51 @@ export default function JobCard({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            handleApplyClick();
-          }}
-          disabled={applying}
-          className="flex w-full items-center justify-center rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {applying ? 'Applying...' : 'Quick Apply'}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          {callHref ? (
+            <a
+              href={callHref}
+              onClick={(event) => event.stopPropagation()}
+              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              <FaPhoneAlt size={13} />
+              Call
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={(event) => event.stopPropagation()}
+              disabled
+              className="flex cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-sm font-bold text-slate-400"
+            >
+              <FaPhoneAlt size={13} />
+              Call
+            </button>
+          )}
+
+          {whatsappHref ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              className="flex items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-700"
+            >
+              <FaWhatsapp size={15} />
+              WhatsApp
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={(event) => event.stopPropagation()}
+              disabled
+              className="flex cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-sm font-bold text-slate-400"
+            >
+              <FaWhatsapp size={15} />
+              WhatsApp
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );

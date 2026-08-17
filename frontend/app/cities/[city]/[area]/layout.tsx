@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ;
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.backend.workspa.in';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
 
 interface AreaLayoutProps {
@@ -67,12 +67,12 @@ export async function generateMetadata({
     }
 
     const jobCountText = jobCount > 0 ? `${jobCount.toLocaleString()} ` : '';
-    const baseTitle = `Work Spa in ${capitalizedArea}, ${capitalizedCity}`;
+    const baseTitle = `Spa Jobs in ${capitalizedArea}, ${capitalizedCity}`;
     const fullTitle = jobCount > 0 
-      ? `${baseTitle} - ${jobCountText}Jobs Available | Work Spa Portal`
-      : `${baseTitle} | Work Spa Portal`;
+      ? `${baseTitle} - ${jobCountText}Jobs Available | Workspa`
+      : `${baseTitle} | Workspa`;
     
-    const description = `Find ${jobCountText}Work Spa in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies in ${capitalizedArea}. Search Work Spa near you with salary, experience, and location filters.`;
+    const description = `Find ${jobCountText}spa jobs in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies with salary, experience, and location filters.`;
     
     const pageUrl = `${siteUrl}/cities/${params.city}/${params.area}`;
     
@@ -80,12 +80,12 @@ export async function generateMetadata({
       title: fullTitle,
       description,
       keywords: [
-        `Work Spa ${capitalizedArea}`,
-        `Work Spa in ${capitalizedArea}`,
-        `Work Spa ${capitalizedArea} ${capitalizedCity}`,
-        `Work Spa in ${capitalizedArea} ${capitalizedCity}`,
+        `spa jobs ${capitalizedArea}`,
+        `spa jobs in ${capitalizedArea}`,
+        `spa jobs ${capitalizedArea} ${capitalizedCity}`,
+        `spa jobs in ${capitalizedArea} ${capitalizedCity}`,
         `jobs in ${capitalizedArea}`,
-        `${capitalizedArea} Work Spa`,
+        `${capitalizedArea} spa jobs`,
         capitalizedArea,
         capitalizedCity,
       ],
@@ -94,7 +94,7 @@ export async function generateMetadata({
         url: pageUrl,
         title: fullTitle,
         description,
-        siteName: 'Workspa - Work Spa Portal',
+        siteName: 'Workspa - Spa Jobs Portal',
       },
       twitter: {
         card: 'summary_large_image',
@@ -131,8 +131,8 @@ export async function generateMetadata({
       .join(' ');
     
     return {
-      title: `Work Spa in ${capitalizedArea}, ${capitalizedCity} | Work Spa Portal`,
-      description: `Find Work Spa in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies.`,
+      title: `Spa Jobs in ${capitalizedArea}, ${capitalizedCity} | Workspa`,
+      description: `Find spa jobs in ${capitalizedArea}, ${capitalizedCity}. Browse and apply to spa job vacancies.`,
       robots: {
         index: true,
         follow: true,

@@ -5,7 +5,7 @@ import { locationLandingPages, roleLandingPages } from '@/lib/content/seo-pages'
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Cache for 1 hour
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in').replace(/\/$/, '');
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function xmlEscape(value: string) {

@@ -282,11 +282,10 @@ export default function ChatWidget() {
           >
             <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity">
               <Image
-                src="/uploads/chatbotimage.png"
+                src="/uploads/chatbotimage.webp"
                 alt="Chatbot"
                 fill
                 className="object-cover"
-                unoptimized
               />
             </div>
             <div className="relative z-10">
@@ -304,11 +303,10 @@ export default function ChatWidget() {
             {/* Background Image */}
             <div className="absolute inset-0 opacity-10">
               <Image
-                src="/uploads/chatbotimage.png"
+                src="/uploads/chatbotimage.webp"
                 alt="Chatbot background"
                 fill
                 className="object-cover"
-                unoptimized
               />
             </div>
             
@@ -316,12 +314,11 @@ export default function ChatWidget() {
               {/* Chatbot Avatar with Image */}
               <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex items-center justify-center shadow-lg border-2 border-white/30">
                 <Image
-                  src="/uploads/chatbotimage.png"
+                  src="/uploads/chatbotimage.webp"
                   alt={assistantName ? `${assistantName}, Workspa Assistant` : 'Workspa Assistant'}
                   width={40}
                   height={40}
                   className="w-full h-full object-cover"
-                  unoptimized
                 />
               </div>
               <div>

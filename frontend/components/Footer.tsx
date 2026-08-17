@@ -55,12 +55,11 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="inline-flex items-center">
               <Image
-                src="/uploads/navbar.png"
+                src="/uploads/navbar.webp"
                 alt="Workspa Logo"
                 width={160}
                 height={48}
                 className="h-12 w-auto object-contain"
-                priority
               />
             </Link>
 

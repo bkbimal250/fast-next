@@ -4,10 +4,10 @@ import { generatePageMetadata } from '@/lib/seo';
 // Default metadata for jobs listing page
 // This can be overridden by child routes with generateMetadata
 export const metadata: Metadata = generatePageMetadata(
-  'Browse All Work Spa',
-  'Browse thousands of Work Spa across India. Filter by location, salary, experience, and job type. Find therapist, receptionist, and spa manager positions.',
+  'Browse Spa Jobs',
+  'Browse verified spa jobs across India. Filter by location, salary, experience, and job type to find therapist, receptionist, beautician, and spa manager openings.',
   {
-    keywords: ['browse Work Spa', 'all Work Spa', 'spa job listings', 'spa job search'],
+    keywords: ['browse spa jobs', 'all spa jobs', 'spa job listings', 'spa job search'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in'}/jobs`,
   }
 );

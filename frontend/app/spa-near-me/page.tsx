@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { spaAPI, Spa } from '@/lib/spa';
 import Navbar from '@/components/Navbar';
 import SpaCard from '@/components/SpaCard';
-import Pagination from '@/components/Pagination';
 import Link from 'next/link';
 
 interface Location {
   latitude: number;
   longitude: number;
 }
+
+const SPA_BATCH_SIZE = 15;
 
 export default function SpaNearMePage() {
   const [spas, setSpas] = useState<Spa[]>([]);
@@ -21,8 +22,8 @@ export default function SpaNearMePage() {
   const [radius, setRadius] = useState(10); // Default 10km radius
   const [distances, setDistances] = useState<Record<number, number>>({});
   const [sortBy, setSortBy] = useState<'distance' | 'name'>('distance');
-  const [currentPage, setCurrentPage] = useState(1);
-  const spasPerPage = 15;
+  const [visibleCount, setVisibleCount] = useState(SPA_BATCH_SIZE);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Only get location on client side
@@ -41,7 +42,7 @@ export default function SpaNearMePage() {
     if (spas.length > 0 && sortBy === 'name') {
       const sorted = [...spas].sort((a, b) => a.name.localeCompare(b.name));
       setSpas(sorted);
-      setCurrentPage(1); // Reset to first page when sorting changes
+      setVisibleCount(SPA_BATCH_SIZE);
     } else if (spas.length > 0 && sortBy === 'distance') {
       const sorted = [...spas].sort((a, b) => {
         const distA = distances[a.id] || Infinity;
@@ -49,15 +50,29 @@ export default function SpaNearMePage() {
         return distA - distB;
       });
       setSpas(sorted);
-      setCurrentPage(1); // Reset to first page when sorting changes
+      setVisibleCount(SPA_BATCH_SIZE);
     }
   }, [sortBy]);
 
-  // Calculate paginated spas
-  const paginatedSpas = spas.slice(
-    (currentPage - 1) * spasPerPage,
-    currentPage * spasPerPage
-  );
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel || visibleCount >= spas.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((count) => Math.min(count + SPA_BATCH_SIZE, spas.length));
+        }
+      },
+      { rootMargin: '300px 0px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [spas.length, visibleCount]);
+
+  const visibleSpas = spas.slice(0, visibleCount);
+  const hasMoreSpas = visibleCount < spas.length;
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -133,6 +148,7 @@ export default function SpaNearMePage() {
 
       setSpas(nearbySpas);
       setDistances(distanceMap);
+      setVisibleCount(SPA_BATCH_SIZE);
     } catch (err: any) {
       let errorMessage = 'Failed to fetch nearby SPAs';
       
@@ -389,19 +405,22 @@ export default function SpaNearMePage() {
 
             {/* Spa Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {paginatedSpas.map((spa) => (
+              {visibleSpas.map((spa) => (
                 <SpaCard key={spa.id} spa={spa} distance={distances[spa.id]} showDistance={true} />
               ))}
             </div>
 
-            {/* Pagination */}
-            <div className="mt-6 sm:mt-8">
-              <Pagination
-                currentPage={currentPage}
-                totalItems={spas.length}
-                itemsPerPage={spasPerPage}
-                onPageChange={setCurrentPage}
-              />
+            <div ref={loadMoreRef} className="mt-6 flex min-h-[56px] items-center justify-center">
+              {hasMoreSpas ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+                  Loading more spas
+                </div>
+              ) : (
+                <span className="text-sm font-medium text-slate-500">
+                  You have seen all {spas.length} {spas.length === 1 ? 'spa' : 'spas'}
+                </span>
+              )}
             </div>
           </>
         )}

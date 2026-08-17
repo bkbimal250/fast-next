@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { FaShieldAlt, FaLock, FaUserShield, FaEye, FaDatabase, FaCookie } from 'react-icons/fa';
 import Navbar from '@/components/Navbar';
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Work Spa',
-  description: 'Read our privacy policy to understand how we collect, use, and protect your personal information on Work Spa.',
+  title: 'Privacy Policy | Workspa',
+  description: 'Read our privacy policy to understand how we collect, use, and protect your personal information on Workspa.',
   robots: 'index, follow',
 };
 
@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
             Last Updated: <span className="font-semibold">{lastUpdated}</span>
           </p>
           <p className="text-gray-600 mt-2">
-            At Work Spa, we are committed to protecting your privacy and ensuring the security of your personal information. 
+            At Workspa, we are committed to protecting your privacy and ensuring the security of your personal information. 
             This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
           </p>
         </div>
@@ -264,11 +264,10 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer Note */}
         <div className="mt-8 text-center text-sm text-gray-600">
-          <p>By using Work Spa, you acknowledge that you have read and understood this Privacy Policy.</p>
+          <p>By using Workspa, you acknowledge that you have read and understood this Privacy Policy.</p>
         </div>
       </div>
     </div>
     </>
   );
 }
-

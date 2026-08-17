@@ -217,7 +217,7 @@ export default function LocationJobsClient({ urlMode }: LocationJobsClientProps)
   }, [locationNames, locationSlug]);
 
   const enhancedDescription = useMemo(() => {
-    const baseDescription = `Find ${jobCount > 0 ? jobCount : 'verified'} Work Spa jobs in ${locationDisplayName}.`;
+    const baseDescription = `Find ${jobCount > 0 ? jobCount : 'verified'} spa jobs in ${locationDisplayName}.`;
     return `${baseDescription} Browse therapist, receptionist, beautician, and spa manager positions with search and category filters.`;
   }, [locationDisplayName, jobCount]);
 
@@ -230,7 +230,7 @@ export default function LocationJobsClient({ urlMode }: LocationJobsClientProps)
   const collectionPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `Work Spa in ${locationDisplayName}`,
+    name: `Spa Jobs in ${locationDisplayName}`,
     description: enhancedDescription,
     url: pageUrl,
     mainEntity: {
@@ -292,12 +292,12 @@ export default function LocationJobsClient({ urlMode }: LocationJobsClientProps)
   return (
     <div className="min-h-screen bg-surface-light">
       <SEOHead
-        title={`Work Spa in ${locationDisplayName} - ${jobCount > 0 ? `${jobCount} Jobs Available` : 'Find Work Spa'}`}
+        title={`Spa Jobs in ${locationDisplayName} - ${jobCount > 0 ? `${jobCount} Jobs Available` : 'Find Spa Jobs'}`}
         description={enhancedDescription}
         keywords={[
-          `Work Spa ${locationDisplayName}`,
-          `Work Spa in ${locationDisplayName}`,
-          `${locationDisplayName} Work Spa`,
+          `spa jobs ${locationDisplayName}`,
+          `spa jobs in ${locationDisplayName}`,
+          `${locationDisplayName} spa jobs`,
           'spa therapist jobs',
           'massage therapist jobs',
           'spa manager jobs',
@@ -313,7 +313,7 @@ export default function LocationJobsClient({ urlMode }: LocationJobsClientProps)
       <Navbar />
 
       <PublicJobsHero
-        title={`Work Spa in ${locationDisplayName}`}
+        title={`Spa Jobs in ${locationDisplayName}`}
         subtitle="Browse verified spa openings by role, salary, experience, timing, and nearby area. Use quick search and category filters to narrow the list."
         locationLabel={locationDisplayName}
         jobCount={jobCount}

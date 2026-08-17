@@ -1,15 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   FaBriefcase,
   FaCalendarAlt,
   FaClock,
   FaMapMarkerAlt,
+  FaPhoneAlt,
   FaRupeeSign,
   FaUser,
   FaUsers,
+  FaWhatsapp,
 } from 'react-icons/fa';
 import { Job } from '@/lib/job';
 import { capitalizeTitle } from '@/lib/text-utils';
@@ -87,14 +89,38 @@ function stripHtml(value?: string) {
 }
 
 export default function PublicJobCard({ job }: PublicJobCardProps) {
+  const router = useRouter();
   const logoUrl = getLogoUrl(job);
   const postedDate = formatDate(job.created_at);
   const description = stripHtml(job.description);
+  const contactPhone = job.hr_contact_phone?.replace(/[^\d+]/g, '') || '';
+  const callHref = contactPhone ? `tel:${contactPhone}` : undefined;
+  const whatsappPhone = contactPhone
+    ? contactPhone.startsWith('+')
+      ? contactPhone.replace(/[^\d]/g, '')
+      : `91${contactPhone.replace(/^0+/, '')}`
+    : '';
+  const whatsappMessage = encodeURIComponent(
+    `Hi, I am interested in the ${capitalizeTitle(job.title)} job${job.spa?.name ? ` at ${capitalizeTitle(job.spa.name)}` : ''}.`
+  );
+  const whatsappHref = whatsappPhone ? `https://wa.me/${whatsappPhone}?text=${whatsappMessage}` : undefined;
+
+  const handleCardClick = () => {
+    router.push(`/jobs/${job.slug}`);
+  };
 
   return (
-    <Link
-      href={`/jobs/${job.slug}`}
-      className="group flex h-full flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg"
+    <article
+      onClick={handleCardClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleCardClick();
+        }
+      }}
+      className="group flex h-full cursor-pointer flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
     >
       <div className="flex items-start gap-3">
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-brand-50">
@@ -105,7 +131,6 @@ export default function PublicJobCard({ job }: PublicJobCardProps) {
               fill
               className="object-cover"
               sizes="48px"
-              unoptimized
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-brand-700 text-sm font-bold text-white">
@@ -171,16 +196,64 @@ export default function PublicJobCard({ job }: PublicJobCardProps) {
         )}
       </div>
 
-      <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
-        <span className="flex items-center gap-1.5">
-          <FaUsers size={12} />
-          {job.job_opening_count || 1} opening{(job.job_opening_count || 1) > 1 ? 's' : ''}
-        </span>
-        <span className="flex items-center gap-1.5">
-          {job.job_timing ? <FaClock size={12} /> : <FaUser size={12} />}
-          {job.job_timing || job.required_gender || 'Apply now'}
-        </span>
+      <div className="mt-auto border-t border-slate-100 pt-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+          <span className="flex items-center gap-1.5">
+            <FaUsers size={12} />
+            {job.job_opening_count || 1} opening{(job.job_opening_count || 1) > 1 ? 's' : ''}
+          </span>
+          <span className="flex items-center gap-1.5">
+            {job.job_timing ? <FaClock size={12} /> : <FaUser size={12} />}
+            {job.job_timing || job.required_gender || 'Contact employer'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {callHref ? (
+            <a
+              href={callHref}
+              onClick={(event) => event.stopPropagation()}
+              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              <FaPhoneAlt size={13} />
+              Call
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={(event) => event.stopPropagation()}
+              disabled
+              className="flex cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-sm font-bold text-slate-400"
+            >
+              <FaPhoneAlt size={13} />
+              Call
+            </button>
+          )}
+
+          {whatsappHref ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              className="flex items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-700"
+            >
+              <FaWhatsapp size={15} />
+              WhatsApp
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={(event) => event.stopPropagation()}
+              disabled
+              className="flex cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2.5 text-sm font-bold text-slate-400"
+            >
+              <FaWhatsapp size={15} />
+              WhatsApp
+            </button>
+          )}
+        </div>
       </div>
-    </Link>
+    </article>
   );
 }

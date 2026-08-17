@@ -18,12 +18,11 @@ export default function ChatMessage({ message, isUser }: ChatMessageProps) {
           </div>
         ) : (
           <Image
-            src="/uploads/chatbotimage.png"
+            src="/uploads/chatbotimage.webp"
             alt="Workspa Assistant"
             width={32}
             height={32}
             className="w-full h-full object-cover"
-            unoptimized
           />
         )}
       </div>

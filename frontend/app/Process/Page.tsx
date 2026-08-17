@@ -15,7 +15,7 @@ export default function ProcessPage() {
           How It Works
         </h2>
         <p className="mt-3 text-gray-600 max-w-xl mx-auto">
-          Find Work Spa faster with a simple, transparent hiring process
+          Find spa jobs faster with a simple, transparent hiring process
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function ProcessPage() {
           {/* Step 1 Image */}
           <div className="relative w-full h-48 md:h-64 mx-auto">
             <Image
-              src="/uploads/step1.png"
+              src="/uploads/step1.webp"
               alt="Create Your Profile"
               fill
               className="object-contain"
@@ -40,7 +40,7 @@ export default function ProcessPage() {
           {/* Step 2 Image */}
           <div className="relative w-full h-48 md:h-64 mx-auto">
             <Image
-              src="/uploads/step2.png"
+              src="/uploads/step2.webp"
               alt="Search & Apply"
               fill
               className="object-contain"
@@ -50,7 +50,7 @@ export default function ProcessPage() {
           {/* Step 3 Image */}
           <div className="relative w-full h-48 md:h-64 mx-auto">
             <Image
-              src="/uploads/step3.png"
+              src="/uploads/step3.webp"
               alt="Get Hired"
               fill
               className="object-contain"
@@ -63,13 +63,13 @@ export default function ProcessPage() {
           {/* Step 1 */}
           <Step
             title="Create Your Profile"
-            desc="Add your basic details or continue without login to explore Work Spa."
+            desc="Add your basic details or continue without login to explore spa jobs."
           />
 
           {/* Step 2 */}
           <Step
             title="Search & Apply"
-            desc="Find nearby Work Spa, view details, and apply instantly with your CV."
+            desc="Find nearby spa jobs, view details, and apply instantly with your CV."
           />
 
           {/* Step 3 */}

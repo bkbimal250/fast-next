@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://workspa.in';
-const siteName = 'Workspa - Work Spa Portal';
+const siteName = 'Workspa - Spa Jobs Portal';
 
 /**
  * Default SEO metadata for pages
@@ -9,20 +9,20 @@ const siteName = 'Workspa - Work Spa Portal';
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Work Spa Near Me - Find Work Spa in Your City | Work Spa Portal',
-    template: '%s | Work Spa Portal',
+    default: 'Spa Jobs Near Me - Find Spa Jobs in Your City | Workspa',
+    template: '%s | Workspa',
   },
-  description: 'Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience. Search for therapist, receptionist, and spa manager positions.',
+  description: 'Find spa jobs near you. Apply directly to spas without login. Browse spa therapist, receptionist, beautician, and spa manager jobs by location, salary, and experience.',
   keywords: [
     // Core Spa Job Keywords (India)
-    'Work Spa',
-    'Work Spa in india',
+    'spa jobs',
+    'spa jobs in india',
     'spa job vacancy',
     'spa job near me',
     'spa therapist jobs',
     'massage therapist jobs',
     'wellness jobs india',
-    'luxury Work Spa',
+    'luxury spa jobs',
     'female therapist jobs',
     'male therapist jobs',
     'spa hiring today',
@@ -47,7 +47,7 @@ export const defaultMetadata: Metadata = {
     'front desk executive spa',
     'spa front office jobs',
     'receptionist jobs in spa',
-    'female receptionist Work Spa',
+    'female spa receptionist jobs',
     'spa desk job vacancy',
 
     // Spa Manager / Supervisor Keywords
@@ -67,12 +67,12 @@ export const defaultMetadata: Metadata = {
 
     // Beauty / Wellness Specialist Keywords
     'beauty therapist jobs',
-    'beauty Work Spa',
+    'beauty spa jobs',
     'skin therapist jobs',
     'facial therapist jobs',
     'cosmetologist jobs in spa',
     'aesthetic therapist jobs',
-    'salon and Work Spa',
+    'salon and spa jobs',
 
     // Sales / Business / Support Keywords
     'spa sales executive jobs',
@@ -82,17 +82,17 @@ export const defaultMetadata: Metadata = {
     'wellness sales jobs',
 
     // Location-Based Keywords (Major Cities)
-    'Work Spa Mumbai',
-    'Work Spa Delhi',
-    'Work Spa Bangalore',
-    'Work Spa Pune',
-    'Work Spa Hyderabad',
-    'Work Spa Chennai',
-    'Work Spa Goa',
-    'Work Spa Navi Mumbai',
+    'spa jobs Mumbai',
+    'spa jobs Delhi',
+    'spa jobs Bangalore',
+    'spa jobs Pune',
+    'spa jobs Hyderabad',
+    'spa jobs Chennai',
+    'spa jobs Goa',
+    'spa jobs Navi Mumbai',
 
     // Near Me & High-Conversion Keywords
-    'Work Spa near me',
+    'spa jobs near me',
     'massage therapist jobs near me',
     'spa vacancy near me',
     'spa job opening today',
@@ -111,21 +111,21 @@ export const defaultMetadata: Metadata = {
     locale: 'en_IN',
     url: siteUrl,
     siteName: siteName,
-    title: 'Work Spa Near Me - Find Work Spa in Your City',
-    description: 'Find the best Work Spa near you. Apply directly to spas without login. Browse thousands of Work Spa by location, salary, and experience.',
+    title: 'Spa Jobs Near Me - Find Spa Jobs in Your City',
+    description: 'Find spa jobs near you. Apply directly to spas without login. Browse spa jobs by location, salary, and experience.',
     images: [
       {
         url: `${siteUrl}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: 'Work Spa Portal - Find Your Dream Spa Job',
+        alt: 'Workspa - Find Your Spa Job',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Work Spa Near Me - Find Work Spa in Your City',
-    description: 'Find the best Work Spa near you. Apply directly to spas without login.',
+    title: 'Spa Jobs Near Me - Find Spa Jobs in Your City',
+    description: 'Find spa jobs near you. Apply directly to spas without login.',
     images: [`${siteUrl}/og-image.jpg`],
     creator: '@spajobs',
   },
@@ -211,12 +211,12 @@ export function generateJobListingMetadata(
   const categoryText = category ? ` ${category}` : '';
   const countText = count ? `${count}+ ` : '';
 
-  const title = `${categoryText}Work Spa${locationText} | Find Work Spa${locationText}`;
-  const description = `Find ${countText}${categoryText.toLowerCase()} Work Spa${locationText.toLowerCase()}. Browse therapist, receptionist, and spa manager positions. Apply directly without login.`;
+  const title = `${categoryText}Spa Jobs${locationText} | Find Spa Jobs${locationText}`;
+  const description = `Find ${countText}${categoryText.toLowerCase()} spa jobs${locationText.toLowerCase()}. Browse therapist, receptionist, and spa manager positions. Apply directly without login.`;
 
   return generatePageMetadata(title, description, {
     keywords: location
-      ? [`Work Spa ${location}`, `Work Spa in ${location}`, `${location} Work Spa`]
+      ? [`spa jobs ${location}`, `spa jobs in ${location}`, `${location} spa jobs`]
       : undefined,
   });
 }
@@ -237,7 +237,7 @@ export function generateJobDetailMetadata(
     keywords: [
       jobTitle.toLowerCase(),
       `${jobTitle} jobs`,
-      `Work Spa ${location}`,
+      `spa jobs ${location}`,
       `${spaName} careers`,
     ],
   });
@@ -259,7 +259,7 @@ export function generateSpaDetailMetadata(
       spaName.toLowerCase(),
       `${spaName} spa`,
       `spa ${location}`,
-      `Work Spa ${location}`,
+      `spa jobs ${location}`,
     ],
   });
 }

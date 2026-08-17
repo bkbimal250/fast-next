@@ -5,8 +5,8 @@ import SubscribeForm from '@/components/SubscribeForm';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'About Us | Work Spa',
-  description: 'Learn about Work Spa - India\'s leading platform connecting job seekers with spa businesses. Our mission, vision, and values.',
+  title: 'About Us | Workspa',
+  description: 'Learn about Workspa, India\'s spa jobs platform connecting job seekers with spa businesses. Our mission, vision, and values.',
   robots: 'index, follow',
 };
 
@@ -28,7 +28,7 @@ export default function AboutPage() {
             {/* Text Content */}
             <div className="text-center md:text-left">
               <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
-                About Work Spa
+                About Workspa
               </div>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
                 Connecting Talent with
@@ -62,8 +62,8 @@ export default function AboutPage() {
                 
             
                   <Image
-                    src="/uploads/workspa.png"
-                    alt="Work Spa - Connecting Professionals"
+                    src="/uploads/workspa.webp"
+                    alt="Workspa - Connecting Professionals"
                     width={450}
                     height={450}
                     className="object-cover w-full h-full"
@@ -224,7 +224,7 @@ export default function AboutPage() {
               </div>
               <h3 className="font-bold text-gray-900 mb-2 text-lg">Free Job Search</h3>
               <p className="text-gray-600 leading-relaxed">
-                Browse thousands of Work Spa across India without creating an account. 
+                Browse thousands of spa jobs across India without creating an account. 
                 Search by location, job type, salary, and more.
               </p>
             </div>
@@ -290,7 +290,7 @@ export default function AboutPage() {
           <div className="relative text-center mb-8">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Join Our Growing Community</h2>
             <p className="text-white/90 text-lg max-w-2xl mx-auto">
-              Thousands of professionals trust Work Spa for their career journey
+              Thousands of professionals trust Workspa for their career journey
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
@@ -319,7 +319,7 @@ export default function AboutPage() {
           <div className="relative">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Ready to Start Your Career Journey?</h2>
             <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of spa professionals who have found their perfect career match through Work Spa.
+              Join thousands of spa professionals who have found their perfect career match through Workspa.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a

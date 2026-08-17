@@ -74,7 +74,6 @@ export default function JobDetailsCard({ job, applicationCount = 0, onTrackApply
                 width={40}
                 height={40}
                 className="w-10 h-10 rounded-lg object-cover border border-gray-200"
-                unoptimized
               />
             ) : (
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-sm font-semibold border border-gray-200">
